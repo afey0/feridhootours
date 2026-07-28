@@ -597,9 +597,11 @@ describe('FeridhooTours App E2E Flows', () => {
     fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'password123' } });
     fireEvent.click(screen.getByTestId('signin-submit-btn'));
 
-    // 2. Open My Bookings
-    await waitFor(() => expect(screen.getAllByText('My Bookings')[0]).toBeTruthy());
-    fireEvent.click(screen.getAllByText('My Bookings')[0]);
+    // 2. Open My Bookings via Hamburger Menu
+    const menuBtn = screen.getByRole('button', { name: /Menu/i });
+    fireEvent.click(menuBtn);
+    await waitFor(() => expect(screen.getByText('My Bookings & Boarding Passes')).toBeTruthy());
+    fireEvent.click(screen.getByText('My Bookings & Boarding Passes'));
 
     // 3. Select first booking card
     await waitFor(() => expect(screen.getByText('Reference:')).toBeTruthy());
