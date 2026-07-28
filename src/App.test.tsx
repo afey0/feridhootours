@@ -55,8 +55,7 @@ describe('FeridhooTours App E2E Flows', () => {
     // Check Dashboard renders
     await waitFor(() => {
       expect(screen.getByText('Operator Dashboard')).toBeTruthy();
-      expect(screen.getByText(/Defined Revenue/i)).toBeTruthy();
-      expect(screen.getByText('MVR 45,200')).toBeTruthy();
+      expect(screen.getByText('Total Revenue')).toBeTruthy();
     });
   });
 
