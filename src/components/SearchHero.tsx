@@ -152,7 +152,7 @@ export const SearchHero: React.FC<Props> = ({ onSearch, initialFromPort, initial
             type="submit" 
             className="w-full sm:w-auto bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-black px-8 py-3.5 rounded-2xl shadow-lg shadow-sky-600/20 hover:shadow-sky-600/35 transition duration-200 flex items-center justify-center gap-2.5 cursor-pointer text-sm"
           >
-            <Search size={18} /> Search Speedboat Schedules
+            <Search size={18} /> Find Schedules
           </button>
         </div>
       </form>
