@@ -261,7 +261,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   <input 
                     type="password" 
                     className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-slate-800 text-sm font-medium focus:outline-none focus:border-sky-500 focus:bg-white transition"
-                    placeholder="••••••••"
+                    placeholder="Create a password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -275,7 +275,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   <input 
                     type="password" 
                     className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-slate-800 text-sm font-medium focus:outline-none focus:border-sky-500 focus:bg-white transition"
-                    placeholder="••••••••"
+                    placeholder="Confirm your password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
@@ -288,7 +288,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose }) => {
               type="submit" 
               className="w-full bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-sky-600/20 transition cursor-pointer text-sm mt-2"
             >
-              Create Account
+              Sign Up & Register
             </button>
 
             <div className="pt-4 border-t border-slate-100 text-center">
