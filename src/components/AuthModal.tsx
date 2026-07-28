@@ -230,7 +230,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 <input 
                   type="text" 
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-slate-800 text-sm font-medium focus:outline-none focus:border-sky-500 focus:bg-white transition"
-                  placeholder="e.g. Ibrahim Rasheed"
+                  placeholder="Ahmed Waheed"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
