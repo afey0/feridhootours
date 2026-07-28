@@ -17,7 +17,7 @@ import { PublicTicketModal } from './components/PublicTicketModal';
 import { useBookingFlow } from './store/useBookingFlow';
 import { useAuthStore } from './store/useAuthStore';
 import { usePlatformStore } from './store/usePlatformStore';
-import { Ticket, Anchor, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { Anchor, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 
 export type ActivePage = 
   | 'booking' 
@@ -158,18 +158,7 @@ function App() {
         onOpenMyBookings={() => setActivePage('my_bookings')}
       />
 
-      {/* Floating My Bookings / Agency manifest view trigger */}
-      {user && activePage === 'booking' && (
-        <div className="flex justify-end mb-4 sm:mb-6 animate-fade-in">
-          <button 
-            className="bg-white hover:bg-slate-50 text-slate-700 font-extrabold px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-slate-200/80 shadow-md flex items-center gap-2 cursor-pointer transition text-xs sm:text-sm"
-            onClick={() => setActivePage('my_bookings')}
-          >
-            <Ticket size={18} className="text-sky-600 shrink-0" /> 
-            <span>{user.role === 'agency' ? 'Agency Manifest Directory' : 'My Bookings & Passes'}</span>
-          </button>
-        </div>
-      )}
+
 
       <main className="flex-1">
         {/* FULL PAGE ROUTER VIEWS */}

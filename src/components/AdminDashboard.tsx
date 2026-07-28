@@ -95,7 +95,7 @@ export const AdminDashboard: React.FC = () => {
     adminUpdateUser
   } = useAuthStore();
 
-  const [activeTab, setActiveTab] = useState<'vessels' | 'fleet' | 'verify' | 'bookings' | 'locations' | 'reports' | 'emails' | 'users'>('fleet');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'vessels' | 'fleet' | 'verify' | 'bookings' | 'locations' | 'reports' | 'emails' | 'users'>('dashboard');
   const [previewingSlipUrl, setPreviewingSlipUrl] = useState<string | null>(null);
   const [managingScheduleId, setManagingScheduleId] = useState<string | null>(null);
   const [adminSelectedSeats, setAdminSelectedSeats] = useState<Seat[]>([]);
@@ -512,44 +512,29 @@ export const AdminDashboard: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Operator Dashboard</h2>
-          <p className="text-slate-500 text-sm mt-1 font-medium">Real-time overview of smart vessel logistics and verification queues.</p>
-        </div>
-        <div className="flex gap-3 w-full md:w-auto">
-          <button 
-            className="flex-1 md:flex-none bg-rose-500 hover:bg-rose-600 text-white font-bold px-5 py-3 rounded-xl shadow-lg shadow-rose-500/10 transition duration-200 flex items-center justify-center gap-2 cursor-pointer text-sm"
-            onClick={() => showAlert('Broadcasting system warning: Male-Maafushi Speedboats delayed by 20 mins due to strong winds.', 'Broadcast System Warning', 'success')}
-          >
-            <AlertTriangle size={18} /> Broadcast Disruption
-          </button>
-          <button 
-            className="flex-1 md:flex-none bg-sky-500 hover:bg-sky-600 text-white font-bold px-5 py-3 rounded-xl shadow-lg shadow-sky-500/10 transition duration-200 flex items-center justify-center gap-2 cursor-pointer text-sm font-bold"
-            onClick={() => {
-              setEditingScheduleId(null);
-              setRouteVesselId(vessels[0]?.id || '');
-              setDepartureTime('09:00 AM');
-              setArrivalTime('10:00 AM');
-              setPrice(25);
-              setRouteFrom('MLE');
-              setRouteTo('MAF');
-              setStops([]);
-              setDisabled(false);
-              setMaintenance(false);
-              setShowAddForm(true);
-            }}
-          >
-            <Plus size={18} /> New Schedule
-          </button>
+          <p className="text-slate-500 text-sm mt-1 font-medium">Real-time overview of smart vessel logistics, financial summaries, and verification queues.</p>
         </div>
       </div>
 
       {/* Tabs Menu */}
       <div className="flex border-b border-slate-200 gap-2 overflow-x-auto scrollbar-none">
         <button
+          id="tab-dashboard"
+          onClick={() => setActiveTab('dashboard')}
+          className={`flex items-center gap-2 py-3 px-5 font-semibold text-sm border-b-2 transition duration-200 cursor-pointer whitespace-nowrap ${
+            activeTab === 'dashboard' 
+              ? 'border-sky-500 text-sky-700 bg-sky-50 rounded-t-lg font-bold' 
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <BarChart3 size={16} /> Overview Dashboard
+        </button>
+        <button
           id="tab-vessels"
           onClick={() => setActiveTab('vessels')}
           className={`flex items-center gap-2 py-3 px-5 font-semibold text-sm border-b-2 transition duration-200 cursor-pointer whitespace-nowrap ${
             activeTab === 'vessels' 
-              ? 'border-sky-500 text-sky-700 bg-sky-50 rounded-t-lg' 
+              ? 'border-sky-500 text-sky-700 bg-sky-50 rounded-t-lg font-bold' 
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -632,34 +617,168 @@ export const AdminDashboard: React.FC = () => {
         </button>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        
-        <div className="glass-panel rounded-2xl p-6 border border-slate-200 shadow-lg border-t-4 border-t-sky-500">
-          <div className="text-slate-500 text-xs font-bold uppercase tracking-wider flex items-center gap-2 mb-3">
-            <DollarSign size={16} className="text-sky-600" /> Defined Revenue (Today)
+      {/* OVERVIEW DASHBOARD TAB */}
+      {activeTab === 'dashboard' && (
+        <div className="space-y-6 animate-fade-in text-left">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 className="text-xl font-bold text-slate-850">Logistics & Revenue Dashboard</h3>
+              <p className="text-slate-500 text-xs font-semibold mt-0.5">Comprehensive real-time overview of bookings, revenue, fleet deployment, and alerts.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button 
+                className="bg-rose-500 hover:bg-rose-600 text-white font-extrabold px-4 py-2.5 rounded-xl shadow-md transition duration-200 flex items-center gap-2 cursor-pointer text-xs"
+                onClick={() => showAlert('Broadcasting system warning: Male-Maafushi Speedboats delayed by 20 mins due to strong winds.', 'Broadcast Disruption Alert', 'info')}
+              >
+                <AlertTriangle size={16} /> Broadcast Disruption
+              </button>
+              <button 
+                className="bg-sky-600 hover:bg-sky-500 text-white font-extrabold px-4 py-2.5 rounded-xl shadow-md transition duration-200 flex items-center gap-2 cursor-pointer text-xs"
+                onClick={() => {
+                  setEditingScheduleId(null);
+                  setRouteVesselId(vessels[0]?.id || '');
+                  setDepartureTime('09:00 AM');
+                  setArrivalTime('10:00 AM');
+                  setPrice(25);
+                  setRouteFrom('MLE');
+                  setRouteTo('MAF');
+                  setStops([]);
+                  setDisabled(false);
+                  setMaintenance(false);
+                  setShowAddForm(true);
+                }}
+              >
+                <Plus size={16} /> New Schedule
+              </button>
+            </div>
           </div>
-          <div className="text-3xl font-black text-slate-800">MVR 45,200</div>
-          <span className="text-[10px] text-slate-500 block mt-2 font-medium">Accumulated mock base + live reservations</span>
-        </div>
 
-        <div className="glass-panel rounded-2xl p-6 border border-slate-200 shadow-lg border-t-4 border-t-emerald-500">
-          <div className="text-slate-500 text-xs font-bold uppercase tracking-wider flex items-center gap-2 mb-3">
-            <Users size={16} className="text-emerald-600" /> Bookings Made
+          {/* Summarized Information Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Revenue Card */}
+            <div className="glass-panel p-5 rounded-2xl border border-slate-200 bg-white shadow-md border-t-4 border-t-emerald-500">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Total Revenue</span>
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                  <DollarSign size={18} />
+                </div>
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-slate-900 font-display">
+                ${bookings.filter(b => b.status !== 'cancelled').reduce((sum, b) => sum + (b.totalAmount || 0), 0).toFixed(2)}
+              </div>
+              <p className="text-[11px] font-bold text-slate-400 mt-1">Total revenue across all verified bookings</p>
+            </div>
+
+            {/* Bookings Card */}
+            <div className="glass-panel p-5 rounded-2xl border border-slate-200 bg-white shadow-md border-t-4 border-t-sky-500">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Bookings Made</span>
+                <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600">
+                  <ClipboardList size={18} />
+                </div>
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-slate-900 font-display">
+                {bookings.length}
+              </div>
+              <p className="text-[11px] font-bold text-slate-400 mt-1">{bookings.filter(b => b.status === 'verified').length} verified, {pendingBookings.length} pending</p>
+            </div>
+
+            {/* Active Fleet Card */}
+            <div className="glass-panel p-5 rounded-2xl border border-slate-200 bg-white shadow-md border-t-4 border-t-indigo-500">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Active Fleet</span>
+                <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600">
+                  <Ship size={18} />
+                </div>
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-slate-900 font-display">
+                {vessels.length} Vessels
+              </div>
+              <p className="text-[11px] font-bold text-slate-400 mt-1">{schedules.length} active routes deployed</p>
+            </div>
+
+            {/* Verification Queue Card */}
+            <div className="glass-panel p-5 rounded-2xl border border-slate-200 bg-white shadow-md border-t-4 border-t-amber-500">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Slip Verification</span>
+                <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+                  <CreditCard size={18} />
+                </div>
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-slate-900 font-display">
+                {pendingBookings.length} Pending
+              </div>
+              <p className="text-[11px] font-bold text-amber-600 mt-1">{pendingBookings.length > 0 ? 'Slips awaiting manual review' : 'All slips processed'}</p>
+            </div>
           </div>
-          <div className="text-3xl font-black text-slate-800">{bookings.length}</div>
-          <span className="text-[10px] text-slate-500 block mt-2 font-medium">Active registered booking objects</span>
-        </div>
 
-        <div className="glass-panel rounded-2xl p-6 border border-slate-200 shadow-lg border-t-4 border-t-amber-500">
-          <div className="text-slate-500 text-xs font-bold uppercase tracking-wider flex items-center gap-2 mb-3">
-            <Ship size={16} className="text-amber-500" /> Active Fleet Schedules
+          {/* Logistics Overview & Quick Operations */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Recent Bookings Summary */}
+            <div className="lg:col-span-2 glass-panel p-6 rounded-2xl border border-slate-200 bg-white shadow-md space-y-4">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h4 className="font-extrabold text-slate-900 text-sm">Recent Booking Ledger</h4>
+                <button 
+                  onClick={() => setActiveTab('bookings')} 
+                  className="text-xs font-extrabold text-sky-600 hover:underline cursor-pointer"
+                >
+                  View All ({bookings.length}) →
+                </button>
+              </div>
+              <div className="divide-y divide-slate-100 overflow-x-auto">
+                {bookings.slice(0, 5).map(b => (
+                  <div key={b.id} className="py-3 flex items-center justify-between text-xs min-w-[300px]">
+                    <div>
+                      <div className="font-bold text-slate-800">{b.id} — {b.passengers[0]?.name || 'Passenger'}</div>
+                      <div className="text-[10px] text-slate-400 font-medium">{b.createdAt} · {b.selectedSeatIds.join(', ')}</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-extrabold text-slate-900">${b.totalAmount}</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                        b.status === 'verified' ? 'bg-emerald-100 text-emerald-800' :
+                        b.status === 'pending_verification' ? 'bg-amber-100 text-amber-800' :
+                        'bg-rose-100 text-rose-800'
+                      }`}>
+                        {b.status.replace('_', ' ')}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick Fleet Summary */}
+            <div className="glass-panel p-6 rounded-2xl border border-slate-200 bg-white shadow-md space-y-4">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h4 className="font-extrabold text-slate-900 text-sm">Fleet Deployment</h4>
+                <button 
+                  onClick={() => setActiveTab('vessels')} 
+                  className="text-xs font-extrabold text-sky-600 hover:underline cursor-pointer"
+                >
+                  Manage ({vessels.length}) →
+                </button>
+              </div>
+              <div className="space-y-3">
+                {vessels.map(v => (
+                  <div key={v.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-bold">
+                        <Ship size={16} />
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-800">{v.name}</div>
+                        <div className="text-[10px] text-slate-400">{v.type} · {v.layoutRows * v.layoutCols} Seats</div>
+                      </div>
+                    </div>
+                    <span className="text-[10px] bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded">Active</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="text-3xl font-black text-slate-800">{schedules.length} / 15</div>
-          <span className="text-[10px] text-slate-500 block mt-2 font-medium">Speedboat & Ferry transits running</span>
         </div>
-
-      </div>
+      )}
 
       {/* VESSELS TAB */}
       {activeTab === 'vessels' && (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Bell, LogOut, LayoutDashboard, Anchor, ShieldCheck, ChevronDown, UserCircle, Users, Ticket, Menu, X } from 'lucide-react';
+import { User, Bell, LogOut, LayoutDashboard, Anchor, ShieldCheck, ChevronDown, UserCircle, Users, Ticket, Menu, X, AlertTriangle } from 'lucide-react';
 import type { User as UserType } from '../store/useAuthStore';
 
 interface Props {
@@ -89,16 +89,6 @@ export const Navigation: React.FC<Props> = ({
             >
               <LayoutDashboard size={16} />
               <span>{showAdminView ? 'Back to Booking' : 'Admin Panel'}</span>
-            </button>
-          )}
-
-          {user && (
-            <button 
-              onClick={onOpenMyBookings}
-              className="bg-sky-50 hover:bg-sky-100/80 text-sky-700 border border-sky-200/80 px-4 py-2 rounded-2xl cursor-pointer flex items-center gap-2 transition duration-200 text-xs font-extrabold shadow-sm"
-            >
-              <Ticket size={16} className="text-sky-600" />
-              <span>{user.role === 'agency' ? 'Agency Manifest' : 'My Bookings'}</span>
             </button>
           )}
 
@@ -274,14 +264,27 @@ export const Navigation: React.FC<Props> = ({
             {/* Menu Links */}
             <div className="p-4 space-y-1.5 flex-1 text-left">
               {user?.role === 'admin' && (
-                <button
-                  type="button"
-                  onClick={() => { setDrawerOpen(false); setShowAdminView(!showAdminView); }}
-                  className="w-full p-3.5 rounded-2xl font-bold text-xs flex items-center gap-3 bg-slate-900 text-white hover:bg-slate-800 transition cursor-pointer"
-                >
-                  <LayoutDashboard size={18} />
-                  <span>{showAdminView ? 'Back to Booking App' : 'Operator Admin Control'}</span>
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => { setDrawerOpen(false); setShowAdminView(!showAdminView); }}
+                    className="w-full p-3.5 rounded-2xl font-bold text-xs flex items-center gap-3 bg-slate-900 text-white hover:bg-slate-800 transition cursor-pointer"
+                  >
+                    <LayoutDashboard size={18} />
+                    <span>{showAdminView ? 'Back to Booking App' : 'Operator Admin Control'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { 
+                      setDrawerOpen(false); 
+                      alert('Broadcasting system warning: Male-Maafushi Speedboats delayed by 20 mins due to sea conditions.'); 
+                    }}
+                    className="w-full p-3.5 rounded-2xl font-bold text-xs flex items-center gap-3 bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition cursor-pointer"
+                  >
+                    <AlertTriangle size={18} className="text-rose-600 shrink-0" />
+                    <span>Broadcast Disruption Alert</span>
+                  </button>
+                </>
               )}
 
               {user && (

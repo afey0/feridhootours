@@ -58,15 +58,6 @@ export const SearchHero: React.FC<Props> = ({ onSearch, initialFromPort, initial
 
   return (
     <div className="glass-panel rounded-3xl overflow-hidden shadow-xl border border-slate-200/80 text-left">
-      <div className="bg-gradient-to-r from-sky-600/10 via-indigo-600/5 to-transparent px-6 md:px-8 py-6 md:py-8 border-b border-slate-100">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 font-display">
-          Where to next in Maldives? 🏝️
-        </h2>
-        <p className="text-slate-500 mt-2 text-xs sm:text-sm md:text-base font-medium leading-relaxed max-w-2xl">
-          Book inter-island ferries and premium speedboats instantly across Male', Maafushi, Fulidhoo, and Dhigurah.
-        </p>
-      </div>
-      
       <form onSubmit={handleSearch} className="p-5 md:p-8 space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
           {/* FROM */}
