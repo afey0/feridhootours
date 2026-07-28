@@ -81,7 +81,7 @@ export const SavedPassengersModal: React.FC<Props> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="animate-fade-in max-w-3xl mx-auto space-y-6 my-4 text-left">
+    <div className="animate-fade-in max-w-3xl mx-auto space-y-6 pt-2 pb-8 text-left">
       {/* Navigation Top Bar */}
       <div className="flex items-center justify-between">
         <button

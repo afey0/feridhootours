@@ -54,7 +54,7 @@ export const Navigation: React.FC<Props> = ({
 
   return (
     <>
-      <nav className="glass-panel px-4 md:px-6 py-3.5 md:py-4 rounded-3xl md:rounded-full flex justify-between items-center sticky top-4 md:top-6 z-40 border border-slate-200/80 shadow-lg shadow-slate-900/5 mb-6 md:mb-10 text-slate-800 backdrop-blur-xl">
+      <nav className="glass-panel px-4 md:px-6 py-3.5 md:py-4 rounded-3xl md:rounded-full flex justify-between items-center relative z-20 border border-slate-200/80 shadow-md mb-6 md:mb-8 text-slate-800 backdrop-blur-xl">
         
         {/* Brand Logo */}
         <div 

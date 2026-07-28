@@ -41,7 +41,7 @@ export const PublicTicketModal: React.FC<PublicTicketModalProps> = ({ pnr, onClo
   const toLocation = locations.find(l => l.id === booking?.routeTo)?.name || booking?.routeTo || 'Arrival Jetty';
 
   return (
-    <div className="animate-fade-in max-w-3xl mx-auto space-y-6 my-4 text-left">
+    <div className="animate-fade-in max-w-3xl mx-auto space-y-6 pt-2 pb-8 text-left">
       {/* Navigation Top Bar */}
       <div className="flex items-center justify-between no-print">
         <button
