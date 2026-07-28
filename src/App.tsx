@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Navigation } from './components/Navigation';
 import { SearchHero } from './components/SearchHero';
 import { ScheduleList } from './components/ScheduleList';
@@ -19,16 +19,30 @@ import { useAuthStore } from './store/useAuthStore';
 import { usePlatformStore } from './store/usePlatformStore';
 import { Ticket, Anchor, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 
-function App() {
-  const [publicTicketPnr, setPublicTicketPnr] = React.useState<string | null>(null);
+export type ActivePage = 
+  | 'booking' 
+  | 'admin' 
+  | 'my_bookings' 
+  | 'manage_booking' 
+  | 'saved_passengers' 
+  | 'profile' 
+  | 'auth' 
+  | 'terms' 
+  | 'public_ticket';
 
-  React.useEffect(() => {
+function App() {
+  const [publicTicketPnr, setPublicTicketPnr] = useState<string | null>(null);
+  const [activePage, setActivePage] = useState<ActivePage>('booking');
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const pnrParam = params.get('pnr') || params.get('ticket');
     if (pnrParam) {
       setPublicTicketPnr(pnrParam.trim().toUpperCase());
+      setActivePage('public_ticket');
     }
   }, []);
+
   const {
     currentStep,
     selectedSchedule,
@@ -62,28 +76,35 @@ function App() {
 
   const { alert: globalAlert, hideAlert } = usePlatformStore();
   
-  const [showAdminView, setShowAdminView] = React.useState(false);
-  const [showMyBookings, setShowMyBookings] = React.useState(false);
-  const [isManageBookingOpen, setManageBookingOpen] = React.useState(false);
-  const [isSavedPassengersOpen, setSavedPassengersOpen] = React.useState(false);
-  const [isProfileOpen, setProfileOpen] = React.useState(false);
-  const [isTermsOpen, setTermsOpen] = React.useState(false);
-  const [searchFromPort, setSearchFromPort] = React.useState('MLE');
-  const [searchToPort, setSearchToPort] = React.useState('MAF');
+  const [showAdminView, setShowAdminView] = useState(false);
+  const [searchFromPort, setSearchFromPort] = useState('MLE');
+  const [searchToPort, setSearchToPort] = useState('MAF');
 
-  React.useEffect(() => {
-    if (user?.role !== 'admin') setShowAdminView(false);
+  // Sync isAuthModalOpen with activePage
+  useEffect(() => {
+    if (isAuthModalOpen) {
+      setActivePage('auth');
+    }
+  }, [isAuthModalOpen]);
+
+  useEffect(() => {
+    if (user?.role !== 'admin' && showAdminView) {
+      setShowAdminView(false);
+      setActivePage('booking');
+    }
     
     // If the user logs out, reset views and mid-booking steps
     if (!user) {
-      setShowMyBookings(false);
+      if (activePage === 'my_bookings' || activePage === 'saved_passengers' || activePage === 'profile') {
+        setActivePage('booking');
+      }
       if (currentStep !== 'search' && currentStep !== 'confirmation') {
         goSearch();
       }
     }
-  }, [user, currentStep, goSearch]);
+  }, [user, currentStep, goSearch, showAdminView, activePage]);
 
-  const [hasSearched, setHasSearched] = React.useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
   // Dynamic pricing calculation
   const subtotalAmount = useMemo(() => {
@@ -123,23 +144,26 @@ function App() {
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-6 md:px-8 py-4 sm:py-6 min-h-screen flex flex-col text-slate-800">
       <Navigation 
-        showAdminView={showAdminView} 
-        setShowAdminView={setShowAdminView}
+        showAdminView={showAdminView || activePage === 'admin'} 
+        setShowAdminView={(v) => {
+          setShowAdminView(v);
+          setActivePage(v ? 'admin' : 'booking');
+        }}
         user={user}
-        onSignIn={() => setAuthModalOpen(true)}
+        onSignIn={() => { setAuthModalOpen(true); setActivePage('auth'); }}
         onSignOut={logout}
-        onManageBooking={() => setManageBookingOpen(true)}
-        onSavedPassengers={() => setSavedPassengersOpen(true)}
-        onOpenProfile={() => setProfileOpen(true)}
-        onOpenMyBookings={() => setShowMyBookings(true)}
+        onManageBooking={() => setActivePage('manage_booking')}
+        onSavedPassengers={() => setActivePage('saved_passengers')}
+        onOpenProfile={() => setActivePage('profile')}
+        onOpenMyBookings={() => setActivePage('my_bookings')}
       />
 
-      {/* Floating My Bookings / Agency manifest view trigger for mobile/desktop */}
-      {user && !showAdminView && !showMyBookings && (
+      {/* Floating My Bookings / Agency manifest view trigger */}
+      {user && activePage === 'booking' && (
         <div className="flex justify-end mb-4 sm:mb-6 animate-fade-in">
           <button 
             className="bg-white hover:bg-slate-50 text-slate-700 font-extrabold px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-slate-200/80 shadow-md flex items-center gap-2 cursor-pointer transition text-xs sm:text-sm"
-            onClick={() => setShowMyBookings(true)}
+            onClick={() => setActivePage('my_bookings')}
           >
             <Ticket size={18} className="text-sky-600 shrink-0" /> 
             <span>{user.role === 'agency' ? 'Agency Manifest Directory' : 'My Bookings & Passes'}</span>
@@ -148,11 +172,34 @@ function App() {
       )}
 
       <main className="flex-1">
-        {showAdminView && user?.role === 'admin' ? (
+        {/* FULL PAGE ROUTER VIEWS */}
+        {activePage === 'admin' && user?.role === 'admin' ? (
           <AdminDashboard />
-        ) : showMyBookings ? (
-          <MyBookings onBack={() => setShowMyBookings(false)} user={user} />
+        ) : activePage === 'my_bookings' ? (
+          <MyBookings onBack={() => setActivePage('booking')} user={user} />
+        ) : activePage === 'manage_booking' ? (
+          <ManageBookingModal isOpen={true} onClose={() => setActivePage('booking')} />
+        ) : activePage === 'saved_passengers' && user ? (
+          <SavedPassengersModal isOpen={true} onClose={() => setActivePage('booking')} />
+        ) : activePage === 'profile' && user ? (
+          <ProfileModal isOpen={true} onClose={() => setActivePage('booking')} />
+        ) : activePage === 'auth' ? (
+          <AuthModal isOpen={true} onClose={() => { setAuthModalOpen(false); setActivePage('booking'); }} />
+        ) : activePage === 'terms' ? (
+          <TermsModal isOpen={true} onClose={() => setActivePage('booking')} />
+        ) : activePage === 'public_ticket' && publicTicketPnr ? (
+          <PublicTicketModal 
+            pnr={publicTicketPnr} 
+            onClose={() => {
+              setPublicTicketPnr(null);
+              setActivePage('booking');
+              if (window.history.replaceState) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+              }
+            }} 
+          />
         ) : (
+          /* PRIMARY BOOKING SEARCH FLOW */
           <div className="space-y-6 sm:space-y-8">
             {/* Stepper Header */}
             <div className="glass-panel rounded-2xl sm:rounded-full px-4 py-3 border border-slate-200/80 shadow-sm flex items-center justify-center gap-2 sm:gap-4 flex-wrap max-w-2xl mx-auto">
@@ -194,7 +241,7 @@ function App() {
                 /> 
                 {!hasSearched && (
                   <LandingInfo 
-                    onOpenTerms={() => setTermsOpen(true)}
+                    onOpenTerms={() => setActivePage('terms')}
                     onSelectRoute={(from, to) => {
                       setSearchFromPort(from);
                       setSearchToPort(to);
@@ -214,6 +261,7 @@ function App() {
                   onSelect={(sched) => {
                     if (!user) {
                       setAuthModalOpen(true);
+                      setActivePage('auth');
                     } else {
                       selectSchedule(sched);
                     }
@@ -312,32 +360,7 @@ function App() {
           </div>
         )}
 
-        {/* Global Account Modals */}
-        <AuthModal 
-          isOpen={isAuthModalOpen} 
-          onClose={() => setAuthModalOpen(false)} 
-        />
-
-        <ManageBookingModal 
-          isOpen={isManageBookingOpen} 
-          onClose={() => setManageBookingOpen(false)} 
-        />
-
-        <SavedPassengersModal
-          isOpen={isSavedPassengersOpen}
-          onClose={() => setSavedPassengersOpen(false)}
-        />
-
-        <TermsModal
-          isOpen={isTermsOpen}
-          onClose={() => setTermsOpen(false)}
-        />
-
-        <ProfileModal
-          isOpen={isProfileOpen}
-          onClose={() => setProfileOpen(false)}
-        />
-
+        {/* Alert Popup Dialog */}
         {globalAlert && (
           <div className="overlay animate-fade-in" style={{ zIndex: 9999 }}>
             <div className="glass-panel-strong rounded-3xl w-full max-w-sm p-6 relative shadow-2xl border border-slate-200 text-center bg-white/95 backdrop-blur-md">
@@ -369,18 +392,6 @@ function App() {
               </div>
             </div>
           </div>
-        )}
-
-        {publicTicketPnr && (
-          <PublicTicketModal 
-            pnr={publicTicketPnr} 
-            onClose={() => {
-              setPublicTicketPnr(null);
-              if (window.history.replaceState) {
-                window.history.replaceState({}, document.title, window.location.pathname);
-              }
-            }} 
-          />
         )}
       </main>
     </div>

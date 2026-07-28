@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Scale, Clock, ShieldCheck, HelpCircle, FileText } from 'lucide-react';
+import { Scale, Clock, ShieldCheck, HelpCircle, FileText, ArrowLeft } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -10,16 +10,21 @@ export const TermsModal: React.FC<Props> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="overlay animate-fade-in" style={{ zIndex: 1800 }}>
-      <div className="glass-panel-strong rounded-2xl w-full max-w-2xl p-6 md:p-8 relative shadow-2xl border border-slate-200 bg-white text-slate-800 text-left max-h-[80vh] overflow-y-auto">
-        
-        {/* Close Button */}
-        <button 
-          onClick={onClose} 
-          className="absolute right-6 top-6 text-slate-400 hover:text-slate-700 cursor-pointer transition"
+    <div className="animate-fade-in max-w-3xl mx-auto space-y-6 my-4 text-left">
+      {/* Navigation Top Bar */}
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={onClose}
+          className="bg-white hover:bg-slate-100 text-slate-800 font-extrabold px-4 py-2.5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-2 transition cursor-pointer text-xs"
         >
-          <X size={20} />
+          <ArrowLeft size={16} className="text-sky-600" />
+          <span>Back to Home</span>
         </button>
+        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Policy Directory</span>
+      </div>
+
+      <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200/80 relative text-slate-800 text-left">
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">

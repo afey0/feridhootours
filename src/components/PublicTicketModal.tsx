@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Ticket, MapPin, Anchor, AlertTriangle, X, Copy, Check, Printer, Trash2 } from 'lucide-react';
+import { Ticket, MapPin, Anchor, AlertTriangle, X, Copy, Check, Printer, Trash2, ArrowLeft } from 'lucide-react';
 import { usePlatformStore } from '../store/usePlatformStore';
 import { QRCodeImage } from './QRCodeImage';
 import { calculateRefund } from '../utils/refundPolicy';
@@ -41,8 +41,21 @@ export const PublicTicketModal: React.FC<PublicTicketModalProps> = ({ pnr, onClo
   const toLocation = locations.find(l => l.id === booking?.routeTo)?.name || booking?.routeTo || 'Arrival Jetty';
 
   return (
-    <div className="overlay animate-fade-in" style={{ zIndex: 3000 }}>
-      <div id="printable-section" className="bg-white rounded-3xl w-full max-w-2xl mx-auto shadow-2xl border border-slate-150 p-6 md:p-8 relative text-left text-slate-800 overflow-y-auto max-h-[92vh]">
+    <div className="animate-fade-in max-w-3xl mx-auto space-y-6 my-4 text-left">
+      {/* Navigation Top Bar */}
+      <div className="flex items-center justify-between no-print">
+        <button
+          type="button"
+          onClick={onClose}
+          className="bg-white hover:bg-slate-100 text-slate-800 font-extrabold px-4 py-2.5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-2 transition cursor-pointer text-xs"
+        >
+          <ArrowLeft size={16} className="text-sky-600" />
+          <span>Back to Home</span>
+        </button>
+        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Boarding Pass View</span>
+      </div>
+
+      <div id="printable-section" className="bg-white rounded-3xl w-full max-w-2xl mx-auto shadow-2xl border border-slate-150 p-6 md:p-8 relative text-left text-slate-800">
         
         {/* Header */}
         <div className="flex justify-between items-center border-b border-slate-100 pb-4 mb-6 no-print">

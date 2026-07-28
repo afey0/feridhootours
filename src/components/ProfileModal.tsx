@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, Lock, ShieldCheck } from 'lucide-react';
+import { X, User, Lock, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { usePlatformStore } from '../store/usePlatformStore';
 
@@ -91,11 +91,21 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div 
-        className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh] animate-fade-in relative"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="animate-fade-in max-w-3xl mx-auto space-y-6 my-4 text-left">
+      {/* Navigation Top Bar */}
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={onClose}
+          className="bg-white hover:bg-slate-100 text-slate-800 font-extrabold px-4 py-2.5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-2 transition cursor-pointer text-xs"
+        >
+          <ArrowLeft size={16} className="text-sky-600" />
+          <span>Back to Home</span>
+        </button>
+        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">My Account & Profile</span>
+      </div>
+
+      <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200/80 relative text-slate-800 text-left">
         {/* Header */}
         <div className="p-6 border-b border-slate-100 flex justify-between items-center text-left">
           <div>
