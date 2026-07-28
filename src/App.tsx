@@ -121,7 +121,7 @@ function App() {
   const currentIndex = getStepIndex(currentStep);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 min-h-screen flex flex-col text-slate-800">
+    <div className="max-w-6xl mx-auto px-3 sm:px-6 md:px-8 py-4 sm:py-6 min-h-screen flex flex-col text-slate-800">
       <Navigation 
         showAdminView={showAdminView} 
         setShowAdminView={setShowAdminView}
@@ -134,15 +134,15 @@ function App() {
         onOpenMyBookings={() => setShowMyBookings(true)}
       />
 
-      {/* Floating My Bookings / Agency manifest view trigger */}
+      {/* Floating My Bookings / Agency manifest view trigger for mobile/desktop */}
       {user && !showAdminView && !showMyBookings && (
-        <div className="flex justify-end mb-6 animate-fade-in">
+        <div className="flex justify-end mb-4 sm:mb-6 animate-fade-in">
           <button 
-            className="bg-white hover:bg-slate-50 text-slate-700 font-bold px-5 py-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-2 cursor-pointer transition"
+            className="bg-white hover:bg-slate-50 text-slate-700 font-extrabold px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-slate-200/80 shadow-md flex items-center gap-2 cursor-pointer transition text-xs sm:text-sm"
             onClick={() => setShowMyBookings(true)}
           >
             <Ticket size={18} className="text-sky-600 shrink-0" /> 
-            <span>{user.role === 'agency' ? 'Agency Manifest Log' : 'My Bookings'}</span>
+            <span>{user.role === 'agency' ? 'Agency Manifest Directory' : 'My Bookings & Passes'}</span>
           </button>
         </div>
       )}
@@ -153,26 +153,26 @@ function App() {
         ) : showMyBookings ? (
           <MyBookings onBack={() => setShowMyBookings(false)} user={user} />
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Stepper Header */}
-            <div className="flex items-center justify-center gap-3 md:gap-5 flex-wrap py-2">
+            <div className="glass-panel rounded-2xl sm:rounded-full px-4 py-3 border border-slate-200/80 shadow-sm flex items-center justify-center gap-2 sm:gap-4 flex-wrap max-w-2xl mx-auto">
               {steps.map((s, i) => (
                 <React.Fragment key={s.key}>
-                  <div className={`flex items-center gap-2 transition duration-350 ${
+                  <div className={`flex items-center gap-2 transition duration-300 ${
                     i <= currentIndex ? 'text-sky-600 font-extrabold' : 'text-slate-400 font-semibold'
                   }`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition duration-300 ${
+                    <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-black transition duration-300 ${
                       i <= currentIndex 
-                        ? 'bg-sky-500 text-white shadow-md shadow-sky-500/10' 
+                        ? 'bg-gradient-to-tr from-sky-600 to-indigo-600 text-white shadow-md shadow-sky-600/20' 
                         : 'bg-white text-slate-400 border border-slate-200'
                     }`}>
                       {s.num}
                     </div>
-                    <span className="text-xs md:text-sm hidden sm:inline">{s.label}</span>
+                    <span className="text-xs sm:text-sm hidden md:inline font-bold">{s.label}</span>
                   </div>
                   {i < steps.length - 1 && (
-                    <div className={`w-8 md:w-12 h-[2px] transition duration-350 ${
-                      i < currentIndex ? 'bg-sky-500' : 'bg-slate-200'
+                    <div className={`w-4 sm:w-8 md:w-10 h-[2px] rounded-full transition duration-300 ${
+                      i < currentIndex ? 'bg-gradient-to-r from-sky-500 to-indigo-500' : 'bg-slate-200'
                     }`} />
                   )}
                 </React.Fragment>
