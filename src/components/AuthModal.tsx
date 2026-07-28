@@ -163,7 +163,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 <input 
                   type="password" 
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-slate-800 text-sm font-medium focus:outline-none focus:border-sky-500 focus:bg-white transition"
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -173,6 +173,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
             <button 
               type="submit" 
+              data-testid="signin-submit-btn"
               className="w-full bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-sky-600/20 transition cursor-pointer text-sm mt-2"
             >
               Sign In
@@ -351,21 +352,21 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose }) => {
               onClick={() => { loginAsPassenger(); onClose(); }}
               className="py-2.5 px-3 bg-sky-50 hover:bg-sky-100/80 text-sky-700 border border-sky-200 rounded-2xl text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <User size={14} /> Passenger
+              <User size={14} /> Login as Passenger
             </button>
             <button
               type="button"
               onClick={() => { loginAsAgency(); onClose(); }}
               className="py-2.5 px-3 bg-indigo-50 hover:bg-indigo-100/80 text-indigo-700 border border-indigo-200 rounded-2xl text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <Landmark size={14} /> Agency
+              <Landmark size={14} /> Login as Travel Agency
             </button>
             <button
               type="button"
               onClick={() => { loginAsAdmin(); onClose(); }}
               className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
             >
-              <Shield size={14} /> Admin
+              <Shield size={14} /> Login as Operator/Admin
             </button>
           </div>
         </div>
