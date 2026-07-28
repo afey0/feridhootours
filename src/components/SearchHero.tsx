@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Calendar, Users, AlertTriangle } from 'lucide-react';
+import { Search, MapPin, Calendar, Users, AlertTriangle, ArrowLeftRight } from 'lucide-react';
 import { usePlatformStore } from '../store/usePlatformStore';
 
 interface Props {
@@ -24,6 +24,12 @@ export const SearchHero: React.FC<Props> = ({ onSearch, initialFromPort, initial
   const [departureDate, setDepartureDate] = useState(todayStr);
   const [passengerCount, setPassengerCount] = useState(1);
   const [error, setError] = useState<string | null>(null);
+
+  const handleSwapPorts = () => {
+    const temp = fromPort;
+    setFromPort(toPort);
+    setToPort(temp);
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,25 +57,25 @@ export const SearchHero: React.FC<Props> = ({ onSearch, initialFromPort, initial
   };
 
   return (
-    <div className="glass-panel rounded-2xl overflow-hidden shadow-xl border border-slate-200">
-      <div className="bg-slate-50 px-8 py-6 border-b border-slate-100">
-        <h2 className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-indigo-600 font-display">
-          Where to next?
+    <div className="glass-panel rounded-3xl overflow-hidden shadow-xl border border-slate-200/80 text-left">
+      <div className="bg-gradient-to-r from-sky-600/10 via-indigo-600/5 to-transparent px-6 md:px-8 py-6 md:py-8 border-b border-slate-100">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 font-display">
+          Where to next in Maldives? 🏝️
         </h2>
-        <p className="text-slate-500 mt-2 text-sm md:text-base font-medium">
-          Book inter-island ferries and premium speedboats instantly across the Maldives.
+        <p className="text-slate-500 mt-2 text-xs sm:text-sm md:text-base font-medium leading-relaxed max-w-2xl">
+          Book inter-island ferries and premium speedboats instantly across Male', Maafushi, Fulidhoo, and Dhigurah.
         </p>
       </div>
       
-      <form onSubmit={handleSearch} className="p-6 md:p-8 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <form onSubmit={handleSearch} className="p-5 md:p-8 space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
           {/* FROM */}
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-              <MapPin size={14} className="text-sky-600" /> From
+          <div className="lg:col-span-3 flex flex-col gap-2">
+            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <MapPin size={14} className="text-sky-600" /> Departure Port
             </label>
             <select 
-              className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-medium focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition duration-200 cursor-pointer"
+              className="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-slate-800 text-sm font-semibold focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition duration-200 cursor-pointer h-12"
               value={fromPort}
               onChange={(e) => setFromPort(e.target.value)}
             >
@@ -77,13 +83,25 @@ export const SearchHero: React.FC<Props> = ({ onSearch, initialFromPort, initial
             </select>
           </div>
 
+          {/* Swap Button */}
+          <div className="hidden lg:flex lg:col-span-1 justify-center pb-1">
+            <button
+              type="button"
+              onClick={handleSwapPorts}
+              className="w-10 h-10 rounded-2xl bg-sky-50 border border-sky-200 text-sky-600 hover:bg-sky-100 flex items-center justify-center cursor-pointer transition shadow-sm active:scale-95 shrink-0"
+              title="Swap Departure and Destination"
+            >
+              <ArrowLeftRight size={18} />
+            </button>
+          </div>
+
           {/* TO */}
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-              <MapPin size={14} className="text-sky-600" /> To
+          <div className="lg:col-span-3 flex flex-col gap-2">
+            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <MapPin size={14} className="text-sky-600" /> Destination Port
             </label>
             <select 
-              className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-medium focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition duration-200 cursor-pointer"
+              className="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-slate-800 text-sm font-semibold focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition duration-200 cursor-pointer h-12"
               value={toPort}
               onChange={(e) => setToPort(e.target.value)}
             >
@@ -92,13 +110,13 @@ export const SearchHero: React.FC<Props> = ({ onSearch, initialFromPort, initial
           </div>
 
           {/* DATE */}
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-              <Calendar size={14} className="text-sky-600" /> Date
+          <div className="lg:col-span-3 flex flex-col gap-2">
+            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <Calendar size={14} className="text-sky-600" /> Travel Date
             </label>
             <input 
               type="date" 
-              className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-medium focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition duration-200"
+              className="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-slate-800 text-sm font-semibold focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition duration-200 h-12"
               value={departureDate}
               min={todayStr}
               onChange={(e) => setDepartureDate(e.target.value)}
@@ -106,12 +124,12 @@ export const SearchHero: React.FC<Props> = ({ onSearch, initialFromPort, initial
           </div>
 
           {/* PASSENGERS */}
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+          <div className="lg:col-span-2 flex flex-col gap-2 sm:col-span-2 lg:col-span-2">
+            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
               <Users size={14} className="text-sky-600" /> Passengers
             </label>
             <select 
-              className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-medium focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition duration-200 cursor-pointer"
+              className="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-slate-800 text-sm font-semibold focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition duration-200 cursor-pointer h-12"
               value={passengerCount}
               onChange={(e) => setPassengerCount(parseInt(e.target.value))}
             >
@@ -123,16 +141,16 @@ export const SearchHero: React.FC<Props> = ({ onSearch, initialFromPort, initial
         </div>
 
         {error && (
-          <div className="flex items-center gap-3 bg-rose-50 border border-rose-100 text-rose-600 px-4 py-3 rounded-xl text-sm animate-fade-in font-medium">
-            <AlertTriangle size={18} className="shrink-0 text-rose-500" />
+          <div className="flex items-center gap-3 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-2xl text-xs sm:text-sm animate-fade-in font-semibold">
+            <AlertTriangle size={18} className="shrink-0 text-rose-600" />
             <span>{error}</span>
           </div>
         )}
 
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-2">
           <button 
             type="submit" 
-            className="w-full sm:w-auto bg-sky-500 hover:bg-sky-600 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg shadow-sky-500/10 hover:shadow-sky-600/25 hover:-translate-y-0.5 active:translate-y-0 transition duration-200 flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full sm:w-auto bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-black px-8 py-3.5 rounded-2xl shadow-lg shadow-sky-600/20 hover:shadow-sky-600/35 transition duration-200 flex items-center justify-center gap-2.5 cursor-pointer text-sm"
           >
             <Search size={18} /> Find Schedules
           </button>

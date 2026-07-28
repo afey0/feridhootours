@@ -19,7 +19,7 @@ describe('FeridhooTours App E2E Flows', () => {
   });
 
   it('renders landing page with find schedules button', () => {
-    expect(screen.getByText('Where to next?')).toBeTruthy();
+    expect(screen.getByText(/Where to next/i)).toBeTruthy();
     expect(screen.getByRole('button', { name: /Find Schedules/i })).toBeTruthy();
   });
 
@@ -341,7 +341,7 @@ describe('FeridhooTours App E2E Flows', () => {
 
     // 5. Verify we are kicked back to search step (Where to next? heading shown, Available legend gone)
     await waitFor(() => {
-      expect(screen.getByText('Where to next?')).toBeTruthy();
+      expect(screen.getByText(/Where to next/i)).toBeTruthy();
       expect(screen.queryByText(/^Available$/)).toBeNull();
     });
   });
