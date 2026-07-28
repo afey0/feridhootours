@@ -186,7 +186,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 onClick={() => { setMode('signup'); setError(null); setSuccess(null); }}
                 className="text-xs font-extrabold text-sky-600 hover:underline cursor-pointer"
               >
-                Create Account
+                Sign Up
               </button>
             </div>
           </form>
