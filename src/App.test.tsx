@@ -117,8 +117,9 @@ describe('FeridhooTours App E2E Flows', () => {
     await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
     fireEvent.click(screen.getByText('Admin Panel'));
 
-    // Verify operator dashboard is loaded
+    // Verify operator dashboard is loaded and switch to Routes & Schedules tab
     await waitFor(() => expect(screen.getByText('Operator Dashboard')).toBeTruthy());
+    fireEvent.click(screen.getByRole('button', { name: /Routes & Schedules/i }));
     
     // Click Manage on the first schedule
     const manageBtns = screen.getAllByRole('button', { name: /Manage Seats/i });
@@ -420,9 +421,11 @@ describe('FeridhooTours App E2E Flows', () => {
     await waitFor(() => expect(screen.getByText('Login as Operator/Admin')).toBeTruthy());
     fireEvent.click(screen.getByText('Login as Operator/Admin'));
     
-    // 3. Open Admin Panel
+    // 3. Open Admin Panel and switch to Routes & Schedules tab
     await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
     fireEvent.click(screen.getByText('Admin Panel'));
+    await waitFor(() => expect(screen.getByRole('button', { name: /Routes & Schedules/i })).toBeTruthy());
+    fireEvent.click(screen.getByRole('button', { name: /Routes & Schedules/i }));
 
     // 4. Click Cancel Route on the first card (SCH-001)
     const cancelBtns = await waitFor(() => screen.getAllByRole('button', { name: /Cancel Route/i }));
