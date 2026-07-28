@@ -159,8 +159,8 @@ export const useAuthStore = () => {
     // Trigger Welcome Email
     triggerEmail(
       newUser.email,
-      `Welcome to SmartFerry, ${newUser.name}!`,
-      `Dear ${newUser.name},\n\nThank you for signing up as a ${newUser.role === 'agency' ? 'Travel Agent' : 'Passenger'} on SmartFerry.\n\nYou can now quickly manage your passenger manifests, book speedboats, and track transfer slips in real-time.\n\nBest regards,\nSmartMobility Maldives Operations Team`,
+      `Welcome to FeridhooTours, ${newUser.name}!`,
+      `Dear ${newUser.name},\n\nThank you for signing up as a ${newUser.role === 'agency' ? 'Travel Agent' : 'Passenger'} on FeridhooTours.\n\nYou can now quickly manage your passenger manifests, book speedboats, and track transfer slips in real-time.\n\nBest regards,\nFeridhooTours Maldives Operations Team`,
       'welcome'
     );
 
@@ -178,8 +178,8 @@ export const useAuthStore = () => {
     // Trigger Reset Email
     triggerEmail(
       found.email,
-      'Reset your SmartFerry password',
-      `Hello ${found.name},\n\nWe received a request to recover your password. Please use the following temporary verification token to reset your password:\n\nVerification Token: MOCK-PASS-RECOVERY-OTP-8889\n\nOr click the link below to set a new password:\nhttp://localhost:5173/reset-password?email=${found.email}&token=MOCK-PASS-RECOVERY-OTP-8889\n\nIf you did not request this, please disregard this notification.\n\nBest regards,\nSmartMobility Support Team`,
+      'Reset your FeridhooTours password',
+      `Hello ${found.name},\n\nWe received a request to recover your password. Please use the following temporary verification token to reset your password:\n\nVerification Token: MOCK-PASS-RECOVERY-OTP-8889\n\nOr click the link below to set a new password:\nhttp://localhost:5173/reset-password?email=${found.email}&token=MOCK-PASS-RECOVERY-OTP-8889\n\nIf you did not request this, please disregard this notification.\n\nBest regards,\nFeridhooTours Support Team`,
       'reset'
     );
 

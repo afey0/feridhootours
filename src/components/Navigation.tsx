@@ -48,7 +48,7 @@ export const Navigation: React.FC<Props> = ({
       <div className="flex items-center gap-2.5 font-black text-xl cursor-pointer">
         <Anchor className="text-sky-600 rotate-12 shrink-0" size={28} />
         <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-indigo-600 tracking-wide font-black">
-          SmartMobility
+          FeridhooTours
         </span>
       </div>
 

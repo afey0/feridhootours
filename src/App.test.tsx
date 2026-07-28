@@ -6,7 +6,7 @@ import { usePlatformStore } from './store/usePlatformStore';
 import { resetAuthStore } from './store/useAuthStore';
 import { calculateRefund } from './utils/refundPolicy';
 
-describe('Smart Ferry App E2E Flows', () => {
+describe('FeridhooTours App E2E Flows', () => {
   beforeEach(() => {
     // Reset global state
     const { result } = renderHook(() => usePlatformStore());

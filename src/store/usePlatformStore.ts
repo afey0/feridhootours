@@ -60,11 +60,11 @@ export interface EmailLog {
 }
 
 let globalEmailConfig = loadFromStorage('sf_email_config', {
-  host: 'smtp.smartmobility.mv',
+  host: 'smtp.feridhootours.mv',
   port: '587',
-  senderName: 'SmartMobility Notifications',
-  senderEmail: 'no-reply@smartmobility.mv',
-  username: 'no-reply@smartmobility.mv',
+  senderName: 'FeridhooTours Notifications',
+  senderEmail: 'no-reply@feridhootours.mv',
+  username: 'no-reply@feridhootours.mv',
   welcomeEnabled: true,
   bookingEnabled: true,
   statusEnabled: true,
@@ -402,15 +402,15 @@ export const usePlatformStore = () => {
         if (status === 'verified') {
           triggerEmail(
             recipient,
-            `SmartFerry Boarding Passes Issued - PNR: ${bookingId}`,
-            `Dear Passenger,\n\nWe are pleased to inform you that your bank transfer slip for booking reference ${bookingId} has been successfully verified!\n\nYour digital tickets and boarding QR codes are now fully unlocked. You can view or print them inside the "My Bookings" section or self-service lookup portal.\n\nThank you for choosing SmartFerry.\n\nBest regards,\nSmartMobility Maldives Operations Team`,
+            `FeridhooTours Boarding Passes Issued - PNR: ${bookingId}`,
+            `Dear Passenger,\n\nWe are pleased to inform you that your bank transfer slip for booking reference ${bookingId} has been successfully verified!\n\nYour digital tickets and boarding QR codes are now fully unlocked. You can view or print them inside the "My Bookings" section or self-service lookup portal.\n\nThank you for choosing FeridhooTours.\n\nBest regards,\nFeridhooTours Maldives Operations Team`,
             'status'
           );
         } else if (status === 'rejected') {
           triggerEmail(
             recipient,
-            `SmartFerry Payment Rejected - PNR: ${bookingId}`,
-            `Dear Passenger,\n\nWe regret to inform you that your bank transfer slip for booking reference ${bookingId} has been rejected by our verification team.\n\nReason: ${reason || 'unclear transaction slip image / name mismatch.'}\n\nPlease log in to your portal or use the lookup reference code to upload a valid receipt within the next 6 hours to prevent automatic cancellation.\n\nSincerely,\nSmartMobility Audits Team`,
+            `FeridhooTours Payment Rejected - PNR: ${bookingId}`,
+            `Dear Passenger,\n\nWe regret to inform you that your bank transfer slip for booking reference ${bookingId} has been rejected by our verification team.\n\nReason: ${reason || 'unclear transaction slip image / name mismatch.'}\n\nPlease log in to your portal or use the lookup reference code to upload a valid receipt within the next 6 hours to prevent automatic cancellation.\n\nSincerely,\nFeridhooTours Audits Team`,
             'status'
           );
         }
@@ -505,8 +505,8 @@ export const usePlatformStore = () => {
     const recipient = booking.passengerEmail || (booking.passengers[0] ? `${booking.passengers[0].name.toLowerCase().replace(/\s+/g, '')}@example.com` : 'passenger@example.com');
     triggerEmail(
       recipient,
-      `SmartFerry Manual Refund Request Submitted - PNR: ${bookingId}`,
-      `Dear Passenger,\n\nYour cancellation & manual refund request for booking PNR ${bookingId} has been logged.\n\nRefund Statement:\n- Original Amount Paid: $${booking.totalAmount.toFixed(2)}\n- Policy Rule Tier: ${calc.policyTier}\n- Cancellation Fee: $${finalFee.toFixed(2)}\n- Net Refund Credited: $${finalRefundAmount.toFixed(2)}\n\nBank Payout Account:\n- Bank: ${bankDetails?.bankName || 'N/A'}\n- Account Holder: ${bankDetails?.accountName || 'N/A'}\n- Account Number: ${bankDetails?.accountNumber || 'N/A'}\n\nOur finance team will process the manual bank transfer within 24-48 hours and upload the transfer receipt proof.\n\nThank you,\nSmartMobility Maldives Finance Team`,
+      `FeridhooTours Manual Refund Request Submitted - PNR: ${bookingId}`,
+      `Dear Passenger,\n\nYour cancellation & manual refund request for booking PNR ${bookingId} has been logged.\n\nRefund Statement:\n- Original Amount Paid: $${booking.totalAmount.toFixed(2)}\n- Policy Rule Tier: ${calc.policyTier}\n- Cancellation Fee: $${finalFee.toFixed(2)}\n- Net Refund Credited: $${finalRefundAmount.toFixed(2)}\n\nBank Payout Account:\n- Bank: ${bankDetails?.bankName || 'N/A'}\n- Account Holder: ${bankDetails?.accountName || 'N/A'}\n- Account Number: ${bankDetails?.accountNumber || 'N/A'}\n\nOur finance team will process the manual bank transfer within 24-48 hours and upload the transfer receipt proof.\n\nThank you,\nFeridhooTours Maldives Finance Team`,
       'status'
     );
 
@@ -541,8 +541,8 @@ export const usePlatformStore = () => {
     const recipient = booking.passengerEmail || (booking.passengers[0] ? `${booking.passengers[0].name.toLowerCase().replace(/\s+/g, '')}@example.com` : 'passenger@example.com');
     triggerEmail(
       recipient,
-      `SmartFerry Money Transfer Receipt Uploaded - PNR: ${bookingId}`,
-      `Dear Passenger,\n\nOur finance department has completed your manual bank refund transfer of $${finalRefundAmount.toFixed(2)} for booking PNR ${bookingId}.\n\nProof of money transfer receipt has been attached to your reservation record. You can view or print the transfer slip inside your portal.\n\nSincerely,\nSmartMobility Accounts Audit Team`,
+      `FeridhooTours Money Transfer Receipt Uploaded - PNR: ${bookingId}`,
+      `Dear Passenger,\n\nOur finance department has completed your manual bank refund transfer of $${finalRefundAmount.toFixed(2)} for booking PNR ${bookingId}.\n\nProof of money transfer receipt has been attached to your reservation record. You can view or print the transfer slip inside your portal.\n\nSincerely,\nFeridhooTours Accounts Audit Team`,
       'status'
     );
 

@@ -222,7 +222,7 @@ export const LandingInfo: React.FC<Props> = ({ onOpenTerms, onSelectRoute }) => 
             <p className="flex items-start gap-2 text-slate-550 leading-relaxed">
               <MapPin size={16} className="text-sky-600 shrink-0 mt-0.5" />
               <span>
-                SmartMobility Maldives Pvt Ltd<br />
+                FeridhooTours Maldives Pvt Ltd<br />
                 H. Ameenee Building, 4th Floor<br />
                 Boduthakurufaanu Magu, Malé 20066<br />
                 Republic of Maldives
@@ -240,7 +240,7 @@ export const LandingInfo: React.FC<Props> = ({ onOpenTerms, onSelectRoute }) => 
               </p>
               <p className="flex items-center gap-2">
                 <Mail size={15} className="text-sky-600" />
-                <span>support@smartferry.mv</span>
+                <span>support@feridhootours.mv</span>
               </p>
               <p className="flex items-center gap-2">
                 <Clock size={15} className="text-sky-600" />
@@ -265,7 +265,7 @@ export const LandingInfo: React.FC<Props> = ({ onOpenTerms, onSelectRoute }) => 
         </div>
 
         <div className="border-t border-slate-100 pt-6 text-center text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-          © {new Date().getFullYear()} SmartMobility Maldives. All Rights Reserved. SmartFerry v2.2.0-Light.
+          © {new Date().getFullYear()} FeridhooTours Maldives. All Rights Reserved. FeridhooTours v2.2.0.
         </div>
       </footer>
 

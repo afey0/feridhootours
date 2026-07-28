@@ -182,8 +182,8 @@ export const useBookingFlow = () => {
     
     triggerEmail(
       recipient,
-      `SmartFerry Booking Confirmation - PNR: ${ref}`,
-      `Dear Passenger,\n\nThank you for booking with SmartFerry. Your reservation details are as follows:\n\n` +
+      `FeridhooTours Booking Confirmation - PNR: ${ref}`,
+      `Dear Passenger,\n\nThank you for booking with FeridhooTours. Your reservation details are as follows:\n\n` +
       `Booking PNR: ${ref}\n` +
       `Vessel: ${selectedSchedule.vesselName} (${selectedSchedule.vesselType})\n` +
       `Route: ${selectedSchedule.routeFrom} to ${selectedSchedule.routeTo}\n` +
@@ -192,7 +192,7 @@ export const useBookingFlow = () => {
       `Total Fare Paid: $${(subtotal - discount).toFixed(2)}\n` +
       `Payment Status: ${paymentStatus}\n\n` +
       `Your digital tickets and boarding pass QR codes will unlock once payment status is Verified.\n\n` +
-      `Safe Travels,\nSmartMobility Maldives Operations Team`,
+      `Safe Travels,\nFeridhooTours Maldives Operations Team`,
       'booking'
     );
 

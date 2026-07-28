@@ -334,7 +334,7 @@ export const BookingModal: React.FC<Props> = ({
                   <div className="bg-white p-3 rounded-lg border border-slate-200 space-y-1 text-slate-700 font-mono text-xs shadow-sm">
                     <div>Bank: <strong>Bank of Maldives (MVR)</strong></div>
                     <div>Account Number: <strong>7730000123456</strong></div>
-                    <div>Name: <strong>SmartMobility Pvt Ltd</strong></div>
+                    <div>Name: <strong>FeridhooTours Pvt Ltd</strong></div>
                   </div>
                 </div>
 
@@ -461,7 +461,7 @@ export const BookingModal: React.FC<Props> = ({
                       <div className="flex justify-between items-center border-b border-slate-100 pb-2.5">
                         <div className="flex items-center gap-1.5">
                           <Ticket size={16} className="text-sky-600" />
-                          <span className="text-xs font-black uppercase tracking-wider text-slate-800">Smart Ferry Boarding Pass</span>
+                          <span className="text-xs font-black uppercase tracking-wider text-slate-800">FeridhooTours Boarding Pass</span>
                         </div>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                           classLabel === 'VIP' 

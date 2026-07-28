@@ -28,7 +28,7 @@ export const TermsModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </div>
           <div>
             <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Terms of Service & Transit Policies</h2>
-            <p className="text-slate-500 text-xs mt-0.5 font-medium">SmartMobility Maldives Speedboat & Ferry Transit Guidelines</p>
+            <p className="text-slate-500 text-xs mt-0.5 font-medium">FeridhooTours Maldives Speedboat & Ferry Transit Guidelines</p>
           </div>
         </div>
 
