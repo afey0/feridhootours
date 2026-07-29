@@ -1,73 +1,80 @@
-# React + TypeScript + Vite
+# FeridhooTours — Laravel 11 + Livewire 3 + Neon PostgreSQL on Render.com
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This repository contains the full **Laravel 11 + Livewire 3 + PostgreSQL** codebase for the FeridhooTours Ferry & Speedboat Booking Platform, pre-configured for instant deployment on **Render.com** backed by **Neon Serverless PostgreSQL**.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Architecture Overview
 
-## React Compiler
+- **Framework**: Laravel 11 + Livewire 3 (Reactive Server-Side Components)
+- **Database**: Neon.tech Serverless PostgreSQL (`DATABASE_URL` with SSL mode `require`)
+- **Hosting**: Render.com Web Service (PHP 8.3 + Apache Docker Container)
+- **State & Sync**: Instant database persistence for bookings, schedules, vessels, jetties, user directory, email alerts, and audit log history tracking.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🚀 How to Deploy on Render.com with Neon PostgreSQL
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Step 1: Create a Neon PostgreSQL Database
+1. Sign up or log into [Neon.tech](https://neon.tech).
+2. Create a new PostgreSQL project named `feridhootours-db`.
+3. Copy your **PostgreSQL Connection String** from the Neon dashboard (e.g., `postgres://user:password@ep-xyz.region.aws.neon.tech/neondb?sslmode=require`).
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Step 2: Deploy to Render.com
+1. Log into [Render.com](https://dashboard.render.com).
+2. Click **New +** → **Web Service**.
+3. Connect your GitHub repository (`renderneon`).
+4. Set the following details:
+   - **Environment**: `Docker`
+   - **Dockerfile Path**: `./Dockerfile`
+   - **Region**: `Singapore (ap-southeast-1)` or nearest region.
+5. In **Environment Variables**, add:
+   - `DATABASE_URL` = `<Your Neon PostgreSQL Connection String>`
+   - `APP_ENV` = `production`
+   - `APP_DEBUG` = `false`
+   - `APP_KEY` = `base64:RenderGeneratedKey...` (Run `php artisan key:generate --show` to generate)
+6. Click **Create Web Service**.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Render will build the Docker container with PHP 8.3 + `pdo_pgsql` enabled, run automated database migrations on your Neon database, and launch the platform!
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🔐 Access Credentials
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| User Role | Email | Password | Access Rights |
+| :--- | :--- | :--- | :--- |
+| **Super Admin** | `superadmin@smartferry.mv` | `superadmin123` | Full access: Delete Bookings, Audit Logs, Shell/DB SuperAdmin restrictions enforced |
+| **Operator Admin** | `admin@smartferry.mv` | `admin123` | Manage Vessels, Routes, Verify/Reject Payments (with mandatory comment), Ports |
+| **Travel Agency** | `bookings@mvtravel.com` | `agency123` | Discounted agency ticket bookings and group management |
+| **Passenger** | `ahmed@example.com` | `password123` | Book tickets, 10-minute hold timer, upload payment slips, manage my bookings |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+## ⏱️ 10-Minute Hold & Auto-Release Mechanism
+
+- Passengers have **10 minutes** to upload a bank transfer slip after booking a seat.
+- If 10 minutes expire without a payment slip upload, the booking is automatically set to `rejected` and seats are unlocked.
+- If an Admin declines a payment slip, a **rejection comment is mandatory**, and seats are immediately unlocked.
+
+---
+
+## 🛠️ Local Development Setup
+
+```bash
+# 1. Clone repository
+git clone https://github.com/afey0/renderneon.git
+cd renderneon
+
+# 2. Install dependencies
+composer install
+
+# 3. Copy environment file and set database connection
+cp .env.example .env
+php artisan key:generate
+
+# 4. Run migrations and seeders
+php artisan migrate --seed
+
+# 5. Start local development server
+php artisan serve
 ```

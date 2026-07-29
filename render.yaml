@@ -1,0 +1,19 @@
+# Render.yaml Deployment Blueprint for FeridhooTours (Laravel + Livewire + Neon PostgreSQL)
+services:
+  - type: web
+    name: feridhootours-app
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        sync: false
+      - key: DATABASE_URL
+        sync: false # Set to your Neon PostgreSQL Connection String (postgres://user:pass@ep-xyz.neon.tech/neondb?sslmode=require)
+      - key: DB_CONNECTION
+        value: pgsql

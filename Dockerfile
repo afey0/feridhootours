@@ -1,21 +1,35 @@
-# Stage 1: Build React frontend app
-FROM node:20-alpine AS build
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
+FROM php:8.3-apache
+
+# Install System Dependencies & PostgreSQL PHP Extension for Neon
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    git \
+    unzip \
+    zip \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    && docker-php-ext-install pdo pdo_pgsql pgsql bcmath gd
+
+# Enable Apache mod_rewrite for Laravel
+RUN a2enmod rewrite
+
+# Configure Apache DocumentRoot to Laravel /public
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/conf-available/*.conf
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
 COPY . .
-RUN npm run build
 
-# Stage 2: Production Express API & Database Server
-FROM node:20-alpine AS production
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/server ./server
+# Set Permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod +x /var/www/html/entrypoint.sh || true
 
-ENV PORT=8080
-ENV NODE_ENV=production
-EXPOSE 8080
+EXPOSE 80
 
-CMD ["node", "server/index.js"]
+ENTRYPOINT ["/var/www/html/entrypoint.sh"]
