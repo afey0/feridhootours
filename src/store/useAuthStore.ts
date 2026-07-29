@@ -83,8 +83,28 @@ const INITIAL_USERS: UserAccount[] = [
   }
 ];
 
+// Ensure initial default system users always exist in loaded users with correct roles
+const loadUsers = (): UserAccount[] => {
+  const loaded = loadFromStorage<UserAccount[]>('sf_users', INITIAL_USERS);
+  let modified = false;
+  INITIAL_USERS.forEach(initUser => {
+    const idx = loaded.findIndex(u => u.email.toLowerCase() === initUser.email.toLowerCase());
+    if (idx === -1) {
+      loaded.push(initUser);
+      modified = true;
+    } else if (initUser.role === 'super_admin' && loaded[idx].role !== 'super_admin') {
+      loaded[idx].role = 'super_admin';
+      modified = true;
+    }
+  });
+  if (modified) {
+    saveToStorage('sf_users', loaded);
+  }
+  return loaded;
+};
+
 // Singleton state outside React component persisted in localStorage database
-let globalUsers: UserAccount[] = loadFromStorage('sf_users', INITIAL_USERS);
+let globalUsers: UserAccount[] = loadUsers();
 
 // Current logged in user persisted in localStorage database
 let globalCurrentUser: User | null = loadFromStorage('sf_current_user', null);
@@ -101,6 +121,8 @@ export const resetAuthStore = () => {
   globalCurrentUser = null;
   notifyAuthListeners();
 };
+
+export const getCurrentAuthUser = (): User | null => globalCurrentUser;
 
 export const useAuthStore = () => {
   const [user, setUser] = useState<User | null>(globalCurrentUser);
@@ -299,6 +321,9 @@ export const useAuthStore = () => {
   };
 
   const adminAddUser = (name: string, email: string, password: string, role: Role, performedBy?: any): { success: boolean; message: string } => {
+    if (role === 'super_admin') {
+      return { success: false, message: 'Super Admin accounts cannot be created via web UI. Database / Shell access required.' };
+    }
     const exists = globalUsers.some(u => u.email.toLowerCase() === email.toLowerCase().trim());
     if (exists) {
       return { success: false, message: 'A user with this email already exists.' };
@@ -330,6 +355,9 @@ export const useAuthStore = () => {
       return { success: false, message: 'Cannot delete the currently logged in account.' };
     }
     const oldUser = globalUsers.find(u => u.id === userId);
+    if (oldUser?.role === 'super_admin') {
+      return { success: false, message: 'Super Admin accounts cannot be deleted via web UI. Database / Shell access required.' };
+    }
     globalUsers = globalUsers.filter(u => u.id !== userId);
 
     try {
@@ -343,13 +371,16 @@ export const useAuthStore = () => {
   };
 
   const adminUpdateUser = (userId: string, fields: Partial<UserAccount>, performedBy?: any): { success: boolean; message: string } => {
+    const targetUser = globalUsers.find(u => u.id === userId);
+    if (targetUser?.role === 'super_admin' || fields.role === 'super_admin') {
+      return { success: false, message: 'Super Admin accounts or roles cannot be modified via web UI. Database / Shell access required.' };
+    }
     if (fields.email) {
       const emailTaken = globalUsers.some(u => u.id !== userId && u.email.toLowerCase() === fields.email!.toLowerCase().trim());
       if (emailTaken) {
         return { success: false, message: 'Email already taken.' };
       }
     }
-    const oldUser = globalUsers.find(u => u.id === userId);
     let updatedUser: UserAccount | null = null;
 
     globalUsers = globalUsers.map(u => {
@@ -374,7 +405,7 @@ export const useAuthStore = () => {
 
     try {
       import('./usePlatformStore').then(m => {
-        m.recordAuditLog('USER_UPDATED', 'USER', userId, performedBy || globalCurrentUser, { before: oldUser, after: updatedUser });
+        m.recordAuditLog('USER_UPDATED', 'USER', userId, performedBy || globalCurrentUser, { before: targetUser, after: updatedUser });
       });
     } catch (e) {}
 
@@ -382,11 +413,26 @@ export const useAuthStore = () => {
     return { success: true, message: 'User updated successfully.' };
   };
 
-  // Mock functions for legacy support
   const loginAsPassenger = () => login('ahmed@example.com', 'password123');
   const loginAsAgency = () => login('bookings@mvtravel.com', 'agency123');
   const loginAsAdmin = () => login('admin@smartferry.mv', 'admin123');
-  const loginAsSuperAdmin = () => login('superadmin@smartferry.mv', 'superadmin123');
+  const loginAsSuperAdmin = () => {
+    let superUser = globalUsers.find(u => u.email.toLowerCase() === 'superadmin@smartferry.mv' || u.role === 'super_admin');
+    if (!superUser) {
+      superUser = {
+        id: 'sadm-001',
+        name: 'Super Admin',
+        role: 'super_admin',
+        email: 'superadmin@smartferry.mv',
+        password: 'superadmin123',
+        savedPassengers: []
+      };
+      globalUsers.push(superUser);
+    }
+    superUser.role = 'super_admin';
+    saveToStorage('sf_users', globalUsers);
+    return login(superUser.email, superUser.password || 'superadmin123');
+  };
 
   const logout = () => {
     globalCurrentUser = null;

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import App from './App';
+import { AdminDashboard } from './components/AdminDashboard';
 import { renderHook } from '@testing-library/react';
 import { usePlatformStore } from './store/usePlatformStore';
 import { useAuthStore, resetAuthStore } from './store/useAuthStore';
@@ -635,21 +636,22 @@ describe('FeridhooTours App E2E Flows', () => {
     });
   });
 
-  it('records database audit entries and displays audit history in the Admin Audit Logs tab', async () => {
-    // 1. Login as Admin
-    fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
-    fireEvent.click(screen.getByText('Operator/Admin'));
-    
-    // 2. Open Admin Panel
-    const adminBtns = await waitFor(() => screen.getAllByText('Admin Panel'));
-    fireEvent.click(adminBtns[0]);
+  it('records database audit entries and displays audit history in the Admin Audit Logs tab for Super Admin', async () => {
+    const { result: auth } = renderHook(() => useAuthStore());
+    act(() => {
+      auth.current.loginAsSuperAdmin();
+    });
 
-    // 3. Click Audit Logs & History tab
-    const auditTabBtn = await waitFor(() => screen.getByRole('button', { name: /Audit Logs & History/i }));
+    render(<AdminDashboard />);
+
+    // 1. Verify Audit Logs tab button exists for Super Admin
+    const auditTabBtn = screen.getByTestId('tab-audit');
+    expect(auditTabBtn).toBeTruthy();
+
+    // 2. Click Audit Logs & History tab
     fireEvent.click(auditTabBtn);
 
-    // 4. Verify Audit log heading and table elements
+    // 3. Verify Audit log heading and table elements
     await waitFor(() => {
       expect(screen.getByText('Database Audit Logs & Change History')).toBeTruthy();
       expect(screen.getByText('Total Audit Events')).toBeTruthy();
@@ -672,5 +674,63 @@ describe('FeridhooTours App E2E Flows', () => {
     const superUser = { id: 'sadm-001', name: 'Super Admin', email: 'superadmin@smartferry.mv', role: 'super_admin' as const };
     const superRes = platform.current.removeBooking('SFY78B', superUser);
     expect(superRes.success).toBe(true);
+  });
+
+  it('prevents passenger from accessing admin views and admin store actions', () => {
+    const { result: auth } = renderHook(() => useAuthStore());
+    
+    // Login as Passenger
+    act(() => {
+      auth.current.login('ahmed@example.com', 'password123');
+    });
+
+    // 1. Verify Admin Panel navigation button is not rendered for Passenger
+    expect(screen.queryByText('Admin Panel')).toBeNull();
+
+    // 2. Verify Passenger trying to create super admin is blocked
+    const resAdd = auth.current.adminAddUser('Hacker', 'hacker@test.mv', '123456', 'super_admin');
+    expect(resAdd.success).toBe(false);
+    expect(resAdd.message).toContain('Super Admin');
+  });
+
+  it('prevents standard admin from viewing audit logs tab or mutating super_admin accounts', () => {
+    const { result: auth } = renderHook(() => useAuthStore());
+    act(() => {
+      auth.current.loginAsAdmin();
+    });
+
+    // 1. Render AdminDashboard as Standard Admin
+    render(<AdminDashboard />);
+
+    // 2. Verify tab-audit is NOT present for standard admin
+    expect(screen.queryByTestId('tab-audit')).toBeNull();
+
+    // 3. Verify Standard Admin cannot create super_admin account
+    const resAdd = auth.current.adminAddUser('Rogue Admin', 'rogue@smartferry.mv', 'password123', 'super_admin');
+    expect(resAdd.success).toBe(false);
+    expect(resAdd.message).toContain('Database / Shell access required');
+
+    // 4. Verify Standard Admin cannot delete existing super_admin account
+    const resDelete = auth.current.adminDeleteUser('sadm-001');
+    expect(resDelete.success).toBe(false);
+    expect(resDelete.message).toContain('Database / Shell access required');
+  });
+
+  it('verifies complete database reset and clean re-initialization of initial seed state', () => {
+    const { result: platform } = renderHook(() => usePlatformStore());
+    const { result: auth } = renderHook(() => useAuthStore());
+
+    // Execute database and auth store resets
+    act(() => {
+      platform.current.resetPlatformStore();
+      resetAuthStore();
+    });
+
+    // Verify pristine seed tables re-populated
+    expect(platform.current.vessels.length).toBeGreaterThan(0);
+    expect(platform.current.locations.length).toBeGreaterThan(0);
+    expect(platform.current.schedules.length).toBeGreaterThan(0);
+    expect(platform.current.bookings.length).toBeGreaterThan(0);
+    expect(auth.current.users.some(u => u.role === 'super_admin')).toBe(true);
   });
 });

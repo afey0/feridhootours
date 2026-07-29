@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, Users, Ship, AlertTriangle, ArrowLeft, Plus, CheckCircle, XCircle, FileText, X, CreditCard, DollarSign, Layers, Mail, Key, Trash2, ClipboardList, AlertCircle, ShieldAlert, Search, Download, Eye, Clock, List, Code, Check, Lock } from 'lucide-react';
 import { usePlatformStore } from '../store/usePlatformStore';
-import { useAuthStore } from '../store/useAuthStore';
+import { useAuthStore, getCurrentAuthUser } from '../store/useAuthStore';
 import { SeatMap } from './SeatMap';
 import type { Seat, Booking, Passenger } from '../data/mockData';
 import type { AuditLogEntry } from '../types/audit';
@@ -97,6 +97,8 @@ export const AdminDashboard: React.FC = () => {
     adminDeleteUser,
     adminUpdateUser
   } = useAuthStore();
+
+  const currentUser = currentAuthUser || getCurrentAuthUser();
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'vessels' | 'fleet' | 'verify' | 'bookings' | 'locations' | 'reports' | 'emails' | 'users' | 'audit'>('dashboard');
   const [auditFilterAction, setAuditFilterAction] = useState<string>('ALL');
@@ -624,16 +626,20 @@ export const AdminDashboard: React.FC = () => {
         >
           <Users size={16} /> User Directory
         </button>
-        <button 
-          onClick={() => setActiveTab('audit')}
-          className={`flex items-center gap-2 py-3 px-5 font-semibold text-sm border-b-2 transition duration-200 cursor-pointer whitespace-nowrap ${
-            activeTab === 'audit' 
-              ? 'border-sky-500 text-sky-700 bg-sky-50 rounded-t-lg font-bold' 
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <ShieldAlert size={16} className="text-amber-500" /> Audit Logs & History
-        </button>
+        {currentUser?.role === 'super_admin' && (
+          <button 
+            id="tab-audit"
+            data-testid="tab-audit"
+            onClick={() => setActiveTab('audit')}
+            className={`flex items-center gap-2 py-3 px-5 font-semibold text-sm border-b-2 transition duration-200 cursor-pointer whitespace-nowrap ${
+              activeTab === 'audit' 
+                ? 'border-sky-500 text-sky-700 bg-sky-50 rounded-t-lg font-bold' 
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <ShieldAlert size={16} className="text-amber-500" /> Audit Logs & History
+          </button>
+        )}
       </div>
 
       {/* OVERVIEW DASHBOARD TAB */}
@@ -1588,34 +1594,40 @@ export const AdminDashboard: React.FC = () => {
                       <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">ID: {u.id} | Saved Travelers: {u.savedPassengers?.length || 0}</span>
                     </div>
 
-                    <div className="flex gap-2 shrink-0">
-                      <button
-                        onClick={() => {
-                          setEditingUserId(u.id);
-                          setEditUserName(u.name);
-                          setEditUserEmail(u.email);
-                          setEditUserRole(u.role as any);
-                          setEditUserPassword('');
-                        }}
-                        className="bg-transparent border border-slate-205 text-slate-600 hover:bg-slate-50 font-bold py-1.5 px-3 rounded-lg text-xs transition cursor-pointer"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => {
-                          const res = adminDeleteUser(u.id);
-                          if (res.success) {
-                            showAlert(res.message, 'User Account Deleted', 'success');
-                          } else {
-                            showAlert(res.message, 'Deletion Rejected', 'error');
-                          }
-                        }}
-                        disabled={currentAuthUser?.id === u.id}
-                        className="bg-transparent border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold py-1.5 px-3 rounded-lg text-xs transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    {u.role === 'super_admin' ? (
+                      <span className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg flex items-center gap-1 select-none">
+                        <Lock size={12} /> Shell Protected
+                      </span>
+                    ) : (
+                      <div className="flex gap-2 shrink-0">
+                        <button
+                          onClick={() => {
+                            setEditingUserId(u.id);
+                            setEditUserName(u.name);
+                            setEditUserEmail(u.email);
+                            setEditUserRole(u.role as any);
+                            setEditUserPassword('');
+                          }}
+                          className="bg-transparent border border-slate-205 text-slate-600 hover:bg-slate-50 font-bold py-1.5 px-3 rounded-lg text-xs transition cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            const res = adminDeleteUser(u.id);
+                            if (res.success) {
+                              showAlert(res.message, 'User Account Deleted', 'success');
+                            } else {
+                              showAlert(res.message, 'Deletion Rejected', 'error');
+                            }
+                          }}
+                          disabled={currentAuthUser?.id === u.id}
+                          className="bg-transparent border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold py-1.5 px-3 rounded-lg text-xs transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1680,7 +1692,6 @@ export const AdminDashboard: React.FC = () => {
                         <option value="passenger">Passenger</option>
                         <option value="agency">Travel Agency (Agent)</option>
                         <option value="admin">Admin Operator</option>
-                        <option value="super_admin">Super Admin (Master)</option>
                       </select>
                     </div>
                     <div className="flex flex-col gap-1.5">
@@ -1786,7 +1797,6 @@ export const AdminDashboard: React.FC = () => {
                         <option value="passenger">Passenger</option>
                         <option value="agency">Travel Agency (Agent)</option>
                         <option value="admin">Admin Operator</option>
-                        <option value="super_admin">Super Admin (Master)</option>
                       </select>
                     </div>
                     <button 
@@ -1806,15 +1816,24 @@ export const AdminDashboard: React.FC = () => {
 
       {/* AUDIT LOGS & HISTORY TAB */}
       {activeTab === 'audit' && (
-        <div className="space-y-6 animate-fade-in text-left">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h3 className="text-xl font-bold text-slate-850">Database Audit Logs & Change History</h3>
-              <p className="text-slate-500 text-xs font-semibold mt-0.5">
-                Restricted to Operator Admins. Complete audit trail tracking who made changes, before/after values, and deleted receipts.
-              </p>
-            </div>
+        currentUser?.role !== 'super_admin' ? (
+          <div className="text-center py-20 glass-panel border border-slate-200 rounded-3xl p-8 shadow-sm">
+            <ShieldAlert size={56} className="text-amber-500 mx-auto mb-4 opacity-90" />
+            <h3 className="text-xl font-black text-slate-900 mb-2">Super Admin Access Only</h3>
+            <p className="text-xs text-slate-500 max-w-md mx-auto font-medium leading-relaxed">
+              System database audit logs and change history are strictly confidential and accessible exclusively to Super Admin master accounts.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6 animate-fade-in text-left">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-850">Database Audit Logs & Change History</h3>
+                <p className="text-slate-500 text-xs font-semibold mt-0.5">
+                  Restricted exclusively to Super Admin. Complete audit trail tracking who made changes, before/after values, and deleted receipts.
+                </p>
+              </div>
             <div className="flex items-center gap-3">
               {/* View mode toggle */}
               <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1 border border-slate-200">
@@ -2118,7 +2137,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
           )}
         </div>
-      )}
+      ))}
 
       {/* AUDIT LOG INSPECTOR MODAL WITH HUMAN READABLE + JSON OPTIONAL TABS */}
       {inspectingAuditLog && (

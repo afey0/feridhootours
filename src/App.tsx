@@ -162,7 +162,7 @@ function App() {
 
       <main className="flex-1">
         {/* FULL PAGE ROUTER VIEWS */}
-        {activePage === 'admin' && user?.role === 'admin' ? (
+        {activePage === 'admin' && (user?.role === 'admin' || user?.role === 'super_admin') ? (
           <AdminDashboard />
         ) : activePage === 'my_bookings' ? (
           <MyBookings onBack={() => setActivePage('booking')} user={user} />

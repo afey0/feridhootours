@@ -370,6 +370,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose }) => {
             </button>
             <button
               type="button"
+              data-testid="demo-superadmin-btn"
               onClick={() => { loginAsSuperAdmin(); onClose(); }}
               className="py-2.5 px-3 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
             >
