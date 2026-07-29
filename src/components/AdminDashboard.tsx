@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Users, Ship, AlertTriangle, ArrowLeft, Plus, CheckCircle, XCircle, FileText, X, CreditCard, DollarSign, Layers, Mail, Key, Trash2, ClipboardList, AlertCircle } from 'lucide-react';
+import { BarChart3, Users, Ship, AlertTriangle, ArrowLeft, Plus, CheckCircle, XCircle, FileText, X, CreditCard, DollarSign, Layers, Mail, Key, Trash2, ClipboardList, AlertCircle, ShieldAlert, Search, Download, Eye } from 'lucide-react';
 import { usePlatformStore } from '../store/usePlatformStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { SeatMap } from './SeatMap';
 import type { Seat, Booking, Passenger } from '../data/mockData';
+import type { AuditLogEntry } from '../types/audit';
 
 // Utility to parse custom row input string (e.g. "1-2, 5") into a set of row numbers
 const parseRowsString = (input: string, maxRow: number): Set<number> => {
@@ -84,7 +85,8 @@ export const AdminDashboard: React.FC = () => {
     addVessel,
     editVessel,
     removeVessel,
-    vessels
+    vessels,
+    auditLogs
   } = usePlatformStore();
 
   const {
@@ -95,7 +97,11 @@ export const AdminDashboard: React.FC = () => {
     adminUpdateUser
   } = useAuthStore();
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'vessels' | 'fleet' | 'verify' | 'bookings' | 'locations' | 'reports' | 'emails' | 'users'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'vessels' | 'fleet' | 'verify' | 'bookings' | 'locations' | 'reports' | 'emails' | 'users' | 'audit'>('dashboard');
+  const [auditFilterAction, setAuditFilterAction] = useState<string>('ALL');
+  const [auditFilterEntity, setAuditFilterEntity] = useState<string>('ALL');
+  const [auditSearchQuery, setAuditSearchQuery] = useState<string>('');
+  const [inspectingAuditLog, setInspectingAuditLog] = useState<AuditLogEntry | null>(null);
   const [previewingSlipUrl, setPreviewingSlipUrl] = useState<string | null>(null);
   const [managingScheduleId, setManagingScheduleId] = useState<string | null>(null);
   const [adminSelectedSeats, setAdminSelectedSeats] = useState<Seat[]>([]);
@@ -609,11 +615,21 @@ export const AdminDashboard: React.FC = () => {
           onClick={() => setActiveTab('users')}
           className={`flex items-center gap-2 py-3 px-5 font-semibold text-sm border-b-2 transition duration-200 cursor-pointer whitespace-nowrap ${
             activeTab === 'users' 
-              ? 'border-sky-500 text-sky-700 bg-sky-50 rounded-t-lg' 
+              ? 'border-sky-500 text-sky-700 bg-sky-50 rounded-t-lg font-bold' 
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
           <Users size={16} /> User Directory
+        </button>
+        <button 
+          onClick={() => setActiveTab('audit')}
+          className={`flex items-center gap-2 py-3 px-5 font-semibold text-sm border-b-2 transition duration-200 cursor-pointer whitespace-nowrap ${
+            activeTab === 'audit' 
+              ? 'border-sky-500 text-sky-700 bg-sky-50 rounded-t-lg font-bold' 
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <ShieldAlert size={16} className="text-amber-500" /> Audit Logs & History
         </button>
       </div>
 
@@ -1773,6 +1789,267 @@ export const AdminDashboard: React.FC = () => {
               )}
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* AUDIT LOGS & HISTORY TAB */}
+      {activeTab === 'audit' && (
+        <div className="space-y-6 animate-fade-in text-left">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 className="text-xl font-bold text-slate-850">Database Audit Logs & Change History</h3>
+              <p className="text-slate-500 text-xs font-semibold mt-0.5">
+                Restricted to Operator Admins. Tracks all database mutations, updates, deletions, and deleted receipt metadata.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(auditLogs, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", `feridhootours_audit_logs_${new Date().toISOString().slice(0, 10)}.json`);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+              }}
+              className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-2 shadow-md"
+            >
+              <Download size={16} /> Export Audit Logs (JSON)
+            </button>
+          </div>
+
+          {/* Stat Summary Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="glass-panel p-5 rounded-2xl border border-slate-200 bg-white shadow-sm border-t-4 border-t-amber-500">
+              <div className="text-xs font-black text-slate-500 uppercase tracking-wider mb-1">Total Audit Events</div>
+              <div className="text-2xl font-black text-slate-900">{auditLogs.length}</div>
+              <p className="text-[10px] text-slate-400 font-bold mt-1">Logged mutations across PostgreSQL database</p>
+            </div>
+
+            <div className="glass-panel p-5 rounded-2xl border border-slate-200 bg-white shadow-sm border-t-4 border-t-rose-500">
+              <div className="text-xs font-black text-slate-500 uppercase tracking-wider mb-1">Deletions Logged</div>
+              <div className="text-2xl font-black text-slate-900">
+                {auditLogs.filter(a => a.action === 'DELETE' || a.action === 'RECEIPT_DELETED' || a.action === 'USER_DELETED').length}
+              </div>
+              <p className="text-[10px] text-slate-400 font-bold mt-1">Deleted bookings, users, or schedules</p>
+            </div>
+
+            <div className="glass-panel p-5 rounded-2xl border border-slate-200 bg-white shadow-sm border-t-4 border-t-indigo-500">
+              <div className="text-xs font-black text-slate-500 uppercase tracking-wider mb-1">Receipts Deleted / Modified</div>
+              <div className="text-2xl font-black text-slate-900">
+                {auditLogs.filter(a => a.action === 'RECEIPT_DELETED' || (a.metadata && a.metadata.hadReceipt)).length}
+              </div>
+              <p className="text-[10px] text-slate-400 font-bold mt-1">Deleted transfer slip attachments</p>
+            </div>
+
+            <div className="glass-panel p-5 rounded-2xl border border-slate-200 bg-white shadow-sm border-t-4 border-t-emerald-500">
+              <div className="text-xs font-black text-slate-500 uppercase tracking-wider mb-1">Verified Slip Approvals</div>
+              <div className="text-2xl font-black text-slate-900">
+                {auditLogs.filter(a => a.action === 'VERIFY_PAYMENT').length}
+              </div>
+              <p className="text-[10px] text-slate-400 font-bold mt-1">Admin payment approvals logged</p>
+            </div>
+          </div>
+
+          {/* Filters & Search */}
+          <div className="glass-panel p-4 rounded-2xl border border-slate-200 bg-white shadow-sm flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Action:</label>
+                <select
+                  className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                  value={auditFilterAction}
+                  onChange={(e) => setAuditFilterAction(e.target.value)}
+                >
+                  <option value="ALL">All Actions</option>
+                  <option value="DELETE">DELETE</option>
+                  <option value="RECEIPT_DELETED">RECEIPT_DELETED</option>
+                  <option value="CREATE">CREATE</option>
+                  <option value="UPDATE">UPDATE</option>
+                  <option value="VERIFY_PAYMENT">VERIFY_PAYMENT</option>
+                  <option value="REJECT_PAYMENT">REJECT_PAYMENT</option>
+                  <option value="REFUND">REFUND</option>
+                  <option value="CANCEL">CANCEL</option>
+                  <option value="USER_DELETED">USER_DELETED</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Entity:</label>
+                <select
+                  className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                  value={auditFilterEntity}
+                  onChange={(e) => setAuditFilterEntity(e.target.value)}
+                >
+                  <option value="ALL">All Entities</option>
+                  <option value="BOOKING">BOOKING</option>
+                  <option value="SCHEDULE">SCHEDULE</option>
+                  <option value="VESSEL">VESSEL</option>
+                  <option value="USER">USER</option>
+                  <option value="JETTY">JETTY</option>
+                  <option value="RECEIPT">RECEIPT</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="relative flex-1 max-w-sm">
+              <Search size={14} className="absolute left-3.5 top-3 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search audit logs by ID, user, or email..."
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-sky-500"
+                value={auditSearchQuery}
+                onChange={(e) => setAuditSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Audit Log Table */}
+          <div className="glass-panel rounded-2xl border border-slate-200 bg-white shadow-md overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 border-b border-slate-150 text-slate-500 font-extrabold uppercase tracking-wider text-[10px]">
+                  <tr>
+                    <th className="px-6 py-3.5">Timestamp</th>
+                    <th className="px-4 py-3.5">Action</th>
+                    <th className="px-4 py-3.5">Entity</th>
+                    <th className="px-4 py-3.5">Target ID</th>
+                    <th className="px-6 py-3.5">Performed By</th>
+                    <th className="px-6 py-3.5 text-right">Action Diff</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium">
+                  {auditLogs
+                    .filter(a => auditFilterAction === 'ALL' || a.action === auditFilterAction)
+                    .filter(a => auditFilterEntity === 'ALL' || a.entityType === auditFilterEntity)
+                    .filter(a => {
+                      if (!auditSearchQuery.trim()) return true;
+                      const q = auditSearchQuery.toLowerCase().trim();
+                      return (
+                        a.id.toLowerCase().includes(q) ||
+                        a.entityId.toLowerCase().includes(q) ||
+                        a.performedBy.name.toLowerCase().includes(q) ||
+                        (a.performedBy.email && a.performedBy.email.toLowerCase().includes(q))
+                      );
+                    })
+                    .map(a => {
+                      const isDelete = a.action.includes('DELETE');
+                      const isVerify = a.action === 'VERIFY_PAYMENT';
+                      const isCreate = a.action === 'CREATE' || a.action === 'USER_CREATED';
+
+                      return (
+                        <tr key={a.id} className="hover:bg-slate-50/80 transition duration-150">
+                          <td className="px-6 py-4 text-slate-500 text-[11px] font-mono">
+                            {new Date(a.createdAt).toLocaleString()}
+                          </td>
+                          <td className="px-4 py-4">
+                            <span className={`px-2.5 py-1 rounded-md text-[10px] font-black tracking-wider uppercase border ${
+                              isDelete ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                              isVerify ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                              isCreate ? 'bg-sky-50 text-sky-700 border-sky-200' :
+                              'bg-amber-50 text-amber-800 border-amber-200'
+                            }`}>
+                              {a.action}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 font-bold text-slate-700">
+                            {a.entityType}
+                          </td>
+                          <td className="px-4 py-4 font-mono text-slate-800 font-bold">
+                            {a.entityId}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="font-extrabold text-slate-900">{a.performedBy.name}</div>
+                            <div className="text-[10px] text-slate-400 font-medium">
+                              {a.performedBy.email || 'N/A'} · <span className="uppercase font-bold">{a.performedBy.role}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <button
+                              onClick={() => setInspectingAuditLog(a)}
+                              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[11px] font-bold cursor-pointer transition inline-flex items-center gap-1.5"
+                            >
+                              <Eye size={14} /> Inspect Log
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AUDIT LOG JSON DIFF INSPECTOR MODAL */}
+      {inspectingAuditLog && (
+        <div className="overlay animate-fade-in" style={{ zIndex: 1300 }}>
+          <div 
+            className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl border border-slate-100 flex flex-col relative overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <ShieldAlert size={20} className="text-amber-500" />
+                <h3 className="font-extrabold text-slate-900 text-base">Audit Entry: {inspectingAuditLog.id}</h3>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setInspectingAuditLog(null)}
+                className="text-slate-400 hover:text-slate-700 transition cursor-pointer p-1 rounded-lg"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto text-left text-xs">
+              <div className="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Action</span>
+                  <span className="font-black text-slate-900 text-sm">{inspectingAuditLog.action}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Entity</span>
+                  <span className="font-bold text-slate-800 text-sm">{inspectingAuditLog.entityType} ({inspectingAuditLog.entityId})</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Performed By</span>
+                  <span className="font-bold text-slate-800">{inspectingAuditLog.performedBy.name} ({inspectingAuditLog.performedBy.role})</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Timestamp</span>
+                  <span className="font-mono text-slate-700">{new Date(inspectingAuditLog.createdAt).toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-extrabold text-slate-800 text-xs uppercase tracking-wider mb-2">State Change JSON Diff (Before vs After)</h4>
+                <pre className="bg-slate-900 text-emerald-400 p-4 rounded-2xl font-mono text-[11px] overflow-x-auto leading-relaxed max-h-60 shadow-inner">
+                  {JSON.stringify(inspectingAuditLog.changes || {}, null, 2)}
+                </pre>
+              </div>
+
+              {inspectingAuditLog.metadata && Object.keys(inspectingAuditLog.metadata).length > 0 && (
+                <div>
+                  <h4 className="font-extrabold text-slate-800 text-xs uppercase tracking-wider mb-2">Metadata & Deletion Snapshot Context</h4>
+                  <pre className="bg-slate-100 text-slate-800 p-4 rounded-2xl font-mono text-[11px] overflow-x-auto leading-relaxed max-h-40 border border-slate-200">
+                    {JSON.stringify(inspectingAuditLog.metadata, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+              <button
+                onClick={() => setInspectingAuditLog(null)}
+                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-extrabold cursor-pointer transition"
+              >
+                Close Inspector
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { MOCK_SCHEDULES, MOCK_VESSELS, generateMockDeck, ATolls } from '../data/mockData';
 import type { Seat, Schedule, Booking, Jetty, Vessel } from '../data/mockData';
+import type { AuditLogEntry, AuditAction, AuditEntityType } from '../types/audit';
+import { createAuditEntry } from '../services/auditLogger';
+import { broadcastRealtimeEvent, subscribeRealtimeEvents } from '../services/dbClient';
 import { calculateRefund } from '../utils/refundPolicy';
 
 // Storage utility helpers
@@ -27,7 +30,6 @@ let globalDecks = loadFromStorage<Record<string, Seat[]>>('sf_decks', {});
 let globalLocations = loadFromStorage('sf_locations', [...ATolls]);
 let globalVessels = loadFromStorage<Vessel[]>('sf_vessels', [...MOCK_VESSELS]);
 let globalBookings = loadFromStorage<Booking[]>('sf_bookings', [
-  // Insert a mock past booking for demonstration
   {
     id: 'SFY78B',
     scheduleId: 'SCH-001',
@@ -48,6 +50,29 @@ let globalBookings = loadFromStorage<Booking[]>('sf_bookings', [
     createdAt: new Date(Date.now() - 86400000).toISOString(),
     userId: 'usr-123',
     passengerEmail: 'ahmed@example.com'
+  }
+]);
+
+let globalAuditLogs = loadFromStorage<AuditLogEntry[]>('sf_audit_logs', [
+  {
+    id: 'AUDIT-1001',
+    action: 'CREATE',
+    entityType: 'BOOKING',
+    entityId: 'SFY78B',
+    performedBy: { id: 'usr-123', name: 'Ahmed F.', email: 'ahmed@example.com', role: 'passenger' },
+    changes: { after: { id: 'SFY78B', vesselName: 'Kaani Princess', totalAmount: 25 } },
+    metadata: { note: 'Initial passenger reservation created' },
+    createdAt: new Date(Date.now() - 86400000).toISOString()
+  },
+  {
+    id: 'AUDIT-1000',
+    action: 'VERIFY_PAYMENT',
+    entityType: 'BOOKING',
+    entityId: 'SFY78B',
+    performedBy: { id: 'adm-999', name: 'System Admin', email: 'admin@smartferry.mv', role: 'admin' },
+    changes: { before: { status: 'pending_verification' }, after: { status: 'verified' } },
+    metadata: { note: 'Payment slip verified by admin' },
+    createdAt: new Date(Date.now() - 82000000).toISOString()
   }
 ]);
 
@@ -97,7 +122,32 @@ export const notifyStoreListeners = () => {
   saveToStorage('sf_email_config', globalEmailConfig);
   saveToStorage('sf_sent_emails', globalSentEmails);
   saveToStorage('sf_vessels', globalVessels);
+  saveToStorage('sf_audit_logs', globalAuditLogs);
   listeners.forEach(fn => fn());
+};
+
+export const recordAuditLog = (
+  action: AuditAction,
+  entityType: AuditEntityType,
+  entityId: string,
+  performedBy?: any,
+  changes?: { before?: any; after?: any },
+  metadata?: Record<string, any>
+) => {
+  const entry = createAuditEntry(action, entityType, entityId, performedBy, changes, metadata);
+  globalAuditLogs.unshift(entry);
+  notifyStoreListeners();
+
+  // Sync with Express backend database
+  fetch('/api/v1/audit-logs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(entry)
+  }).catch(() => {
+    // Ignore if backend offline in standalone mode
+  });
+
+  return entry;
 };
 
 export const triggerEmail = (recipient: string, subject: string, body: string, category: 'welcome' | 'booking' | 'status' | 'otp' | 'reset') => {
@@ -129,6 +179,7 @@ export const usePlatformStore = () => {
   const [vessels, setVessels] = useState(globalVessels);
   const [emailConfig, setEmailConfig] = useState(globalEmailConfig);
   const [sentEmails, setSentEmails] = useState(globalSentEmails);
+  const [auditLogs, setAuditLogs] = useState(globalAuditLogs);
   const [alertState, setAlertState] = useState(globalAlert);
 
   const resetPlatformStore = () => {
@@ -160,6 +211,7 @@ export const usePlatformStore = () => {
     globalLocations = [...ATolls];
     globalVessels = JSON.parse(JSON.stringify(MOCK_VESSELS));
     globalSentEmails = [];
+    globalAuditLogs = [];
     globalAlert = null;
     globalSchedules.forEach(s => {
       globalDecks[s.id] = generateMockDeck(true); 
@@ -171,6 +223,7 @@ export const usePlatformStore = () => {
     setVessels(globalVessels);
     setEmailConfig(globalEmailConfig);
     setSentEmails(globalSentEmails);
+    setAuditLogs(globalAuditLogs);
     setAlertState(globalAlert);
     notifyStoreListeners();
   };
@@ -197,10 +250,22 @@ export const usePlatformStore = () => {
       setVessels([...globalVessels]);
       setEmailConfig({ ...globalEmailConfig });
       setSentEmails([...globalSentEmails]);
+      setAuditLogs([...globalAuditLogs]);
       setAlertState(globalAlert);
     };
     listeners.add(update);
-    return () => { listeners.delete(update); };
+
+    // Subscribe to cross-session realtime events
+    const unsubscribe = subscribeRealtimeEvents((type, _payload) => {
+      if (type === 'STATE_SYNC' || type.startsWith('BOOKING_') || type.startsWith('SCHEDULE_') || type.startsWith('VESSEL_')) {
+        update();
+      }
+    });
+
+    return () => { 
+      listeners.delete(update); 
+      unsubscribe();
+    };
   }, []);
 
   const bookSeats = (scheduleId: string, seatIds: string[]) => {
@@ -216,11 +281,11 @@ export const usePlatformStore = () => {
 
     const schedule = globalSchedules.find(s => s.id === scheduleId);
     if (schedule) {
-      // Calculate available seats accurately by counting remaining 'available' seats
       schedule.availableSeats = globalDecks[scheduleId].filter(s => s.status === 'available').length;
     }
 
     notifyStoreListeners();
+    broadcastRealtimeEvent('SEATS_BOOKED', { scheduleId, seatIds });
   };
 
   const adminLockSeats = (scheduleId: string, seatIds: string[]) => {
@@ -240,6 +305,7 @@ export const usePlatformStore = () => {
     }
 
     notifyStoreListeners();
+    broadcastRealtimeEvent('SEATS_LOCKED', { scheduleId, seatIds });
   };
 
   const adminUnlockSeats = (scheduleId: string, seatIds: string[]) => {
@@ -259,10 +325,11 @@ export const usePlatformStore = () => {
     }
 
     notifyStoreListeners();
+    broadcastRealtimeEvent('SEATS_UNLOCKED', { scheduleId, seatIds });
   };
 
   // Add/Remove Schedules
-  const addSchedule = (sched: Omit<Schedule, 'id' | 'availableSeats'>, customSeats?: Seat[]) => {
+  const addSchedule = (sched: Omit<Schedule, 'id' | 'availableSeats'>, customSeats?: Seat[], performedBy?: any) => {
     const id = `SCH-${String(globalSchedules.length + 1).padStart(3, '0')}`;
     const newSchedule: Schedule = {
       ...sched,
@@ -271,16 +338,26 @@ export const usePlatformStore = () => {
     };
     globalSchedules.push(newSchedule);
     globalDecks[id] = customSeats || generateMockDeck(true);
+    
+    recordAuditLog('CREATE', 'SCHEDULE', id, performedBy, { after: newSchedule });
     notifyStoreListeners();
+    broadcastRealtimeEvent('SCHEDULE_CREATED', newSchedule);
   };
 
-  const removeSchedule = (id: string) => {
+  const removeSchedule = (id: string, performedBy?: any) => {
+    const oldSchedule = globalSchedules.find(s => s.id === id);
     globalSchedules = globalSchedules.filter(s => s.id !== id);
     delete globalDecks[id];
+
+    recordAuditLog('DELETE', 'SCHEDULE', id, performedBy, { before: oldSchedule });
     notifyStoreListeners();
+    broadcastRealtimeEvent('SCHEDULE_DELETED', { id });
   };
 
-  const editSchedule = (id: string, updatedFields: Partial<Omit<Schedule, 'id' | 'availableSeats'>>, customSeats?: Seat[]) => {
+  const editSchedule = (id: string, updatedFields: Partial<Omit<Schedule, 'id' | 'availableSeats'>>, customSeats?: Seat[], performedBy?: any) => {
+    const oldSchedule = globalSchedules.find(s => s.id === id);
+    let newSchedule: Schedule | null = null;
+
     globalSchedules = globalSchedules.map(s => {
       if (s.id === id) {
         const merged = { ...s, ...updatedFields };
@@ -288,38 +365,61 @@ export const usePlatformStore = () => {
           globalDecks[id] = customSeats;
         }
         merged.availableSeats = (globalDecks[id] || []).filter(seat => seat.status === 'available').length;
+        newSchedule = merged;
         return merged;
       }
       return s;
     });
+
+    recordAuditLog('UPDATE', 'SCHEDULE', id, performedBy, { before: oldSchedule, after: newSchedule });
     notifyStoreListeners();
+    broadcastRealtimeEvent('SCHEDULE_UPDATED', newSchedule);
   };
 
   // Vessel management
-  const addVessel = (v: Omit<Vessel, 'id'>): string => {
+  const addVessel = (v: Omit<Vessel, 'id'>, performedBy?: any): string => {
     const id = `VSL-${String(globalVessels.length + 1).padStart(3, '0')}`;
-    globalVessels.push({ ...v, id });
+    const newVessel = { ...v, id };
+    globalVessels.push(newVessel);
+
+    recordAuditLog('CREATE', 'VESSEL', id, performedBy, { after: newVessel });
     notifyStoreListeners();
+    broadcastRealtimeEvent('VESSEL_CREATED', newVessel);
     return id;
   };
 
-  const editVessel = (id: string, fields: Partial<Omit<Vessel, 'id'>>) => {
-    globalVessels = globalVessels.map(v => v.id === id ? { ...v, ...fields } : v);
+  const editVessel = (id: string, fields: Partial<Omit<Vessel, 'id'>>, performedBy?: any) => {
+    const oldVessel = globalVessels.find(v => v.id === id);
+    let newVessel: Vessel | null = null;
+    globalVessels = globalVessels.map(v => {
+      if (v.id === id) {
+        newVessel = { ...v, ...fields };
+        return newVessel;
+      }
+      return v;
+    });
+
+    recordAuditLog('UPDATE', 'VESSEL', id, performedBy, { before: oldVessel, after: newVessel });
     notifyStoreListeners();
+    broadcastRealtimeEvent('VESSEL_UPDATED', newVessel);
   };
 
-  const removeVessel = (id: string): { success: boolean; message: string } => {
+  const removeVessel = (id: string, performedBy?: any): { success: boolean; message: string } => {
     const inUse = globalSchedules.some(s => s.vesselId === id);
     if (inUse) {
       return { success: false, message: 'Cannot delete vessel — it is assigned to one or more active routes.' };
     }
+    const oldVessel = globalVessels.find(v => v.id === id);
     globalVessels = globalVessels.filter(v => v.id !== id);
+
+    recordAuditLog('DELETE', 'VESSEL', id, performedBy, { before: oldVessel });
     notifyStoreListeners();
+    broadcastRealtimeEvent('VESSEL_DELETED', { id });
     return { success: true, message: 'Vessel removed successfully.' };
   };
 
   // Locations management
-  const addLocation = (name: string, id: string) => {
+  const addLocation = (name: string, id: string, performedBy?: any) => {
     const uppercaseId = id.toUpperCase().trim();
     if (globalLocations.some(loc => loc.id === uppercaseId)) {
       showAlert(`Location with code ${uppercaseId} already exists.`, 'Duplicate Port', 'error');
@@ -327,14 +427,16 @@ export const usePlatformStore = () => {
     }
     const newJetty: Jetty = { id: uppercaseId, name: name.trim() };
     globalLocations.push(newJetty);
+
+    recordAuditLog('CREATE', 'JETTY', uppercaseId, performedBy, { after: newJetty });
     saveToStorage('sf_locations', globalLocations);
     notifyStoreListeners();
+    broadcastRealtimeEvent('JETTY_CREATED', newJetty);
   };
 
-  const removeLocation = (id: string): { success: boolean; message: string } => {
+  const removeLocation = (id: string, performedBy?: any): { success: boolean; message: string } => {
     const uppercaseId = id.toUpperCase().trim();
 
-    // Check if any fleet (schedule) is assigned to it (departure, arrival, or intermediate stops)
     const hasFleets = globalSchedules.some(s => 
       s.routeFrom === uppercaseId || 
       s.routeTo === uppercaseId || 
@@ -348,7 +450,6 @@ export const usePlatformStore = () => {
       };
     }
 
-    // Check if there are active bookings associated with this jetty (departure or arrival)
     const hasActiveBookings = globalBookings.some(b => {
       const isActive = b.status !== 'cancelled' && b.status !== 'rejected';
       const isAssociated = b.routeFrom === uppercaseId || b.routeTo === uppercaseId;
@@ -362,9 +463,13 @@ export const usePlatformStore = () => {
       };
     }
 
+    const oldJetty = globalLocations.find(l => l.id === uppercaseId);
     globalLocations = globalLocations.filter(loc => loc.id !== uppercaseId);
+
+    recordAuditLog('DELETE', 'JETTY', uppercaseId, performedBy, { before: oldJetty });
     saveToStorage('sf_locations', globalLocations);
     notifyStoreListeners();
+    broadcastRealtimeEvent('JETTY_DELETED', { id: uppercaseId });
     return { success: true, message: 'Location deleted successfully.' };
   };
 
@@ -383,21 +488,24 @@ export const usePlatformStore = () => {
   };
 
   // Bookings management
-  const addBooking = (booking: Booking) => {
+  const addBooking = (booking: Booking, performedBy?: any) => {
     globalBookings.unshift(booking); // Newest bookings first
     bookSeats(booking.scheduleId, booking.selectedSeatIds);
+
+    recordAuditLog('CREATE', 'BOOKING', booking.id, performedBy || { name: booking.passengers[0]?.name || 'Passenger', role: 'passenger' }, { after: booking });
     notifyStoreListeners();
+    broadcastRealtimeEvent('BOOKING_CREATED', booking);
   };
 
-  const updateBookingStatus = (bookingId: string, status: Booking['status'], reason?: string, receiptImage?: string) => {
+  const updateBookingStatus = (bookingId: string, status: Booking['status'], reason?: string, receiptImage?: string, performedBy?: any) => {
+    const oldBooking = globalBookings.find(b => b.id === bookingId);
+
     globalBookings = globalBookings.map(b => {
       if (b.id === bookingId) {
-        // If transitioning from pending to cancelled or rejected, release the seats
         if ((status === 'cancelled' || status === 'rejected') && b.status !== 'cancelled' && b.status !== 'rejected') {
           adminUnlockSeats(b.scheduleId, b.selectedSeatIds);
         }
 
-        // Trigger email notification for status change
         const recipient = b.passengers[0] ? `${b.passengers[0].name.toLowerCase().replace(/\s+/g, '')}@example.com` : 'passenger@example.com';
         if (status === 'verified') {
           triggerEmail(
@@ -415,35 +523,43 @@ export const usePlatformStore = () => {
           );
         }
 
-        return { 
+        const updated = { 
           ...b, 
           status, 
           rejectionReason: reason, 
           receiptImage: receiptImage !== undefined ? receiptImage : b.receiptImage 
         };
+
+        const action: AuditAction = status === 'verified' ? 'VERIFY_PAYMENT' : status === 'rejected' ? 'REJECT_PAYMENT' : status === 'cancelled' ? 'CANCEL' : 'UPDATE';
+        recordAuditLog(action, 'BOOKING', bookingId, performedBy, { before: oldBooking, after: updated });
+
+        return updated;
       }
       return b;
     });
+
     notifyStoreListeners();
+    broadcastRealtimeEvent('BOOKING_UPDATED', { bookingId, status });
   };
 
-  const updateBooking = (bookingId: string, updatedFields: Partial<Booking>) => {
+  const updateBooking = (bookingId: string, updatedFields: Partial<Booking>, performedBy?: any) => {
+    const oldBooking = globalBookings.find(b => b.id === bookingId);
+    let newBooking: Booking | null = null;
+
     globalBookings = globalBookings.map(b => {
       if (b.id === bookingId) {
         const oldScheduleId = b.scheduleId;
         const oldSeats = b.selectedSeatIds;
         
         const merged = { ...b, ...updatedFields };
+        newBooking = merged;
         
-        // If seats or schedule changed
         if (updatedFields.selectedSeatIds || updatedFields.scheduleId) {
           const newScheduleId = merged.scheduleId;
           const newSeats = merged.selectedSeatIds;
           
           if (oldScheduleId !== newScheduleId || JSON.stringify(oldSeats) !== JSON.stringify(newSeats)) {
-            // Unlock old seats
             adminUnlockSeats(oldScheduleId, oldSeats);
-            // Book new seats
             bookSeats(newScheduleId, newSeats);
           }
         }
@@ -452,14 +568,18 @@ export const usePlatformStore = () => {
       }
       return b;
     });
+
+    recordAuditLog('UPDATE', 'BOOKING', bookingId, performedBy, { before: oldBooking, after: newBooking });
     notifyStoreListeners();
+    broadcastRealtimeEvent('BOOKING_UPDATED', { bookingId, updatedFields });
   };
 
   const processRefund = (
     bookingId: string,
     bankDetails?: { bankName?: string; accountName?: string; accountNumber?: string; requestSlip?: string },
     customRefundAmount?: number,
-    reason?: string
+    reason?: string,
+    performedBy?: any
   ) => {
     const booking = globalBookings.find(b => b.id === bookingId);
     if (!booking) {
@@ -475,21 +595,18 @@ export const usePlatformStore = () => {
     const finalFee = Number((booking.totalAmount - finalRefundAmount).toFixed(2));
     const refundPercentage = booking.totalAmount > 0 ? Math.round((finalRefundAmount / booking.totalAmount) * 100) : 100;
 
-    const refundStatus: Booking['refundStatus'] = 'requested';
-
-    // Release seats
     adminUnlockSeats(booking.scheduleId, booking.selectedSeatIds);
 
-    // Update booking state
+    let updatedBooking: Booking | null = null;
     globalBookings = globalBookings.map(b => {
       if (b.id === bookingId) {
-        return {
+        updatedBooking = {
           ...b,
           status: 'cancelled',
           refundAmount: finalRefundAmount,
           cancellationFee: finalFee,
           refundPercentage,
-          refundStatus,
+          refundStatus: 'requested',
           refundedAt: new Date().toISOString(),
           refundReason: reason || calc.explanation,
           refundBankName: bankDetails?.bankName || b.refundBankName,
@@ -497,11 +614,13 @@ export const usePlatformStore = () => {
           refundAccountNumber: bankDetails?.accountNumber || b.refundAccountNumber,
           refundRequestSlip: bankDetails?.requestSlip || b.refundRequestSlip
         };
+        return updatedBooking;
       }
       return b;
     });
 
-    // Send Refund Confirmation Email
+    recordAuditLog('REFUND', 'BOOKING', bookingId, performedBy, { before: booking, after: updatedBooking }, { refundAmount: finalRefundAmount, fee: finalFee });
+
     const recipient = booking.passengerEmail || (booking.passengers[0] ? `${booking.passengers[0].name.toLowerCase().replace(/\s+/g, '')}@example.com` : 'passenger@example.com');
     triggerEmail(
       recipient,
@@ -511,10 +630,11 @@ export const usePlatformStore = () => {
     );
 
     notifyStoreListeners();
+    broadcastRealtimeEvent('BOOKING_REFUND_REQUESTED', { bookingId, refundAmount: finalRefundAmount });
     return { success: true, message: `Refund request logged ($${finalRefundAmount.toFixed(2)} pending manual transfer).`, refundInfo: calc };
   };
 
-  const completeRefundPayout = (bookingId: string, refundReceiptImage: string, customRefundAmount?: number, reason?: string) => {
+  const completeRefundPayout = (bookingId: string, refundReceiptImage: string, customRefundAmount?: number, reason?: string, performedBy?: any) => {
     const booking = globalBookings.find(b => b.id === bookingId);
     if (!booking) {
       return { success: false, message: 'Booking not found.' };
@@ -523,9 +643,10 @@ export const usePlatformStore = () => {
     const calc = calculateRefund(booking);
     const finalRefundAmount = customRefundAmount !== undefined ? customRefundAmount : (booking.refundAmount !== undefined ? booking.refundAmount : calc.refundAmount);
 
+    let updatedBooking: Booking | null = null;
     globalBookings = globalBookings.map(b => {
       if (b.id === bookingId) {
-        return {
+        updatedBooking = {
           ...b,
           status: 'cancelled',
           refundStatus: 'completed',
@@ -534,9 +655,12 @@ export const usePlatformStore = () => {
           refundedAt: new Date().toISOString(),
           refundReason: reason || b.refundReason || 'Manual bank transfer complete.'
         };
+        return updatedBooking;
       }
       return b;
     });
+
+    recordAuditLog('REFUND', 'BOOKING', bookingId, performedBy, { before: booking, after: updatedBooking }, { refundStatus: 'completed', refundAmount: finalRefundAmount });
 
     const recipient = booking.passengerEmail || (booking.passengers[0] ? `${booking.passengers[0].name.toLowerCase().replace(/\s+/g, '')}@example.com` : 'passenger@example.com');
     triggerEmail(
@@ -547,18 +671,32 @@ export const usePlatformStore = () => {
     );
 
     notifyStoreListeners();
+    broadcastRealtimeEvent('REFUND_PAYOUT_COMPLETED', { bookingId });
     return { success: true, message: 'Refund payout completed and bank transfer receipt attached.' };
   };
 
-  const removeBooking = (bookingId: string) => {
+  const removeBooking = (bookingId: string, performedBy?: any) => {
     const booking = globalBookings.find(b => b.id === bookingId);
     if (booking) {
       if (booking.status !== 'cancelled' && booking.status !== 'rejected') {
         adminUnlockSeats(booking.scheduleId, booking.selectedSeatIds);
       }
       globalBookings = globalBookings.filter(b => b.id !== bookingId);
+
+      // Audit log recording exact snapshot and receipt deletion
+      const isReceiptDeleted = Boolean(booking.receiptImage);
+      recordAuditLog(
+        isReceiptDeleted ? 'RECEIPT_DELETED' : 'DELETE',
+        isReceiptDeleted ? 'RECEIPT' : 'BOOKING',
+        bookingId,
+        performedBy,
+        { before: booking },
+        { deletedBookingSnapshot: booking, hadReceipt: isReceiptDeleted }
+      );
+
       notifyStoreListeners();
-      return { success: true, message: 'Booking deleted successfully.' };
+      broadcastRealtimeEvent('BOOKING_DELETED', { bookingId, deletedBooking: booking });
+      return { success: true, message: 'Booking & receipt deleted from database.' };
     }
     return { success: false, message: 'Booking not found.' };
   };
@@ -581,6 +719,7 @@ export const usePlatformStore = () => {
     vessels,
     emailConfig,
     sentEmails,
+    auditLogs,
     alert: alertState,
     showAlert,
     hideAlert,

@@ -634,4 +634,26 @@ describe('FeridhooTours App E2E Flows', () => {
       expect(screen.getByText('Reservation Cancelled')).toBeTruthy();
     });
   });
+
+  it('records database audit entries and displays audit history in the Admin Audit Logs tab', async () => {
+    // 1. Login as Admin
+    fireEvent.click(screen.getByText('Sign In'));
+    await waitFor(() => expect(screen.getByText('Login as Operator/Admin')).toBeTruthy());
+    fireEvent.click(screen.getByText('Login as Operator/Admin'));
+    
+    // 2. Open Admin Panel
+    await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
+    fireEvent.click(screen.getByText('Admin Panel'));
+
+    // 3. Click Audit Logs & History tab
+    await waitFor(() => expect(screen.getByText('Audit Logs & History')).toBeTruthy());
+    fireEvent.click(screen.getByText('Audit Logs & History'));
+
+    // 4. Verify Audit log heading and table elements
+    await waitFor(() => {
+      expect(screen.getByText('Database Audit Logs & Change History')).toBeTruthy();
+      expect(screen.getByText('Total Audit Events')).toBeTruthy();
+      expect(screen.getByText('Export Audit Logs (JSON)')).toBeTruthy();
+    });
+  });
 });

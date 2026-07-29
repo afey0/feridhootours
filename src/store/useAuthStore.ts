@@ -290,7 +290,7 @@ export const useAuthStore = () => {
     return { success: true, message: 'Password changed successfully.' };
   };
 
-  const adminAddUser = (name: string, email: string, password: string, role: Role): { success: boolean; message: string } => {
+  const adminAddUser = (name: string, email: string, password: string, role: Role, performedBy?: any): { success: boolean; message: string } => {
     const exists = globalUsers.some(u => u.email.toLowerCase() === email.toLowerCase().trim());
     if (exists) {
       return { success: false, message: 'A user with this email already exists.' };
@@ -306,29 +306,48 @@ export const useAuthStore = () => {
       savedPassengers: []
     };
     globalUsers.push(newUser);
+
+    try {
+      import('./usePlatformStore').then(m => {
+        m.recordAuditLog('USER_CREATED', 'USER', id, performedBy || globalCurrentUser, { after: { id, name: newUser.name, email: newUser.email, role: newUser.role } });
+      });
+    } catch (e) {}
+
     notifyAuthListeners();
     return { success: true, message: 'User added successfully.' };
   };
 
-  const adminDeleteUser = (userId: string): { success: boolean; message: string } => {
+  const adminDeleteUser = (userId: string, performedBy?: any): { success: boolean; message: string } => {
     if (globalCurrentUser && globalCurrentUser.id === userId) {
       return { success: false, message: 'Cannot delete the currently logged in account.' };
     }
+    const oldUser = globalUsers.find(u => u.id === userId);
     globalUsers = globalUsers.filter(u => u.id !== userId);
+
+    try {
+      import('./usePlatformStore').then(m => {
+        m.recordAuditLog('USER_DELETED', 'USER', userId, performedBy || globalCurrentUser, { before: oldUser });
+      });
+    } catch (e) {}
+
     notifyAuthListeners();
     return { success: true, message: 'User deleted successfully.' };
   };
 
-  const adminUpdateUser = (userId: string, fields: Partial<UserAccount>): { success: boolean; message: string } => {
+  const adminUpdateUser = (userId: string, fields: Partial<UserAccount>, performedBy?: any): { success: boolean; message: string } => {
     if (fields.email) {
       const emailTaken = globalUsers.some(u => u.id !== userId && u.email.toLowerCase() === fields.email!.toLowerCase().trim());
       if (emailTaken) {
         return { success: false, message: 'Email already taken.' };
       }
     }
+    const oldUser = globalUsers.find(u => u.id === userId);
+    let updatedUser: UserAccount | null = null;
+
     globalUsers = globalUsers.map(u => {
       if (u.id === userId) {
-        return { ...u, ...fields };
+        updatedUser = { ...u, ...fields };
+        return updatedUser;
       }
       return u;
     });
@@ -344,6 +363,13 @@ export const useAuthStore = () => {
         };
       }
     }
+
+    try {
+      import('./usePlatformStore').then(m => {
+        m.recordAuditLog('USER_UPDATED', 'USER', userId, performedBy || globalCurrentUser, { before: oldUser, after: updatedUser });
+      });
+    } catch (e) {}
+
     notifyAuthListeners();
     return { success: true, message: 'User updated successfully.' };
   };
