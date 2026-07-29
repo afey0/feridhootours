@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Users, Ship, AlertTriangle, ArrowLeft, Plus, CheckCircle, XCircle, FileText, X, CreditCard, DollarSign, Layers, Mail, Key, Trash2, ClipboardList, AlertCircle, ShieldAlert, Search, Download, Eye } from 'lucide-react';
+import { BarChart3, Users, Ship, AlertTriangle, ArrowLeft, Plus, CheckCircle, XCircle, FileText, X, CreditCard, DollarSign, Layers, Mail, Key, Trash2, ClipboardList, AlertCircle, ShieldAlert, Search, Download, Eye, Clock, List, Code, Check } from 'lucide-react';
 import { usePlatformStore } from '../store/usePlatformStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { SeatMap } from './SeatMap';
 import type { Seat, Booking, Passenger } from '../data/mockData';
 import type { AuditLogEntry } from '../types/audit';
+import { getAuditHeadline, getAuditReadableDiffs } from '../utils/auditFormatter';
 
 // Utility to parse custom row input string (e.g. "1-2, 5") into a set of row numbers
 const parseRowsString = (input: string, maxRow: number): Set<number> => {
@@ -101,7 +102,9 @@ export const AdminDashboard: React.FC = () => {
   const [auditFilterAction, setAuditFilterAction] = useState<string>('ALL');
   const [auditFilterEntity, setAuditFilterEntity] = useState<string>('ALL');
   const [auditSearchQuery, setAuditSearchQuery] = useState<string>('');
+  const [auditViewMode, setAuditViewMode] = useState<'table' | 'timeline'>('table');
   const [inspectingAuditLog, setInspectingAuditLog] = useState<AuditLogEntry | null>(null);
+  const [inspectorTab, setInspectorTab] = useState<'readable' | 'json'>('readable');
   const [previewingSlipUrl, setPreviewingSlipUrl] = useState<string | null>(null);
   const [managingScheduleId, setManagingScheduleId] = useState<string | null>(null);
   const [adminSelectedSeats, setAdminSelectedSeats] = useState<Seat[]>([]);
@@ -1801,23 +1804,47 @@ export const AdminDashboard: React.FC = () => {
             <div>
               <h3 className="text-xl font-bold text-slate-850">Database Audit Logs & Change History</h3>
               <p className="text-slate-500 text-xs font-semibold mt-0.5">
-                Restricted to Operator Admins. Tracks all database mutations, updates, deletions, and deleted receipt metadata.
+                Restricted to Operator Admins. Complete audit trail tracking who made changes, before/after values, and deleted receipts.
               </p>
             </div>
-            <button
-              onClick={() => {
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(auditLogs, null, 2));
-                const downloadAnchor = document.createElement('a');
-                downloadAnchor.setAttribute("href", dataStr);
-                downloadAnchor.setAttribute("download", `feridhootours_audit_logs_${new Date().toISOString().slice(0, 10)}.json`);
-                document.body.appendChild(downloadAnchor);
-                downloadAnchor.click();
-                downloadAnchor.remove();
-              }}
-              className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-2 shadow-md"
-            >
-              <Download size={16} /> Export Audit Logs (JSON)
-            </button>
+            <div className="flex items-center gap-3">
+              {/* View mode toggle */}
+              <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1 border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setAuditViewMode('table')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    auditViewMode === 'table' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <List size={14} /> Table View
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAuditViewMode('timeline')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    auditViewMode === 'timeline' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Clock size={14} /> Timeline History
+                </button>
+              </div>
+
+              <button
+                onClick={() => {
+                  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(auditLogs, null, 2));
+                  const downloadAnchor = document.createElement('a');
+                  downloadAnchor.setAttribute("href", dataStr);
+                  downloadAnchor.setAttribute("download", `feridhootours_audit_logs_${new Date().toISOString().slice(0, 10)}.json`);
+                  document.body.appendChild(downloadAnchor);
+                  downloadAnchor.click();
+                  downloadAnchor.remove();
+                }}
+                className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-xs flex items-center gap-2 shadow-md"
+              >
+                <Download size={16} /> Export Logs (JSON)
+              </button>
+            </div>
           </div>
 
           {/* Stat Summary Row */}
@@ -1825,7 +1852,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="glass-panel p-5 rounded-2xl border border-slate-200 bg-white shadow-sm border-t-4 border-t-amber-500">
               <div className="text-xs font-black text-slate-500 uppercase tracking-wider mb-1">Total Audit Events</div>
               <div className="text-2xl font-black text-slate-900">{auditLogs.length}</div>
-              <p className="text-[10px] text-slate-400 font-bold mt-1">Logged mutations across PostgreSQL database</p>
+              <p className="text-[10px] text-slate-400 font-bold mt-1">Logged mutations across database</p>
             </div>
 
             <div className="glass-panel p-5 rounded-2xl border border-slate-200 bg-white shadow-sm border-t-4 border-t-rose-500">
@@ -1898,7 +1925,7 @@ export const AdminDashboard: React.FC = () => {
               <Search size={14} className="absolute left-3.5 top-3 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search audit logs by ID, user, or email..."
+                placeholder="Search audit logs by ID, summary, user, or email..."
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-sky-500"
                 value={auditSearchQuery}
                 onChange={(e) => setAuditSearchQuery(e.target.value)}
@@ -1906,95 +1933,202 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Audit Log Table */}
-          <div className="glass-panel rounded-2xl border border-slate-200 bg-white shadow-md overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 border-b border-slate-150 text-slate-500 font-extrabold uppercase tracking-wider text-[10px]">
-                  <tr>
-                    <th className="px-6 py-3.5">Timestamp</th>
-                    <th className="px-4 py-3.5">Action</th>
-                    <th className="px-4 py-3.5">Entity</th>
-                    <th className="px-4 py-3.5">Target ID</th>
-                    <th className="px-6 py-3.5">Performed By</th>
-                    <th className="px-6 py-3.5 text-right">Action Diff</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium">
-                  {auditLogs
-                    .filter(a => auditFilterAction === 'ALL' || a.action === auditFilterAction)
-                    .filter(a => auditFilterEntity === 'ALL' || a.entityType === auditFilterEntity)
-                    .filter(a => {
-                      if (!auditSearchQuery.trim()) return true;
-                      const q = auditSearchQuery.toLowerCase().trim();
-                      return (
-                        a.id.toLowerCase().includes(q) ||
-                        a.entityId.toLowerCase().includes(q) ||
-                        a.performedBy.name.toLowerCase().includes(q) ||
-                        (a.performedBy.email && a.performedBy.email.toLowerCase().includes(q))
-                      );
-                    })
-                    .map(a => {
-                      const isDelete = a.action.includes('DELETE');
-                      const isVerify = a.action === 'VERIFY_PAYMENT';
-                      const isCreate = a.action === 'CREATE' || a.action === 'USER_CREATED';
+          {/* TABLE VIEW */}
+          {auditViewMode === 'table' && (
+            <div className="glass-panel rounded-2xl border border-slate-200 bg-white shadow-md overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-150 text-slate-500 font-extrabold uppercase tracking-wider text-[10px]">
+                    <tr>
+                      <th className="px-6 py-3.5">Timestamp</th>
+                      <th className="px-4 py-3.5">Action</th>
+                      <th className="px-6 py-3.5">Readable Event Description</th>
+                      <th className="px-6 py-3.5">Performed By</th>
+                      <th className="px-6 py-3.5 text-right">Details & History</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {auditLogs
+                      .filter(a => auditFilterAction === 'ALL' || a.action === auditFilterAction)
+                      .filter(a => auditFilterEntity === 'ALL' || a.entityType === auditFilterEntity)
+                      .filter(a => {
+                        if (!auditSearchQuery.trim()) return true;
+                        const q = auditSearchQuery.toLowerCase().trim();
+                        const headline = getAuditHeadline(a).toLowerCase();
+                        return (
+                          a.id.toLowerCase().includes(q) ||
+                          a.entityId.toLowerCase().includes(q) ||
+                          headline.includes(q) ||
+                          a.performedBy.name.toLowerCase().includes(q) ||
+                          (a.performedBy.email && a.performedBy.email.toLowerCase().includes(q))
+                        );
+                      })
+                      .map(a => {
+                        const isDelete = a.action.includes('DELETE');
+                        const isVerify = a.action === 'VERIFY_PAYMENT';
+                        const isCreate = a.action === 'CREATE' || a.action === 'USER_CREATED';
+                        const headline = getAuditHeadline(a);
 
-                      return (
-                        <tr key={a.id} className="hover:bg-slate-50/80 transition duration-150">
-                          <td className="px-6 py-4 text-slate-500 text-[11px] font-mono">
-                            {new Date(a.createdAt).toLocaleString()}
-                          </td>
-                          <td className="px-4 py-4">
-                            <span className={`px-2.5 py-1 rounded-md text-[10px] font-black tracking-wider uppercase border ${
-                              isDelete ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                              isVerify ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                              isCreate ? 'bg-sky-50 text-sky-700 border-sky-200' :
-                              'bg-amber-50 text-amber-800 border-amber-200'
-                            }`}>
-                              {a.action}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4 font-bold text-slate-700">
-                            {a.entityType}
-                          </td>
-                          <td className="px-4 py-4 font-mono text-slate-800 font-bold">
-                            {a.entityId}
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="font-extrabold text-slate-900">{a.performedBy.name}</div>
-                            <div className="text-[10px] text-slate-400 font-medium">
-                              {a.performedBy.email || 'N/A'} · <span className="uppercase font-bold">{a.performedBy.role}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <button
-                              onClick={() => setInspectingAuditLog(a)}
-                              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[11px] font-bold cursor-pointer transition inline-flex items-center gap-1.5"
-                            >
-                              <Eye size={14} /> Inspect Log
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
+                        return (
+                          <tr key={a.id} className="hover:bg-slate-50/80 transition duration-150">
+                            <td className="px-6 py-4 text-slate-500 text-[11px] font-mono whitespace-nowrap">
+                              {new Date(a.createdAt).toLocaleString()}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap">
+                              <span className={`px-2.5 py-1 rounded-md text-[10px] font-black tracking-wider uppercase border ${
+                                isDelete ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                isVerify ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                isCreate ? 'bg-sky-50 text-sky-700 border-sky-200' :
+                                'bg-amber-50 text-amber-800 border-amber-200'
+                              }`}>
+                                {a.action}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="font-extrabold text-slate-900 text-xs leading-snug">{headline}</div>
+                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                                Target ID: <span className="font-bold text-slate-700">{a.entityId}</span> ({a.entityType})
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="font-extrabold text-slate-900">{a.performedBy.name}</div>
+                              <div className="text-[10px] text-slate-400 font-medium">
+                                {a.performedBy.email || 'N/A'} · <span className="uppercase font-bold">{a.performedBy.role}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-right whitespace-nowrap">
+                              <button
+                                onClick={() => {
+                                  setInspectorTab('readable');
+                                  setInspectingAuditLog(a);
+                                }}
+                                className="px-3.5 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl text-[11px] font-bold cursor-pointer transition inline-flex items-center gap-1.5 border border-sky-200 shadow-sm"
+                              >
+                                <Eye size={14} /> View History
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* TIMELINE AUDIT TRAIL VIEW */}
+          {auditViewMode === 'timeline' && (
+            <div className="glass-panel rounded-2xl border border-slate-200 bg-white p-6 shadow-md relative">
+              <div className="space-y-8 relative before:absolute before:inset-0 before:left-5 before:w-0.5 before:bg-slate-200">
+                {auditLogs
+                  .filter(a => auditFilterAction === 'ALL' || a.action === auditFilterAction)
+                  .filter(a => auditFilterEntity === 'ALL' || a.entityType === auditFilterEntity)
+                  .filter(a => {
+                    if (!auditSearchQuery.trim()) return true;
+                    const q = auditSearchQuery.toLowerCase().trim();
+                    const headline = getAuditHeadline(a).toLowerCase();
+                    return (
+                      a.id.toLowerCase().includes(q) ||
+                      a.entityId.toLowerCase().includes(q) ||
+                      headline.includes(q) ||
+                      a.performedBy.name.toLowerCase().includes(q) ||
+                      (a.performedBy.email && a.performedBy.email.toLowerCase().includes(q))
+                    );
+                  })
+                  .map(a => {
+                    const isDelete = a.action.includes('DELETE');
+                    const isVerify = a.action === 'VERIFY_PAYMENT';
+                    const isCreate = a.action === 'CREATE' || a.action === 'USER_CREATED';
+                    const headline = getAuditHeadline(a);
+                    const diffs = getAuditReadableDiffs(a);
+
+                    return (
+                      <div key={a.id} className="relative flex items-start gap-4 pl-10">
+                        {/* Timeline Node Icon */}
+                        <div className={`absolute left-0 top-0.5 w-10 h-10 rounded-full flex items-center justify-center border shadow-sm z-10 ${
+                          isDelete ? 'bg-rose-100 border-rose-300 text-rose-600' :
+                          isVerify ? 'bg-emerald-100 border-emerald-300 text-emerald-600' :
+                          isCreate ? 'bg-sky-100 border-sky-300 text-sky-600' :
+                          'bg-amber-100 border-amber-300 text-amber-700'
+                        }`}>
+                          {isDelete ? <Trash2 size={16} /> : isVerify ? <CheckCircle size={16} /> : isCreate ? <Plus size={16} /> : <AlertTriangle size={16} />}
+                        </div>
+
+                        {/* Card */}
+                        <div className="flex-1 glass-panel p-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition shadow-sm space-y-2">
+                          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-200/60 pb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-[10px] font-bold text-slate-400">{a.id}</span>
+                              <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${
+                                isDelete ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                isVerify ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                isCreate ? 'bg-sky-50 text-sky-700 border-sky-200' :
+                                'bg-amber-50 text-amber-800 border-amber-200'
+                              }`}>
+                                {a.action}
+                              </span>
+                              <span className="text-xs font-bold text-slate-600">· {a.entityType} ({a.entityId})</span>
+                            </div>
+                            <div className="text-[11px] font-mono text-slate-500">
+                              {new Date(a.createdAt).toLocaleString()}
+                            </div>
+                          </div>
+
+                          <div className="text-sm font-extrabold text-slate-900 leading-snug">
+                            {headline}
+                          </div>
+
+                          {diffs.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              {diffs.slice(0, 4).map((d, i) => (
+                                <div key={i} className="text-[10px] bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 font-semibold shadow-2xs">
+                                  <span className="text-slate-400 font-bold">{d.label}:</span> <span className="text-rose-600 line-through">{d.before}</span> → <span className="text-emerald-700 font-extrabold">{d.after}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="flex justify-between items-center pt-2 text-[11px] text-slate-500 border-t border-slate-200/60">
+                            <div>
+                              Performed by: <span className="font-bold text-slate-800">{a.performedBy.name}</span> ({a.performedBy.role})
+                            </div>
+                            <button
+                              onClick={() => {
+                                setInspectorTab('readable');
+                                setInspectingAuditLog(a);
+                              }}
+                              className="text-sky-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                            >
+                              <Eye size={12} /> Inspect Audit Log
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* AUDIT LOG JSON DIFF INSPECTOR MODAL */}
+      {/* AUDIT LOG INSPECTOR MODAL WITH HUMAN READABLE + JSON OPTIONAL TABS */}
       {inspectingAuditLog && (
         <div className="overlay animate-fade-in" style={{ zIndex: 1300 }}>
           <div 
-            className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl border border-slate-100 flex flex-col relative overflow-hidden"
+            className="bg-white rounded-3xl w-full max-w-3xl shadow-2xl border border-slate-100 flex flex-col relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Header */}
             <div className="flex justify-between items-center px-6 py-5 border-b border-slate-100 bg-slate-50/50">
-              <div className="flex items-center gap-2">
-                <ShieldAlert size={20} className="text-amber-500" />
-                <h3 className="font-extrabold text-slate-900 text-base">Audit Entry: {inspectingAuditLog.id}</h3>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
+                  <ShieldAlert size={22} className="text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-base">Audit Entry: {inspectingAuditLog.id}</h3>
+                  <p className="text-slate-500 text-xs font-medium mt-0.5">Recorded on {new Date(inspectingAuditLog.createdAt).toLocaleString()}</p>
+                </div>
               </div>
               <button 
                 type="button" 
@@ -2005,8 +2139,37 @@ export const AdminDashboard: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto text-left text-xs">
-              <div className="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            {/* Modal Format Switcher Tabs: Readable Summary (Default) vs JSON (Optional) */}
+            <div className="flex border-b border-slate-100 px-6 bg-slate-50/30">
+              <button
+                type="button"
+                onClick={() => setInspectorTab('readable')}
+                className={`py-3 px-4 text-xs font-extrabold border-b-2 transition cursor-pointer flex items-center gap-2 ${
+                  inspectorTab === 'readable'
+                    ? 'border-sky-500 text-sky-700 bg-white'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <FileText size={15} /> Readable Change Summary
+              </button>
+              <button
+                type="button"
+                onClick={() => setInspectorTab('json')}
+                className={`py-3 px-4 text-xs font-extrabold border-b-2 transition cursor-pointer flex items-center gap-2 ${
+                  inspectorTab === 'json'
+                    ? 'border-sky-500 text-sky-700 bg-white'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Code size={15} /> Raw JSON Data (Optional / Technical)
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-5 max-h-[65vh] overflow-y-auto text-left text-xs">
+              
+              {/* Event Metadata Banner */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                 <div>
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Action</span>
                   <span className="font-black text-slate-900 text-sm">{inspectingAuditLog.action}</span>
@@ -2017,32 +2180,121 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Performed By</span>
-                  <span className="font-bold text-slate-800">{inspectingAuditLog.performedBy.name} ({inspectingAuditLog.performedBy.role})</span>
+                  <span className="font-extrabold text-slate-900">{inspectingAuditLog.performedBy.name}</span>
+                  <span className="text-[10px] text-slate-400 block font-medium">({inspectingAuditLog.performedBy.role})</span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Timestamp</span>
-                  <span className="font-mono text-slate-700">{new Date(inspectingAuditLog.createdAt).toLocaleString()}</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">User Email</span>
+                  <span className="font-mono text-slate-700">{inspectingAuditLog.performedBy.email || 'N/A'}</span>
                 </div>
               </div>
 
-              <div>
-                <h4 className="font-extrabold text-slate-800 text-xs uppercase tracking-wider mb-2">State Change JSON Diff (Before vs After)</h4>
-                <pre className="bg-slate-900 text-emerald-400 p-4 rounded-2xl font-mono text-[11px] overflow-x-auto leading-relaxed max-h-60 shadow-inner">
-                  {JSON.stringify(inspectingAuditLog.changes || {}, null, 2)}
-                </pre>
-              </div>
+              {/* READABLE SUMMARY TAB CONTENT */}
+              {inspectorTab === 'readable' && (
+                <div className="space-y-5 animate-fade-in">
+                  
+                  {/* Headline summary card */}
+                  <div className="bg-sky-50/70 border border-sky-200 rounded-2xl p-4 text-sky-900">
+                    <div className="text-[10px] font-extrabold text-sky-600 uppercase tracking-wider mb-1">Human-Readable Event Summary</div>
+                    <div className="text-sm font-black leading-relaxed">
+                      {getAuditHeadline(inspectingAuditLog)}
+                    </div>
+                  </div>
 
-              {inspectingAuditLog.metadata && Object.keys(inspectingAuditLog.metadata).length > 0 && (
-                <div>
-                  <h4 className="font-extrabold text-slate-800 text-xs uppercase tracking-wider mb-2">Metadata & Deletion Snapshot Context</h4>
-                  <pre className="bg-slate-100 text-slate-800 p-4 rounded-2xl font-mono text-[11px] overflow-x-auto leading-relaxed max-h-40 border border-slate-200">
-                    {JSON.stringify(inspectingAuditLog.metadata, null, 2)}
-                  </pre>
+                  {/* Field Level Changes Table */}
+                  <div>
+                    <h4 className="font-extrabold text-slate-800 text-xs uppercase tracking-wider mb-2.5">
+                      What Changed (Field History Breakdown)
+                    </h4>
+                    {getAuditReadableDiffs(inspectingAuditLog).length === 0 ? (
+                      <div className="text-slate-400 italic bg-slate-50 p-4 rounded-xl text-center">
+                        No specific field changes recorded for this entry.
+                      </div>
+                    ) : (
+                      <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-100 text-slate-500 font-extrabold text-[10px] uppercase tracking-wider">
+                            <tr>
+                              <th className="px-4 py-2.5">Field / Attribute</th>
+                              <th className="px-4 py-2.5 text-rose-700">Original Value (Before)</th>
+                              <th className="px-4 py-2.5 text-emerald-700">Updated Value (After)</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 bg-white">
+                            {getAuditReadableDiffs(inspectingAuditLog).map((diff, i) => (
+                              <tr key={i} className="hover:bg-slate-50">
+                                <td className="px-4 py-3 font-extrabold text-slate-800">{diff.label}</td>
+                                <td className="px-4 py-3 font-mono text-rose-600 bg-rose-50/50">{diff.before}</td>
+                                <td className="px-4 py-3 font-mono text-emerald-700 bg-emerald-50/50 font-bold">{diff.after}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Metadata and Context Card */}
+                  {inspectingAuditLog.metadata && Object.keys(inspectingAuditLog.metadata).length > 0 && (
+                    <div className="bg-amber-50/60 border border-amber-200 rounded-2xl p-4 space-y-2">
+                      <h4 className="font-extrabold text-amber-900 text-xs uppercase tracking-wider">
+                        Context & Deletion Snapshot Notes
+                      </h4>
+                      {inspectingAuditLog.metadata.deletedBookingSnapshot && (
+                        <div className="text-slate-800 space-y-1 bg-white p-3 rounded-xl border border-amber-200/60">
+                          <div className="font-bold text-rose-700">⚠️ Deleted Booking Snapshot Details:</div>
+                          <div>• PNR Code: <span className="font-mono font-bold">{inspectingAuditLog.metadata.deletedBookingSnapshot.id}</span></div>
+                          <div>• Passenger: <span className="font-bold">{inspectingAuditLog.metadata.deletedBookingSnapshot.passengers?.[0]?.name}</span> ({inspectingAuditLog.metadata.deletedBookingSnapshot.passengerEmail})</div>
+                          <div>• Vessel & Route: {inspectingAuditLog.metadata.deletedBookingSnapshot.vesselName} ({inspectingAuditLog.metadata.deletedBookingSnapshot.routeFrom} → {inspectingAuditLog.metadata.deletedBookingSnapshot.routeTo})</div>
+                          <div>• Total Fare Paid: ${inspectingAuditLog.metadata.deletedBookingSnapshot.totalAmount?.toFixed(2)}</div>
+                          <div>• Transfer Slip Attachment Status: {inspectingAuditLog.metadata.hadReceipt ? 'Receipt image deleted' : 'No slip was attached'}</div>
+                        </div>
+                      )}
+                      {inspectingAuditLog.metadata.note && (
+                        <div className="text-amber-800 font-medium">
+                          Note: {inspectingAuditLog.metadata.note}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
+
+              {/* RAW JSON TAB CONTENT */}
+              {inspectorTab === 'json' && (
+                <div className="space-y-4 animate-fade-in">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Raw JSON Payload & State Diffs</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(JSON.stringify(inspectingAuditLog, null, 2));
+                        showAlert('Raw JSON copied to clipboard.', 'Copied', 'success');
+                      }}
+                      className="text-sky-600 font-bold text-xs hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <Check size={14} /> Copy JSON
+                    </button>
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-slate-700 text-xs mb-1">Changes Object (Before vs After)</h5>
+                    <pre className="bg-slate-900 text-emerald-400 p-4 rounded-2xl font-mono text-[11px] overflow-x-auto leading-relaxed max-h-60 shadow-inner">
+                      {JSON.stringify(inspectingAuditLog.changes || {}, null, 2)}
+                    </pre>
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-slate-700 text-xs mb-1">Metadata Object</h5>
+                    <pre className="bg-slate-100 text-slate-800 p-4 rounded-2xl font-mono text-[11px] overflow-x-auto leading-relaxed max-h-40 border border-slate-200">
+                      {JSON.stringify(inspectingAuditLog.metadata || {}, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
+
             </div>
 
-            <div className="flex justify-end px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+            {/* Footer */}
+            <div className="flex justify-between items-center px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+              <span className="text-slate-400 text-[11px] font-medium">Audit Record ID: {inspectingAuditLog.id}</span>
               <button
                 onClick={() => setInspectingAuditLog(null)}
                 className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-extrabold cursor-pointer transition"

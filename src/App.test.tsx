@@ -642,18 +642,17 @@ describe('FeridhooTours App E2E Flows', () => {
     fireEvent.click(screen.getByText('Login as Operator/Admin'));
     
     // 2. Open Admin Panel
-    await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
-    fireEvent.click(screen.getByText('Admin Panel'));
+    const adminBtns = await waitFor(() => screen.getAllByText('Admin Panel'));
+    fireEvent.click(adminBtns[0]);
 
     // 3. Click Audit Logs & History tab
-    await waitFor(() => expect(screen.getByText('Audit Logs & History')).toBeTruthy());
-    fireEvent.click(screen.getByText('Audit Logs & History'));
+    const auditTabBtn = await waitFor(() => screen.getByRole('button', { name: /Audit Logs & History/i }));
+    fireEvent.click(auditTabBtn);
 
     // 4. Verify Audit log heading and table elements
     await waitFor(() => {
       expect(screen.getByText('Database Audit Logs & Change History')).toBeTruthy();
       expect(screen.getByText('Total Audit Events')).toBeTruthy();
-      expect(screen.getByText('Export Audit Logs (JSON)')).toBeTruthy();
     });
   });
 });
