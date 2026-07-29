@@ -23,26 +23,31 @@ export const subscribeRealtimeEvents = (listener: RealtimeSyncListener) => {
 };
 
 export const broadcastRealtimeEvent = (type: string, payload: any) => {
-  // Broadcast locally via BroadcastChannel for multi-tab sync
+  // 1. Broadcast locally via BroadcastChannel for multi-tab sync
   if (channel) {
-    channel.postMessage({ type, payload });
+    try {
+      channel.postMessage({ type, payload });
+    } catch (e) {
+      // Ignore clone error
+    }
   }
 
-  // Also trigger internal listeners
+  // 2. Trigger internal active listeners
   for (const listener of listeners) {
     listener(type, payload);
   }
 
-  // Also push to Express API backend if available
+  // 3. Push transaction to Production Express / PostgreSQL API backend
   fetch('/api/v1/broadcast', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ type, payload })
   }).catch(() => {
-    // Ignore backend unreachable error in standalone dev mode
+    // Ignore backend unreachable error in offline dev mode
   });
 };
 
+// Listen to local BroadcastChannel messages
 if (channel) {
   channel.onmessage = (event) => {
     if (event.data && event.data.type) {
@@ -51,4 +56,25 @@ if (channel) {
       }
     }
   };
+}
+
+// Connect to Server-Sent Events (SSE) for Cross-Browser (Chrome <-> Edge <-> Mobile) Live Sync
+if (typeof window !== 'undefined' && 'EventSource' in window) {
+  try {
+    const sse = new EventSource('/api/v1/events');
+    sse.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data && data.type) {
+          for (const listener of listeners) {
+            listener(data.type, data.payload);
+          }
+        }
+      } catch (err) {
+        // Ignore parse error
+      }
+    };
+  } catch (e) {
+    // Ignore SSE fallback
+  }
 }
