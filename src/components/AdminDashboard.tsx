@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Users, Ship, AlertTriangle, ArrowLeft, Plus, CheckCircle, XCircle, FileText, X, CreditCard, DollarSign, Layers, Mail, Key, Trash2, ClipboardList, AlertCircle, ShieldAlert, Search, Download, Eye, Clock, List, Code, Check } from 'lucide-react';
+import { BarChart3, Users, Ship, AlertTriangle, ArrowLeft, Plus, CheckCircle, XCircle, FileText, X, CreditCard, DollarSign, Layers, Mail, Key, Trash2, ClipboardList, AlertCircle, ShieldAlert, Search, Download, Eye, Clock, List, Code, Check, Lock } from 'lucide-react';
 import { usePlatformStore } from '../store/usePlatformStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { SeatMap } from './SeatMap';
@@ -1433,17 +1433,23 @@ export const AdminDashboard: React.FC = () => {
                           </button>
                         )}
 
-                        <button
-                          onClick={() => {
-                            if (confirm(`Are you sure you want to delete and void booking ${b.id}? This will immediately release all booked seats.`)) {
-                              const res = removeBooking(b.id);
-                              showAlert(res.message, res.success ? 'Booking Deleted' : 'Error', res.success ? 'success' : 'error');
-                            }
-                          }}
-                          className="bg-transparent hover:bg-rose-50 border border-rose-250 text-rose-600 font-bold px-3 py-1.5 rounded-lg text-xs transition cursor-pointer font-sans"
-                        >
-                          Delete
-                        </button>
+                        {currentAuthUser?.role === 'super_admin' ? (
+                          <button
+                            onClick={() => {
+                              if (confirm(`Are you sure you want to delete and void booking ${b.id}? This will immediately release all booked seats.`)) {
+                                const res = removeBooking(b.id, currentAuthUser);
+                                showAlert(res.message, res.success ? 'Booking Deleted' : 'Access Denied', res.success ? 'success' : 'error');
+                              }
+                            }}
+                            className="bg-transparent hover:bg-rose-50 border border-rose-250 text-rose-600 font-bold px-3 py-1.5 rounded-lg text-xs transition cursor-pointer font-sans"
+                          >
+                            Delete
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 font-bold bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1.5 flex items-center gap-1 cursor-not-allowed select-none" title="Only Super Admin can delete bookings or refund records">
+                            <Lock size={12} className="text-slate-400" /> Deletion Restricted
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1674,6 +1680,7 @@ export const AdminDashboard: React.FC = () => {
                         <option value="passenger">Passenger</option>
                         <option value="agency">Travel Agency (Agent)</option>
                         <option value="admin">Admin Operator</option>
+                        <option value="super_admin">Super Admin (Master)</option>
                       </select>
                     </div>
                     <div className="flex flex-col gap-1.5">
@@ -1779,6 +1786,7 @@ export const AdminDashboard: React.FC = () => {
                         <option value="passenger">Passenger</option>
                         <option value="agency">Travel Agency (Agent)</option>
                         <option value="admin">Admin Operator</option>
+                        <option value="super_admin">Super Admin (Master)</option>
                       </select>
                     </div>
                     <button 

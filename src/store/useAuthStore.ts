@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { triggerEmail } from './usePlatformStore';
 
-export type Role = 'guest' | 'passenger' | 'agency' | 'admin';
+export type Role = 'guest' | 'passenger' | 'agency' | 'admin' | 'super_admin';
 
 export interface SavedPassenger {
   name: string;
@@ -71,6 +71,14 @@ const INITIAL_USERS: UserAccount[] = [
     role: 'admin',
     email: 'admin@smartferry.mv',
     password: 'admin123',
+    savedPassengers: []
+  },
+  {
+    id: 'sadm-001',
+    name: 'Super Admin',
+    role: 'super_admin',
+    email: 'superadmin@smartferry.mv',
+    password: 'superadmin123',
     savedPassengers: []
   }
 ];
@@ -378,6 +386,7 @@ export const useAuthStore = () => {
   const loginAsPassenger = () => login('ahmed@example.com', 'password123');
   const loginAsAgency = () => login('bookings@mvtravel.com', 'agency123');
   const loginAsAdmin = () => login('admin@smartferry.mv', 'admin123');
+  const loginAsSuperAdmin = () => login('superadmin@smartferry.mv', 'superadmin123');
 
   const logout = () => {
     globalCurrentUser = null;
@@ -398,6 +407,7 @@ export const useAuthStore = () => {
     loginAsPassenger,
     loginAsAgency,
     loginAsAdmin,
+    loginAsSuperAdmin,
     logout,
     updateProfile,
     changePassword,

@@ -675,7 +675,12 @@ export const usePlatformStore = () => {
     return { success: true, message: 'Refund payout completed and bank transfer receipt attached.' };
   };
 
-  const removeBooking = (bookingId: string, performedBy?: any) => {
+  const removeBooking = (bookingId: string, performedBy?: any): { success: boolean; message: string } => {
+    // Authorization Check: Only Super Admin can delete bookings or refund records
+    if (performedBy && performedBy.role && performedBy.role !== 'super_admin') {
+      return { success: false, message: 'Access Denied: Only Super Admin is authorized to delete bookings or refund records.' };
+    }
+
     const booking = globalBookings.find(b => b.id === bookingId);
     if (booking) {
       if (booking.status !== 'cancelled' && booking.status !== 'rejected') {
@@ -696,7 +701,7 @@ export const usePlatformStore = () => {
 
       notifyStoreListeners();
       broadcastRealtimeEvent('BOOKING_DELETED', { bookingId, deletedBooking: booking });
-      return { success: true, message: 'Booking & receipt deleted from database.' };
+      return { success: true, message: 'Booking & receipt deleted from database by Super Admin.' };
     }
     return { success: false, message: 'Booking not found.' };
   };

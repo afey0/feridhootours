@@ -78,7 +78,7 @@ export const Navigation: React.FC<Props> = ({
 
         {/* Desktop Navigation Links (≥ 1024px) */}
         <div className="hidden lg:flex items-center gap-3">
-          {user?.role === 'admin' && (
+          {(user?.role === 'admin' || user?.role === 'super_admin') && (
             <button 
               className={`font-bold py-2 px-4 rounded-2xl text-xs flex items-center gap-2 shadow-md transition duration-200 cursor-pointer ${
                 showAdminView 
@@ -124,7 +124,7 @@ export const Navigation: React.FC<Props> = ({
                 <div className="flex flex-col text-left">
                   <span className="text-xs font-extrabold text-slate-800 leading-none">{user.name}</span>
                   <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
-                    {user.role === 'admin' ? 'Operator' : user.role === 'agency' ? 'Travel Agency' : 'Passenger'}
+                    {user.role === 'super_admin' ? 'Super Admin' : user.role === 'admin' ? 'Operator Admin' : user.role === 'agency' ? 'Travel Agency' : 'Passenger'}
                   </span>
                 </div>
                 <ChevronDown size={14} className="text-slate-400 shrink-0 ml-0.5" />
@@ -153,7 +153,7 @@ export const Navigation: React.FC<Props> = ({
                     <span>My Profile</span>
                   </button>
 
-                  {user.role !== 'admin' && (
+                  {(user.role !== 'admin' && user.role !== 'super_admin') && (
                     <button 
                       onClick={() => { onSavedPassengers(); setDropdownOpen(false); }}
                       className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition cursor-pointer flex items-center gap-2.5"
@@ -242,7 +242,7 @@ export const Navigation: React.FC<Props> = ({
                     <span className="text-sm font-extrabold text-slate-900 truncate">{user.name}</span>
                     <span className="text-xs text-slate-500 truncate font-medium">{user.email}</span>
                     <span className="inline-block bg-sky-100 text-sky-800 text-[9px] font-black uppercase px-2 py-0.5 rounded-md mt-1 w-fit">
-                      {user.role === 'admin' ? 'Operator Admin' : user.role === 'agency' ? 'Travel Agency' : 'Passenger'}
+                      {user.role === 'super_admin' ? 'Super Admin' : user.role === 'admin' ? 'Operator Admin' : user.role === 'agency' ? 'Travel Agency' : 'Passenger'}
                     </span>
                   </div>
                 </div>
@@ -263,7 +263,7 @@ export const Navigation: React.FC<Props> = ({
 
             {/* Menu Links */}
             <div className="p-4 space-y-1.5 flex-1 text-left">
-              {user?.role === 'admin' && (
+              {(user?.role === 'admin' || user?.role === 'super_admin') && (
                 <>
                   <button
                     type="button"

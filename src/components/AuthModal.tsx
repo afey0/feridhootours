@@ -8,7 +8,7 @@ interface Props {
 }
 
 export const AuthModal: React.FC<Props> = ({ isOpen, onClose }) => {
-  const { login, signup, resetPasswordRequest, loginAsPassenger, loginAsAgency, loginAsAdmin } = useAuthStore();
+  const { login, signup, resetPasswordRequest, loginAsPassenger, loginAsAgency, loginAsAdmin, loginAsSuperAdmin } = useAuthStore();
   
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>('signin');
   
@@ -346,27 +346,34 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose }) => {
           <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block text-center">
             Demo Instant Sign In Options
           </span>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
             <button
               type="button"
               onClick={() => { loginAsPassenger(); onClose(); }}
               className="py-2.5 px-3 bg-sky-50 hover:bg-sky-100/80 text-sky-700 border border-sky-200 rounded-2xl text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <User size={14} /> Login as Passenger
+              <User size={14} /> Passenger
             </button>
             <button
               type="button"
               onClick={() => { loginAsAgency(); onClose(); }}
               className="py-2.5 px-3 bg-indigo-50 hover:bg-indigo-100/80 text-indigo-700 border border-indigo-200 rounded-2xl text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <Landmark size={14} /> Login as Travel Agency
+              <Landmark size={14} /> Travel Agency
             </button>
             <button
               type="button"
               onClick={() => { loginAsAdmin(); onClose(); }}
               className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
             >
-              <Shield size={14} /> Login as Operator/Admin
+              <Shield size={14} /> Operator/Admin
+            </button>
+            <button
+              type="button"
+              onClick={() => { loginAsSuperAdmin(); onClose(); }}
+              className="py-2.5 px-3 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+            >
+              <Shield size={14} /> Super Admin
             </button>
           </div>
         </div>

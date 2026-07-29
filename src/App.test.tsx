@@ -655,4 +655,40 @@ describe('FeridhooTours App E2E Flows', () => {
       expect(screen.getByText('Total Audit Events')).toBeTruthy();
     });
   });
+
+  it('restricts booking deletion to super_admin and blocks standard admin from deleting bookings', async () => {
+    // 1. Login as standard Admin
+    fireEvent.click(screen.getByText('Sign In'));
+    await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
+    fireEvent.click(screen.getByText('Operator/Admin'));
+
+    // 2. Open Admin Panel and switch to Bookings tab
+    const adminBtns = await waitFor(() => screen.getAllByText('Admin Panel'));
+    fireEvent.click(adminBtns[0]);
+    const bookingsTab = await waitFor(() => screen.getByRole('button', { name: /Bookings & Ledger/i }));
+    fireEvent.click(bookingsTab);
+
+    // 3. Verify standard admin sees Deletion Restricted badge
+    await waitFor(() => {
+      expect(screen.getByText('Deletion Restricted')).toBeTruthy();
+    });
+
+    // 4. Sign Out and login as Super Admin
+    fireEvent.click(screen.getByRole('button', { name: /Sign Out/i }));
+
+    fireEvent.click(screen.getByText('Sign In'));
+    await waitFor(() => expect(screen.getByText('Super Admin')).toBeTruthy());
+    fireEvent.click(screen.getByText('Super Admin'));
+
+    // 5. Open Admin Panel and switch to Bookings tab
+    const adminBtnsSuper = await waitFor(() => screen.getAllByText('Admin Panel'));
+    fireEvent.click(adminBtnsSuper[0]);
+    const bookingsTabSuper = await waitFor(() => screen.getByRole('button', { name: /Bookings & Ledger/i }));
+    fireEvent.click(bookingsTabSuper);
+
+    // 6. Verify Super Admin has active Delete button
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /^Delete$/i })).toBeTruthy();
+    });
+  });
 });
