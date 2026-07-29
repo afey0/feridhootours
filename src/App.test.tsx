@@ -47,13 +47,7 @@ describe('FeridhooTours App E2E Flows', () => {
     // Login as Admin
     fireEvent.click(screen.getByText('Operator/Admin'));
     
-    // Check if "Admin Panel" button appears
-    await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
-
-    // Click Admin Panel
-    fireEvent.click(screen.getByText('Admin Panel'));
-
-    // Check Dashboard renders
+    // Check Dashboard renders automatically
     await waitFor(() => {
       expect(screen.getByText('Operator Dashboard')).toBeTruthy();
       expect(screen.getByText('Total Revenue')).toBeTruthy();
@@ -112,10 +106,6 @@ describe('FeridhooTours App E2E Flows', () => {
     fireEvent.click(screen.getByText('Sign In'));
     await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
     fireEvent.click(screen.getByText('Operator/Admin'));
-    
-    // Check if "Admin Panel" button appears
-    await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
-    fireEvent.click(screen.getByText('Admin Panel'));
 
     // Verify operator dashboard is loaded and switch to Routes & Schedules tab
     await waitFor(() => expect(screen.getByText('Operator Dashboard')).toBeTruthy());
@@ -214,8 +204,6 @@ describe('FeridhooTours App E2E Flows', () => {
     fireEvent.click(screen.getByText('Sign In'));
     await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
     fireEvent.click(screen.getByText('Operator/Admin'));
-    await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
-    fireEvent.click(screen.getByText('Admin Panel'));
 
     // 2. Click "Email Control Center" tab
     await waitFor(() => expect(screen.getByText('Email Control Center')).toBeTruthy());
@@ -289,8 +277,6 @@ describe('FeridhooTours App E2E Flows', () => {
     fireEvent.click(screen.getByText('Sign In'));
     await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
     fireEvent.click(screen.getByText('Operator/Admin'));
-    await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
-    fireEvent.click(screen.getByText('Admin Panel'));
 
     // 2. Go to Vessels tab and Open New Vessel Form Modal
     await waitFor(() => expect(screen.getByText('Fleet Vessels')).toBeTruthy());
@@ -421,9 +407,6 @@ describe('FeridhooTours App E2E Flows', () => {
     await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
     fireEvent.click(screen.getByText('Operator/Admin'));
     
-    // 3. Open Admin Panel and switch to Routes & Schedules tab
-    await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
-    fireEvent.click(screen.getByText('Admin Panel'));
     await waitFor(() => expect(screen.getByRole('button', { name: /Routes & Schedules/i })).toBeTruthy());
     fireEvent.click(screen.getByRole('button', { name: /Routes & Schedules/i }));
 
@@ -476,11 +459,7 @@ describe('FeridhooTours App E2E Flows', () => {
     await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
     fireEvent.click(screen.getByText('Operator/Admin'));
 
-    // 2. Open Admin Panel
-    await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
-    fireEvent.click(screen.getByText('Admin Panel'));
-
-    // 3. Click User Directory tab button
+    // 2. Click User Directory tab button
     await waitFor(() => expect(screen.getByText('User Directory')).toBeTruthy());
     fireEvent.click(screen.getByText('User Directory'));
 
@@ -515,11 +494,7 @@ describe('FeridhooTours App E2E Flows', () => {
     await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
     fireEvent.click(screen.getByText('Operator/Admin'));
 
-    // 2. Open Admin Panel
-    await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
-    fireEvent.click(screen.getByText('Admin Panel'));
-
-    // 3. Navigate to Jetties & Locations tab
+    // 2. Navigate to Jetties & Locations tab
     await waitFor(() => expect(screen.getByText('Jetties & Locations')).toBeTruthy());
     fireEvent.click(screen.getByText('Jetties & Locations'));
 
@@ -553,11 +528,7 @@ describe('FeridhooTours App E2E Flows', () => {
     await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
     fireEvent.click(screen.getByText('Operator/Admin'));
 
-    // 2. Open Admin Panel
-    await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
-    fireEvent.click(screen.getByText('Admin Panel'));
-
-    // 3. Navigate to All Bookings tab
+    // 2. Navigate to All Bookings tab
     await waitFor(() => expect(screen.getByText('All Bookings')).toBeTruthy());
     fireEvent.click(screen.getByText('All Bookings'));
 
@@ -645,7 +616,7 @@ describe('FeridhooTours App E2E Flows', () => {
     render(<AdminDashboard />);
 
     // 1. Verify Audit Logs tab button exists for Super Admin
-    const auditTabBtn = screen.getByTestId('tab-audit');
+    const auditTabBtn = screen.getAllByTestId('tab-audit')[0];
     expect(auditTabBtn).toBeTruthy();
 
     // 2. Click Audit Logs & History tab
