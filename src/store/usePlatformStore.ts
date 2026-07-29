@@ -675,9 +675,19 @@ export const usePlatformStore = () => {
     return { success: true, message: 'Refund payout completed and bank transfer receipt attached.' };
   };
 
+const getCurrentAuthUser = (): any => {
+  try {
+    const stored = localStorage.getItem('sf_current_user');
+    return stored ? JSON.parse(stored) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
   const removeBooking = (bookingId: string, performedBy?: any): { success: boolean; message: string } => {
     // Authorization Check: Only Super Admin can delete bookings or refund records
-    if (performedBy && performedBy.role && performedBy.role !== 'super_admin') {
+    const actor = performedBy || getCurrentAuthUser();
+    if (!actor || actor.role !== 'super_admin') {
       return { success: false, message: 'Access Denied: Only Super Admin is authorized to delete bookings or refund records.' };
     }
 

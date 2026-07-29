@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from './App';
 import { renderHook } from '@testing-library/react';
 import { usePlatformStore } from './store/usePlatformStore';
-import { resetAuthStore } from './store/useAuthStore';
+import { useAuthStore, resetAuthStore } from './store/useAuthStore';
 import { calculateRefund } from './utils/refundPolicy';
 
 describe('FeridhooTours App E2E Flows', () => {
@@ -26,10 +26,10 @@ describe('FeridhooTours App E2E Flows', () => {
   it('logs in as Passenger', async () => {
     // Click Sign In
     fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Login as Passenger')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('Passenger')).toBeTruthy());
 
     // Login as Passenger
-    fireEvent.click(screen.getByText('Login as Passenger'));
+    fireEvent.click(screen.getByText('Passenger'));
     
     // Check if Avatar or Name replaces Sign In
     await waitFor(() => {
@@ -41,10 +41,10 @@ describe('FeridhooTours App E2E Flows', () => {
   it('logs in as Admin and sees Operator Dashboard', async () => {
     // Click Sign In
     fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Login as Operator/Admin')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
 
     // Login as Admin
-    fireEvent.click(screen.getByText('Login as Operator/Admin'));
+    fireEvent.click(screen.getByText('Operator/Admin'));
     
     // Check if "Admin Panel" button appears
     await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
@@ -62,8 +62,8 @@ describe('FeridhooTours App E2E Flows', () => {
   it('searches for schedules and picks seats successfully', async () => {
     // 0. Login as Passenger first
     fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Login as Passenger')).toBeTruthy());
-    fireEvent.click(screen.getByText('Login as Passenger'));
+    await waitFor(() => expect(screen.getByText('Passenger')).toBeTruthy());
+    fireEvent.click(screen.getByText('Passenger'));
     await waitFor(() => expect(screen.getByText('Ahmed F.')).toBeTruthy());
 
     // 1. Search
@@ -109,8 +109,8 @@ describe('FeridhooTours App E2E Flows', () => {
   it('admin can override and release seats', async () => {
     // Login as Admin
     fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Login as Operator/Admin')).toBeTruthy());
-    fireEvent.click(screen.getByText('Login as Operator/Admin'));
+    await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
+    fireEvent.click(screen.getByText('Operator/Admin'));
     
     // Check if "Admin Panel" button appears
     await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
@@ -185,8 +185,8 @@ describe('FeridhooTours App E2E Flows', () => {
   it('can manage saved travelers profile directory', async () => {
     // 1. Quick Login as passenger to avoid registration boilerplate
     fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Login as Passenger')).toBeTruthy());
-    fireEvent.click(screen.getByText('Login as Passenger'));
+    await waitFor(() => expect(screen.getByText('Passenger')).toBeTruthy());
+    fireEvent.click(screen.getByText('Passenger'));
     await waitFor(() => expect(screen.getByText('Ahmed F.')).toBeTruthy());
 
     // 2. Click "Saved Travelers" to open profile directory modal
@@ -211,8 +211,8 @@ describe('FeridhooTours App E2E Flows', () => {
   it('verifies SMTP config switches and sent email ledger updates in admin dashboard', async () => {
     // 1. Bypass Login as Admin
     fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Login as Operator/Admin')).toBeTruthy());
-    fireEvent.click(screen.getByText('Login as Operator/Admin'));
+    await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
+    fireEvent.click(screen.getByText('Operator/Admin'));
     await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
     fireEvent.click(screen.getByText('Admin Panel'));
 
@@ -286,8 +286,8 @@ describe('FeridhooTours App E2E Flows', () => {
   it('verifies admin can configure custom seat layout and paint seat classes', async () => {
     // 1. Bypass Login as Admin
     fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Login as Operator/Admin')).toBeTruthy());
-    fireEvent.click(screen.getByText('Login as Operator/Admin'));
+    await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
+    fireEvent.click(screen.getByText('Operator/Admin'));
     await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
     fireEvent.click(screen.getByText('Admin Panel'));
 
@@ -322,8 +322,8 @@ describe('FeridhooTours App E2E Flows', () => {
   it('resets booking step to search if user logs out mid-process', async () => {
     // 1. Log in as Passenger
     fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Login as Passenger')).toBeTruthy());
-    fireEvent.click(screen.getByText('Login as Passenger'));
+    await waitFor(() => expect(screen.getByText('Passenger')).toBeTruthy());
+    fireEvent.click(screen.getByText('Passenger'));
     await waitFor(() => expect(screen.getByText('Ahmed F.')).toBeTruthy());
 
     // 2. Search and click schedule card to select seats
@@ -417,8 +417,8 @@ describe('FeridhooTours App E2E Flows', () => {
 
     // 2. Login as Admin
     fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Login as Operator/Admin')).toBeTruthy());
-    fireEvent.click(screen.getByText('Login as Operator/Admin'));
+    await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
+    fireEvent.click(screen.getByText('Operator/Admin'));
     
     // 3. Open Admin Panel and switch to Routes & Schedules tab
     await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
@@ -440,8 +440,8 @@ describe('FeridhooTours App E2E Flows', () => {
   it('allows user to open profile modal, edit details, and change password', async () => {
     // 1. Login as Passenger
     fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Login as Passenger')).toBeTruthy());
-    fireEvent.click(screen.getByText('Login as Passenger'));
+    await waitFor(() => expect(screen.getByText('Passenger')).toBeTruthy());
+    fireEvent.click(screen.getByText('Passenger'));
     await waitFor(() => expect(screen.getByText('Ahmed F.')).toBeTruthy());
 
     // 2. Click User badge to open dropdown
@@ -472,8 +472,8 @@ describe('FeridhooTours App E2E Flows', () => {
   it('allows admin to manage registered users via the User Directory tab', async () => {
     // 1. Login as Admin
     fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Login as Operator/Admin')).toBeTruthy());
-    fireEvent.click(screen.getByText('Login as Operator/Admin'));
+    await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
+    fireEvent.click(screen.getByText('Operator/Admin'));
 
     // 2. Open Admin Panel
     await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
@@ -511,8 +511,8 @@ describe('FeridhooTours App E2E Flows', () => {
   it('allows admin to manage jetties and delete a jetty safely', async () => {
     // 1. Login as Admin
     fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Login as Operator/Admin')).toBeTruthy());
-    fireEvent.click(screen.getByText('Login as Operator/Admin'));
+    await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
+    fireEvent.click(screen.getByText('Operator/Admin'));
 
     // 2. Open Admin Panel
     await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
@@ -549,8 +549,8 @@ describe('FeridhooTours App E2E Flows', () => {
   it('allows admin to manage bookings in the Bookings CRUD tab', async () => {
     // 1. Login as Admin
     fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Login as Operator/Admin')).toBeTruthy());
-    fireEvent.click(screen.getByText('Login as Operator/Admin'));
+    await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
+    fireEvent.click(screen.getByText('Operator/Admin'));
 
     // 2. Open Admin Panel
     await waitFor(() => expect(screen.getByText('Admin Panel')).toBeTruthy());
@@ -638,8 +638,8 @@ describe('FeridhooTours App E2E Flows', () => {
   it('records database audit entries and displays audit history in the Admin Audit Logs tab', async () => {
     // 1. Login as Admin
     fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Login as Operator/Admin')).toBeTruthy());
-    fireEvent.click(screen.getByText('Login as Operator/Admin'));
+    await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
+    fireEvent.click(screen.getByText('Operator/Admin'));
     
     // 2. Open Admin Panel
     const adminBtns = await waitFor(() => screen.getAllByText('Admin Panel'));
@@ -656,39 +656,21 @@ describe('FeridhooTours App E2E Flows', () => {
     });
   });
 
-  it('restricts booking deletion to super_admin and blocks standard admin from deleting bookings', async () => {
-    // 1. Login as standard Admin
-    fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Operator/Admin')).toBeTruthy());
-    fireEvent.click(screen.getByText('Operator/Admin'));
+  it('restricts booking deletion to super_admin and blocks standard admin from deleting bookings', () => {
+    const { result: auth } = renderHook(() => useAuthStore());
+    const { result: platform } = renderHook(() => usePlatformStore());
 
-    // 2. Open Admin Panel and switch to Bookings tab
-    const adminBtns = await waitFor(() => screen.getAllByText('Admin Panel'));
-    fireEvent.click(adminBtns[0]);
-    const bookingsTab = await waitFor(() => screen.getByRole('button', { name: /Bookings & Ledger/i }));
-    fireEvent.click(bookingsTab);
+    // 1. Standard Admin tries to remove booking -> Expect error / access denied
+    auth.current.loginAsAdmin();
+    const adminUser = { id: 'adm-001', name: 'Operator Admin', email: 'admin@smartferry.mv', role: 'admin' as const };
+    const adminRes = platform.current.removeBooking('SFY78B', adminUser);
+    expect(adminRes.success).toBe(false);
+    expect(adminRes.message).toContain('Access Denied');
 
-    // 3. Verify standard admin sees Deletion Restricted badge
-    await waitFor(() => {
-      expect(screen.getByText('Deletion Restricted')).toBeTruthy();
-    });
-
-    // 4. Sign Out and login as Super Admin
-    fireEvent.click(screen.getByRole('button', { name: /Sign Out/i }));
-
-    fireEvent.click(screen.getByText('Sign In'));
-    await waitFor(() => expect(screen.getByText('Super Admin')).toBeTruthy());
-    fireEvent.click(screen.getByText('Super Admin'));
-
-    // 5. Open Admin Panel and switch to Bookings tab
-    const adminBtnsSuper = await waitFor(() => screen.getAllByText('Admin Panel'));
-    fireEvent.click(adminBtnsSuper[0]);
-    const bookingsTabSuper = await waitFor(() => screen.getByRole('button', { name: /Bookings & Ledger/i }));
-    fireEvent.click(bookingsTabSuper);
-
-    // 6. Verify Super Admin has active Delete button
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /^Delete$/i })).toBeTruthy();
-    });
+    // 2. Super Admin tries to remove booking -> Expect success
+    auth.current.loginAsSuperAdmin();
+    const superUser = { id: 'sadm-001', name: 'Super Admin', email: 'superadmin@smartferry.mv', role: 'super_admin' as const };
+    const superRes = platform.current.removeBooking('SFY78B', superUser);
+    expect(superRes.success).toBe(true);
   });
 });
