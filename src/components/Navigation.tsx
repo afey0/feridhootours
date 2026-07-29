@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Bell, LogOut, LayoutDashboard, Anchor, ShieldCheck, ChevronDown, UserCircle, Users, Ticket, Menu, X, AlertTriangle } from 'lucide-react';
+import { User, Bell, LogOut, LayoutDashboard, Anchor, ShieldCheck, ChevronDown, UserCircle, Users, Ticket, Menu, X, AlertTriangle, BarChart3, Mail, ShieldAlert } from 'lucide-react';
 import type { User as UserType } from '../store/useAuthStore';
 
 interface Props {
@@ -12,6 +12,7 @@ interface Props {
   onSavedPassengers: () => void;
   onOpenProfile: () => void;
   onOpenMyBookings: () => void;
+  onSelectAdminTab?: (tab: 'dashboard' | 'vessels' | 'fleet' | 'verify' | 'bookings' | 'locations' | 'reports' | 'emails' | 'users' | 'audit') => void;
 }
 
 export const Navigation: React.FC<Props> = ({ 
@@ -23,7 +24,8 @@ export const Navigation: React.FC<Props> = ({
   onManageBooking,
   onSavedPassengers,
   onOpenProfile,
-  onOpenMyBookings
+  onOpenMyBookings,
+  onSelectAdminTab
 }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [isDrawerOpen, setDrawerOpen] = useState(false);
@@ -88,7 +90,7 @@ export const Navigation: React.FC<Props> = ({
               onClick={() => setShowAdminView(!showAdminView)}
             >
               <LayoutDashboard size={16} />
-              <span>{showAdminView ? 'Back to Booking' : 'Admin Panel'}</span>
+              <span>{showAdminView ? 'Back to Search' : 'Admin Panel'}</span>
             </button>
           )}
 
@@ -115,6 +117,7 @@ export const Navigation: React.FC<Props> = ({
           ) : (
             <div className="relative" ref={dropdownRef}>
               <button 
+                data-testid="user-profile-dropdown-btn"
                 onClick={() => setDropdownOpen(!isDropdownOpen)}
                 className="flex items-center gap-2.5 bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-2xl shadow-sm cursor-pointer transition focus:outline-none"
               >
@@ -131,17 +134,65 @@ export const Navigation: React.FC<Props> = ({
               </button>
 
               {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200/80 rounded-3xl shadow-2xl py-3 z-50 text-left animate-fade-in">
+                <div className="absolute right-0 mt-2 w-60 bg-white border border-slate-200/80 rounded-3xl shadow-2xl py-3 z-50 text-left animate-fade-in">
                   <div className="px-4 py-2 border-b border-slate-100 mb-1.5">
                     <span className="text-[9px] text-slate-400 font-black block uppercase tracking-wider">Signed In As</span>
                     <span className="text-xs font-extrabold text-slate-800 block truncate mt-0.5">{user.email}</span>
                   </div>
 
+                  {(user.role === 'admin' || user.role === 'super_admin') && (
+                    <>
+                      <button 
+                        onClick={() => { setShowAdminView(!showAdminView); setDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2.5 text-xs font-extrabold text-sky-800 bg-sky-50/80 hover:bg-sky-100 transition cursor-pointer flex items-center gap-2.5 border-b border-sky-100/60 mb-1"
+                      >
+                        <LayoutDashboard size={16} className="text-sky-600 shrink-0" />
+                        <span>{showAdminView ? 'Back to Passenger Search' : user.role === 'super_admin' ? 'Super Admin Dashboard' : 'Operator Control Panel'}</span>
+                      </button>
+
+                      <button 
+                        onClick={() => { if (onSelectAdminTab) onSelectAdminTab('reports'); setShowAdminView(true); setDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition cursor-pointer flex items-center gap-2.5"
+                      >
+                        <BarChart3 size={15} className="text-sky-600 shrink-0" />
+                        <span>Reports & Analytics</span>
+                      </button>
+
+                      <button 
+                        onClick={() => { if (onSelectAdminTab) onSelectAdminTab('emails'); setShowAdminView(true); setDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition cursor-pointer flex items-center gap-2.5"
+                      >
+                        <Mail size={15} className="text-sky-600 shrink-0" />
+                        <span>Email Control Center</span>
+                      </button>
+
+                      <button 
+                        onClick={() => { if (onSelectAdminTab) onSelectAdminTab('users'); setShowAdminView(true); setDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition cursor-pointer flex items-center gap-2.5"
+                      >
+                        <Users size={15} className="text-sky-600 shrink-0" />
+                        <span>User Directory</span>
+                      </button>
+
+                      {user.role === 'super_admin' && (
+                        <button 
+                          onClick={() => { if (onSelectAdminTab) onSelectAdminTab('audit'); setShowAdminView(true); setDropdownOpen(false); }}
+                          className="w-full text-left px-4 py-2 text-xs font-semibold text-amber-800 hover:bg-amber-50 transition cursor-pointer flex items-center gap-2.5"
+                        >
+                          <ShieldAlert size={15} className="text-amber-500 shrink-0" />
+                          <span>Audit Logs & History</span>
+                        </button>
+                      )}
+
+                      <div className="my-1 border-t border-slate-100" />
+                    </>
+                  )}
+
                   <button 
                     onClick={() => { onOpenMyBookings(); setDropdownOpen(false); }}
                     className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition cursor-pointer flex items-center gap-2.5"
                   >
-                    <Ticket size={16} className="text-sky-600" />
+                    <Ticket size={16} className="text-sky-600 shrink-0" />
                     <span>{user.role === 'agency' ? 'Agency Manifest' : 'My Bookings'}</span>
                   </button>
                   
@@ -149,7 +200,7 @@ export const Navigation: React.FC<Props> = ({
                     onClick={() => { onOpenProfile(); setDropdownOpen(false); }}
                     className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition cursor-pointer flex items-center gap-2.5"
                   >
-                    <UserCircle size={16} className="text-sky-600" />
+                    <UserCircle size={16} className="text-sky-600 shrink-0" />
                     <span>My Profile</span>
                   </button>
 
@@ -158,7 +209,7 @@ export const Navigation: React.FC<Props> = ({
                       onClick={() => { onSavedPassengers(); setDropdownOpen(false); }}
                       className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition cursor-pointer flex items-center gap-2.5"
                     >
-                      <Users size={16} className="text-sky-600" />
+                      <Users size={16} className="text-sky-600 shrink-0" />
                       <span>Saved Travelers</span>
                     </button>
                   )}
@@ -167,7 +218,7 @@ export const Navigation: React.FC<Props> = ({
                     onClick={() => { onSignOut(); setDropdownOpen(false); }}
                     className="w-full text-left px-4 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer flex items-center gap-2.5 border-t border-slate-100 mt-1.5"
                   >
-                    <LogOut size={16} />
+                    <LogOut size={16} className="shrink-0" />
                     <span>Sign Out</span>
                   </button>
                 </div>
@@ -268,22 +319,83 @@ export const Navigation: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={() => { setDrawerOpen(false); setShowAdminView(!showAdminView); }}
-                    className="w-full p-3.5 rounded-2xl font-bold text-xs flex items-center gap-3 bg-slate-900 text-white hover:bg-slate-800 transition cursor-pointer"
+                    className="w-full p-3 rounded-2xl font-bold text-xs flex items-center gap-3 bg-slate-900 text-white hover:bg-slate-800 transition cursor-pointer mb-1"
                   >
                     <LayoutDashboard size={18} />
                     <span>{showAdminView ? 'Back to Booking App' : 'Operator Admin Control'}</span>
                   </button>
+
+                  <div className="pt-2 pb-1 text-[10px] font-black text-slate-400 uppercase tracking-wider px-2">
+                    Management Modules
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDrawerOpen(false);
+                      if (onSelectAdminTab) onSelectAdminTab('reports');
+                      setShowAdminView(true);
+                    }}
+                    className="w-full p-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition cursor-pointer"
+                  >
+                    <BarChart3 size={16} className="text-sky-600" />
+                    <span>Reports & Analytics</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDrawerOpen(false);
+                      if (onSelectAdminTab) onSelectAdminTab('emails');
+                      setShowAdminView(true);
+                    }}
+                    className="w-full p-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition cursor-pointer"
+                  >
+                    <Mail size={16} className="text-sky-600" />
+                    <span>Email Control Center</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDrawerOpen(false);
+                      if (onSelectAdminTab) onSelectAdminTab('users');
+                      setShowAdminView(true);
+                    }}
+                    className="w-full p-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition cursor-pointer"
+                  >
+                    <Users size={16} className="text-sky-600" />
+                    <span>User Directory</span>
+                  </button>
+
+                  {user?.role === 'super_admin' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDrawerOpen(false);
+                        if (onSelectAdminTab) onSelectAdminTab('audit');
+                        setShowAdminView(true);
+                      }}
+                      className="w-full p-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 text-amber-800 hover:bg-amber-50 transition cursor-pointer"
+                    >
+                      <ShieldAlert size={16} className="text-amber-500" />
+                      <span>Audit Logs & History</span>
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => { 
                       setDrawerOpen(false); 
                       alert('Broadcasting system warning: Male-Maafushi Speedboats delayed by 20 mins due to sea conditions.'); 
                     }}
-                    className="w-full p-3.5 rounded-2xl font-bold text-xs flex items-center gap-3 bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition cursor-pointer"
+                    className="w-full p-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition cursor-pointer mt-1"
                   >
-                    <AlertTriangle size={18} className="text-rose-600 shrink-0" />
+                    <AlertTriangle size={16} className="text-rose-600 shrink-0" />
                     <span>Broadcast Disruption Alert</span>
                   </button>
+
+                  <div className="my-2 border-t border-slate-100" />
                 </>
               )}
 

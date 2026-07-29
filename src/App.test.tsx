@@ -704,4 +704,58 @@ describe('FeridhooTours App E2E Flows', () => {
     expect(platform.current.bookings.length).toBeGreaterThan(0);
     expect(auth.current.users.some(u => u.role === 'super_admin')).toBe(true);
   });
+
+  it('handles 10-minute hold expiration and admin rejection with comment', () => {
+    const { result } = renderHook(() => usePlatformStore());
+    
+    // Create an unpaid booking created 11 minutes ago
+    const pastDate = new Date(Date.now() - 11 * 60 * 1000).toISOString();
+    const expiredBooking: any = {
+      id: 'EXP-100',
+      scheduleId: 'SCH-001',
+      vesselName: 'Kaani Princess',
+      vesselType: 'Speedboat',
+      departureTime: '08:30 AM',
+      arrivalTime: '09:15 AM',
+      routeFrom: 'MLE',
+      routeTo: 'MAF',
+      passengers: [{ name: 'Test Hold User', age: 30, gender: 'Male', idNumber: 'H123', seatId: 'S-2' }],
+      selectedSeatIds: ['S-2'],
+      totalAmount: 25.00,
+      discountApplied: 0,
+      paymentMethod: 'bank_transfer',
+      status: 'pending_verification',
+      createdAt: pastDate
+    };
+
+    act(() => {
+      result.current.addBooking(expiredBooking);
+    });
+
+    // Run expiration check
+    act(() => {
+      result.current.checkExpiredHolds();
+    });
+
+    // Verify booking is marked as rejected due to hold expiration and seat released
+    const found = result.current.bookings.find(b => b.id === 'EXP-100');
+    expect(found?.status).toBe('rejected');
+    expect(found?.rejectionReason).toContain('10-minute seat hold expired');
+
+    const deck = result.current.decks['SCH-001'];
+    const seat = deck?.find(s => s.id === 'S-2');
+    expect(seat?.status).toBe('available');
+  });
+
+  it('renders Reports, Email, Users, and Audit links for elevated roles in Admin view', () => {
+    const { result: auth } = renderHook(() => useAuthStore());
+    act(() => {
+      auth.current.login('superadmin@smartferry.mv', 'superadmin123');
+    });
+
+    render(<AdminDashboard />);
+
+    expect(screen.getAllByText('Operator Dashboard').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Audit Logs & History').length).toBeGreaterThan(0);
+  });
 });

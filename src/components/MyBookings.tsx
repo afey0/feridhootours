@@ -297,8 +297,44 @@ export const MyBookings: React.FC<Props> = ({ onBack, user }) => {
                 </div>
               </div>
 
-              {/* Invoice calculation */}
+              {/* Invoice calculation & Receipt Hold Banner */}
               <div className="space-y-3">
+                {selectedBooking.status === 'pending_verification' && (
+                  <div>
+                    {(() => {
+                      const elapsedMs = Date.now() - new Date(selectedBooking.createdAt).getTime();
+                      const remainingMs = Math.max(0, 10 * 60 * 1000 - elapsedMs);
+                      const mins = Math.floor(remainingMs / 60000);
+                      const secs = Math.floor((remainingMs % 60000) / 1000);
+
+                      if (selectedBooking.receiptImage) {
+                        return (
+                          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                            <CheckCircle size={16} className="text-emerald-600 shrink-0" />
+                            <span>Bank transfer slip uploaded! Seat hold is secured while operator verifies payment.</span>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs font-semibold space-y-2">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2 font-black text-amber-950">
+                              <span>⏱️ 10-Minute Seat Hold Active</span>
+                            </div>
+                            <span className="bg-amber-200 text-amber-900 font-mono font-bold px-2.5 py-0.5 rounded text-xs animate-pulse">
+                              {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')} remaining
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-amber-850 leading-relaxed font-medium">
+                            Please upload your bank transfer slip before the timer expires to secure your seats. If no slip is uploaded, the hold expires automatically and seats will be released for other travelers.
+                          </p>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
                 <h4 className="font-bold text-slate-700 text-sm">Payment breakdown</h4>
                 <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-2 text-xs shadow-sm">
                   <div className="flex justify-between text-slate-500 font-medium">
@@ -316,7 +352,12 @@ export const MyBookings: React.FC<Props> = ({ onBack, user }) => {
                           View Uploaded Slip
                         </button>
                       ) : (
-                        <span className="text-rose-600 font-bold">No slip uploaded yet</span>
+                        <button
+                          onClick={() => setReuploadingId(selectedBooking.id)}
+                          className="bg-sky-600 hover:bg-sky-500 text-white font-bold px-3 py-1 rounded-lg text-xs cursor-pointer transition flex items-center gap-1 shadow-sm"
+                        >
+                          <Upload size={12} /> Upload Slip Now
+                        </button>
                       )}
                     </div>
                   )}

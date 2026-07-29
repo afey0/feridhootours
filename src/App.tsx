@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Navigation } from './components/Navigation';
 import { SearchHero } from './components/SearchHero';
 import { ScheduleList } from './components/ScheduleList';
@@ -77,6 +77,7 @@ function App() {
   const { alert: globalAlert, hideAlert } = usePlatformStore();
   
   const [showAdminView, setShowAdminView] = useState(false);
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'vessels' | 'fleet' | 'verify' | 'bookings' | 'locations' | 'reports' | 'emails' | 'users' | 'audit'>('dashboard');
   const [searchFromPort, setSearchFromPort] = useState('MLE');
   const [searchToPort, setSearchToPort] = useState('MAF');
 
@@ -87,15 +88,27 @@ function App() {
     }
   }, [isAuthModalOpen]);
 
+  // Auto-route Admin and Super Admin to Admin Dashboard upon login
+  const prevUserIdRef = useRef<string | null>(user?.id || null);
   useEffect(() => {
-    if (user?.role !== 'admin' && showAdminView) {
+    if (user && prevUserIdRef.current !== user.id) {
+      if (user.role === 'admin' || user.role === 'super_admin') {
+        setShowAdminView(true);
+        setActivePage('admin');
+      }
+    }
+    prevUserIdRef.current = user?.id || null;
+  }, [user]);
+
+  useEffect(() => {
+    if (user?.role !== 'admin' && user?.role !== 'super_admin' && showAdminView) {
       setShowAdminView(false);
       setActivePage('booking');
     }
     
     // If the user logs out, reset views and mid-booking steps
     if (!user) {
-      if (activePage === 'my_bookings' || activePage === 'saved_passengers' || activePage === 'profile') {
+      if (activePage === 'my_bookings' || activePage === 'saved_passengers' || activePage === 'profile' || activePage === 'admin') {
         setActivePage('booking');
       }
       if (currentStep !== 'search' && currentStep !== 'confirmation') {
@@ -156,14 +169,17 @@ function App() {
         onSavedPassengers={() => setActivePage('saved_passengers')}
         onOpenProfile={() => setActivePage('profile')}
         onOpenMyBookings={() => setActivePage('my_bookings')}
+        onSelectAdminTab={(tab) => {
+          setAdminTab(tab);
+          setShowAdminView(true);
+          setActivePage('admin');
+        }}
       />
-
-
 
       <main className="flex-1">
         {/* FULL PAGE ROUTER VIEWS */}
         {activePage === 'admin' && (user?.role === 'admin' || user?.role === 'super_admin') ? (
-          <AdminDashboard />
+          <AdminDashboard initialTab={adminTab} onTabChange={setAdminTab} />
         ) : activePage === 'my_bookings' ? (
           <MyBookings onBack={() => setActivePage('booking')} user={user} />
         ) : activePage === 'manage_booking' ? (

@@ -326,6 +326,14 @@ export const BookingModal: React.FC<Props> = ({
               </div>
             ) : (
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4 shadow-inner">
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs font-semibold flex items-start gap-2.5">
+                  <Clock size={18} className="text-amber-600 shrink-0 mt-0.5 animate-pulse" />
+                  <div>
+                    <span className="font-extrabold text-amber-950 block">10-Minute Seat Reservation Hold</span>
+                    Your selected seats will be held for <strong>10 minutes</strong>. You can place your reservation now and upload your transfer slip right here or later in <em>My Bookings</em>. If no receipt is uploaded within 10 minutes, the seats are automatically released for other passengers.
+                  </div>
+                </div>
+
                 <div className="text-xs md:text-sm text-slate-650 space-y-2 font-medium">
                   <h5 className="font-bold text-sky-700">Bank Transfer Details</h5>
                   <p className="leading-relaxed">

@@ -262,9 +262,16 @@ export const usePlatformStore = () => {
       }
     });
 
+    // Run hold check on mount and periodically every 5 seconds
+    checkExpiredHolds();
+    const intervalId = setInterval(() => {
+      checkExpiredHolds();
+    }, 5000);
+
     return () => { 
       listeners.delete(update); 
       unsubscribe();
+      clearInterval(intervalId);
     };
   }, []);
 
@@ -326,6 +333,61 @@ export const usePlatformStore = () => {
 
     notifyStoreListeners();
     broadcastRealtimeEvent('SEATS_UNLOCKED', { scheduleId, seatIds });
+  };
+
+  const checkExpiredHolds = () => {
+    const TEN_MINUTES_MS = 10 * 60 * 1000;
+    const now = Date.now();
+    let hasExpired = false;
+
+    globalBookings.forEach(b => {
+      if (b.status === 'pending_verification' && !b.receiptImage) {
+        const createdAtTime = new Date(b.createdAt).getTime();
+        if (!isNaN(createdAtTime) && (now - createdAtTime > TEN_MINUTES_MS)) {
+          hasExpired = true;
+          // Release held seats
+          const deck = globalDecks[b.scheduleId];
+          if (deck) {
+            globalDecks[b.scheduleId] = deck.map(seat => {
+              if (b.selectedSeatIds.includes(seat.id)) {
+                return { ...seat, status: 'available' };
+              }
+              return seat;
+            });
+            const schedule = globalSchedules.find(s => s.id === b.scheduleId);
+            if (schedule) {
+              schedule.availableSeats = globalDecks[b.scheduleId].filter(s => s.status === 'available').length;
+            }
+          }
+
+          b.status = 'rejected';
+          b.rejectionReason = 'Temporary 10-minute seat hold expired without payment receipt upload.';
+          
+          recordAuditLog(
+            'REJECT_PAYMENT',
+            'BOOKING',
+            b.id,
+            { name: 'System Hold Expiry', role: 'admin' },
+            { after: { status: 'rejected', rejectionReason: b.rejectionReason } },
+            { note: 'Automatically expired 10-minute hold and released seats.' }
+          );
+
+          const recipient = b.passengerEmail || (b.passengers[0] ? `${b.passengers[0].name.toLowerCase().replace(/\s+/g, '')}@example.com` : 'passenger@example.com');
+          triggerEmail(
+            recipient,
+            `FeridhooTours 10-Minute Hold Expired - PNR: ${b.id}`,
+            `Dear Passenger,\n\nYour temporary 10-minute seat reservation for booking reference ${b.id} has expired because no payment transfer receipt was uploaded.\n\nThe reserved seats have been released for other travelers. If you still wish to travel, please make a new booking.\n\nBest regards,\nFeridhooTours Maldives Team`,
+            'status'
+          );
+
+          broadcastRealtimeEvent('BOOKING_UPDATED', { bookingId: b.id, status: 'rejected' });
+        }
+      }
+    });
+
+    if (hasExpired) {
+      notifyStoreListeners();
+    }
   };
 
   // Add/Remove Schedules
@@ -758,6 +820,7 @@ const getCurrentAuthUser = (): any => {
     updateEmailConfig,
     clearEmailLogs,
     updateSeatClass,
+    checkExpiredHolds,
     resetPlatformStore
   };
 };

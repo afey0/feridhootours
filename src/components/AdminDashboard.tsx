@@ -57,7 +57,12 @@ const formatRowsString = (rows: number[]): string => {
   return ranges.join(', ');
 };
 
-export const AdminDashboard: React.FC = () => {
+interface AdminDashboardProps {
+  initialTab?: 'dashboard' | 'vessels' | 'fleet' | 'verify' | 'bookings' | 'locations' | 'reports' | 'emails' | 'users' | 'audit';
+  onTabChange?: (tab: 'dashboard' | 'vessels' | 'fleet' | 'verify' | 'bookings' | 'locations' | 'reports' | 'emails' | 'users' | 'audit') => void;
+}
+
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTabChange }) => {
   const { 
     schedules, 
     decks, 
@@ -100,7 +105,18 @@ export const AdminDashboard: React.FC = () => {
 
   const currentUser = currentAuthUser || getCurrentAuthUser();
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'vessels' | 'fleet' | 'verify' | 'bookings' | 'locations' | 'reports' | 'emails' | 'users' | 'audit'>('dashboard');
+  const [activeTab, setActiveTabState] = useState<'dashboard' | 'vessels' | 'fleet' | 'verify' | 'bookings' | 'locations' | 'reports' | 'emails' | 'users' | 'audit'>(initialTab || 'dashboard');
+
+  useEffect(() => {
+    if (initialTab && initialTab !== activeTab) {
+      setActiveTabState(initialTab);
+    }
+  }, [initialTab]);
+
+  const setActiveTab = (tab: 'dashboard' | 'vessels' | 'fleet' | 'verify' | 'bookings' | 'locations' | 'reports' | 'emails' | 'users' | 'audit') => {
+    setActiveTabState(tab);
+    if (onTabChange) onTabChange(tab);
+  };
   const [auditFilterAction, setAuditFilterAction] = useState<string>('ALL');
   const [auditFilterEntity, setAuditFilterEntity] = useState<string>('ALL');
   const [auditSearchQuery, setAuditSearchQuery] = useState<string>('');
@@ -1121,8 +1137,38 @@ export const AdminDashboard: React.FC = () => {
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-slate-800 text-base">{b.vesselName}</h4>
-                      <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <h4 className="font-bold text-slate-800 text-base">{b.vesselName}</h4>
+                        {(() => {
+                          const elapsedMs = Date.now() - new Date(b.createdAt).getTime();
+                          const remainingMs = Math.max(0, 10 * 60 * 1000 - elapsedMs);
+                          const mins = Math.floor(remainingMs / 60000);
+                          const secs = Math.floor((remainingMs % 60000) / 1000);
+
+                          if (b.receiptImage) {
+                            return (
+                              <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2.5 py-0.5 rounded-md">
+                                <CheckCircle size={12} /> Receipt Uploaded · Hold Secured
+                              </span>
+                            );
+                          }
+
+                          if (remainingMs > 0) {
+                            return (
+                              <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold px-2.5 py-0.5 rounded-md animate-pulse">
+                                ⏱️ 10-Min Hold: {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')} (No Receipt)
+                              </span>
+                            );
+                          }
+
+                          return (
+                            <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold px-2.5 py-0.5 rounded-md">
+                              ⚠️ Hold Expired · Releasing Seats
+                            </span>
+                          );
+                        })()}
+                      </div>
+                      <p className="text-xs text-slate-500 font-medium">
                         Route: {b.routeFrom} → {b.routeTo} | Departure: {b.departureTime}
                       </p>
                     </div>
@@ -1146,17 +1192,27 @@ export const AdminDashboard: React.FC = () => {
                       <div className="space-y-2">
                         <input 
                           type="text" 
-                          placeholder="Provide reason for decline..." 
-                          className="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-slate-800 text-[11px] w-full focus:outline-none" 
+                          placeholder="Provide rejection reason (required)..." 
+                          className="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-slate-800 text-[11px] w-full focus:outline-none focus:border-rose-400" 
                           value={rejectionReason}
                           onChange={(e) => setRejectionReason(e.target.value)}
+                          required
                         />
                         <div className="flex gap-1.5">
                           <button 
-                            className="bg-rose-500 hover:bg-rose-600 text-white font-bold p-1.5 rounded-lg text-[10px] flex-1 cursor-pointer"
-                            onClick={() => { updateBookingStatus(b.id, 'rejected', rejectionReason); setRejectingBookingId(null); setRejectionReason(''); }}
+                            className="bg-rose-500 hover:bg-rose-600 text-white font-bold p-1.5 rounded-lg text-[10px] flex-1 cursor-pointer shadow"
+                            onClick={() => {
+                              if (!rejectionReason.trim()) {
+                                showAlert('A rejection reason/comment is required to decline payment and release seats.', 'Comment Required', 'error');
+                                return;
+                              }
+                              updateBookingStatus(b.id, 'rejected', rejectionReason, undefined, currentUser);
+                              setRejectingBookingId(null);
+                              setRejectionReason('');
+                              showAlert(`Booking ${b.id} payment slip rejected. Held seats have been released.`, 'Payment Declined', 'success');
+                            }}
                           >
-                            Submit
+                            Confirm Reject
                           </button>
                           <button 
                             className="bg-transparent border border-slate-200 text-slate-600 p-1.5 rounded-lg text-[10px] flex-1 cursor-pointer font-bold"
