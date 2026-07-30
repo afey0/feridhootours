@@ -31,7 +31,9 @@ class SearchSchedules extends Component
         $schedules = Schedule::where('route_from', $this->fromPort)
             ->where('route_to', $this->toPort)
             ->where('disabled', false)
+            ->where('maintenance', false)
             ->get();
+
 
         return view('livewire.search-schedules', [
             'jetties' => $jetties,
