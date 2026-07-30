@@ -10,7 +10,8 @@ if [ ! -f ".env" ]; then
 APP_NAME=FeridhooTours
 APP_ENV=${APP_ENV:-production}
 APP_KEY=${APP_KEY}
-APP_DEBUG=${APP_DEBUG:-false}
+APP_DEBUG=${APP_DEBUG:-true}
+
 APP_URL=${APP_URL:-http://localhost}
 
 LOG_CHANNEL=stderr
