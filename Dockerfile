@@ -35,6 +35,9 @@ RUN mkdir -p /var/www/html/storage/framework/views \
     chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Install dependencies during build time
+RUN composer update --no-dev --optimize-autoloader --no-interaction || true
+
 RUN chmod +x /var/www/html/entrypoint.sh || true
 
 EXPOSE 80
