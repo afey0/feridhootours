@@ -4,8 +4,71 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4a1234567890abcdef1234567890abcd",
-    "packages": [],
+    "content-hash": "8b52f1e2908f51a4a6e38ad269fb9f82",
+    "packages": [
+        {
+            "name": "laravel/framework",
+            "version": "v11.36.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/framework.git",
+                "reference": "d04a622a57eb0efb251cf44697950c4516700cb6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/d04a622a57eb0efb251cf44697950c4516700cb6",
+                "reference": "d04a622a57eb0efb251cf44697950c4516700cb6",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Illuminate\\": "src/Illuminate/"
+                }
+            }
+        },
+        {
+            "name": "laravel/tinker",
+            "version": "v2.9.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/tinker.git",
+                "reference": "5024b3b89086f685c276a6d6d2b380f5efb5e589"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/tinker/zipball/5024b3b89086f685c276a6d6d2b380f5efb5e589",
+                "reference": "5024b3b89086f685c276a6d6d2b380f5efb5e589",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.2"
+            },
+            "type": "library"
+        },
+        {
+            "name": "livewire/livewire",
+            "version": "v3.4.12",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/livewire/livewire.git",
+                "reference": "3f6bb6150efb20c2e9eb64bbcbdfa1f8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/livewire/livewire/zipball/3f6bb6150efb20c2e9eb64bbcbdfa1f8",
+                "reference": "3f6bb6150efb20c2e9eb64bbcbdfa1f8",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1"
+            },
+            "type": "library"
+        }
+    ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
