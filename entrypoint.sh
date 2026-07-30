@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# Ensure Laravel storage directories exist
+mkdir -p storage/framework/views storage/framework/sessions storage/framework/cache storage/logs bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache || true
+chmod -R 775 storage bootstrap/cache || true
+
 # Run Composer Install if vendor does not exist
 if [ ! -d "vendor" ]; then
     composer install --no-dev --optimize-autoloader
