@@ -6,8 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    public $withinTransaction = false;
+
     public function up(): void
     {
+        Schema::dropIfExists('schedules');
         Schema::create('schedules', function (Blueprint $table) {
             $table->string('id', 64)->primary();
             $table->string('vessel_id', 64)->nullable();

@@ -38,8 +38,9 @@ php artisan package:discover --ansi || true
 # Run Database Migrations on Startup against Neon PostgreSQL
 if [ -n "$DATABASE_URL" ]; then
     echo "==> Running Database Migrations on Neon PostgreSQL..."
-    php artisan migrate --force || true
+    php artisan migrate:fresh --force || php artisan migrate --force || true
 fi
+
 
 # Cache Laravel Configuration for production performance
 php artisan config:cache || true

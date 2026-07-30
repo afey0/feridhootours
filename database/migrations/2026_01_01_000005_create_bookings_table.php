@@ -6,8 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    public $withinTransaction = false;
+
     public function up(): void
     {
+        Schema::dropIfExists('bookings');
         Schema::create('bookings', function (Blueprint $table) {
             $table->string('id', 64)->primary();
             $table->string('schedule_id', 64);
@@ -24,7 +27,8 @@ return new class extends Migration
             $table->string('promo_code_used')->nullable();
             $table->string('payment_method')->default('card');
             $table->text('receipt_image')->nullable();
-            $table->enum('status', ['pending_verification', 'verified', 'rejected', 'cancelled'])->default('pending_verification');
+            // Use string instead of enum for PostgreSQL compatibility
+            $table->string('status', 32)->default('pending_verification');
             $table->text('rejection_reason')->nullable();
             $table->string('agency_id')->nullable();
             $table->string('booked_by')->nullable();
@@ -36,6 +40,8 @@ return new class extends Migration
             $table->string('refund_status')->default('none');
             $table->timestamps();
         });
+
+        \DB::statement("ALTER TABLE bookings ADD CONSTRAINT bookings_status_check CHECK (status IN ('pending_verification','verified','rejected','cancelled'))");
     }
 
     public function down(): void
