@@ -35,7 +35,8 @@ RUN mkdir -p /var/www/html/storage/framework/views \
 
 # Disable Composer security advisory blocking BEFORE resolving packages
 ENV COMPOSER_ALLOW_SUPERUSER=1
-RUN COMPOSER_NO_AUDIT=1 composer update --no-dev --optimize-autoloader --no-interaction --no-security-blocking --no-blocking 2>&1
+RUN COMPOSER_NO_AUDIT=1 composer update --no-dev --optimize-autoloader --no-interaction --no-security-blocking --no-blocking --no-scripts 2>&1
+
 
 
 # Set correct permissions
