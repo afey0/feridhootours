@@ -13,17 +13,19 @@ APP_KEY=${APP_KEY}
 APP_DEBUG=${APP_DEBUG:-false}
 APP_URL=${APP_URL:-http://localhost}
 
-LOG_CHANNEL=stack
+LOG_CHANNEL=stderr
 LOG_LEVEL=debug
 
 DB_CONNECTION=pgsql
 DATABASE_URL=${DATABASE_URL}
 
-CACHE_DRIVER=file
+CACHE_STORE=file
 SESSION_DRIVER=file
 SESSION_LIFETIME=120
 QUEUE_CONNECTION=sync
+FILESYSTEM_DISK=local
 EOF
+
 fi
 
 # Ensure Laravel storage directories exist with correct permissions
