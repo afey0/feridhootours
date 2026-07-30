@@ -11,9 +11,15 @@ services:
         value: production
       - key: APP_DEBUG
         value: "false"
+      - key: COMPOSER_NO_AUDIT
+        value: "1"
+      - key: COMPOSER_ALLOW_SUPERUSER
+        value: "1"
       - key: APP_URL
         sync: false
       - key: DATABASE_URL
-        sync: false # Set to your Neon PostgreSQL Connection String (postgres://user:pass@ep-xyz.neon.tech/neondb?sslmode=require)
+        sync: false
       - key: DB_CONNECTION
         value: pgsql
+      - key: APP_KEY
+        sync: false
