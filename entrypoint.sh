@@ -1,14 +1,39 @@
 #!/bin/bash
 set -e
 
+cd /var/www/html
+
+# Create .env from environment variables if it doesn't exist
+if [ ! -f ".env" ]; then
+    echo "==> Creating .env file from environment variables..."
+    cat > .env << EOF
+APP_NAME=FeridhooTours
+APP_ENV=${APP_ENV:-production}
+APP_KEY=${APP_KEY}
+APP_DEBUG=${APP_DEBUG:-false}
+APP_URL=${APP_URL:-http://localhost}
+
+LOG_CHANNEL=stack
+LOG_LEVEL=debug
+
+DB_CONNECTION=pgsql
+DATABASE_URL=${DATABASE_URL}
+
+CACHE_DRIVER=file
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+QUEUE_CONNECTION=sync
+EOF
+fi
+
 # Ensure Laravel storage directories exist with correct permissions
 mkdir -p storage/framework/views storage/framework/sessions storage/framework/cache storage/logs bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache || true
 chmod -R 775 storage bootstrap/cache || true
 
 # Run Composer post-install scripts now that artisan is available
+echo "==> Running package:discover..."
 php artisan package:discover --ansi || true
-composer dump-autoload --optimize --no-scripts || true
 
 # Run Database Migrations on Startup against Neon PostgreSQL
 if [ -n "$DATABASE_URL" ]; then
