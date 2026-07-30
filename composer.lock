@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/framework.git",
-                "reference": "d04a622a57eb0efb251cf44697950c4516700cb6"
+                "reference": "b48a129ef9bf9c7bfbf521eeec5e8ed60742f567"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/framework/zipball/d04a622a57eb0efb251cf44697950c4516700cb6",
-                "reference": "d04a622a57eb0efb251cf44697950c4516700cb6",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/b48a129ef9bf9c7bfbf521eeec5e8ed60742f567",
+                "reference": "b48a129ef9bf9c7bfbf521eeec5e8ed60742f567",
                 "shasum": ""
             },
             "require": {
@@ -36,12 +36,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/tinker.git",
-                "reference": "5024b3b89086f685c276a6d6d2b380f5efb5e589"
+                "reference": "502105300d0483acbe4ff541ea3802f83c8981f2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/tinker/zipball/5024b3b89086f685c276a6d6d2b380f5efb5e589",
-                "reference": "5024b3b89086f685c276a6d6d2b380f5efb5e589",
+                "url": "https://api.github.com/repos/laravel/tinker/zipball/502105300d0483acbe4ff541ea3802f83c8981f2",
+                "reference": "502105300d0483acbe4ff541ea3802f83c8981f2",
                 "shasum": ""
             },
             "require": {
@@ -55,12 +55,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/livewire/livewire.git",
-                "reference": "3f6bb6150efb20c2e9eb64bbcbdfa1f8"
+                "reference": "1e69b0ea0e5999aeae92aefbc6810a9c8f000b0c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/livewire/livewire/zipball/3f6bb6150efb20c2e9eb64bbcbdfa1f8",
-                "reference": "3f6bb6150efb20c2e9eb64bbcbdfa1f8",
+                "url": "https://api.github.com/repos/livewire/livewire/zipball/1e69b0ea0e5999aeae92aefbc6810a9c8f000b0c",
+                "reference": "1e69b0ea0e5999aeae92aefbc6810a9c8f000b0c",
                 "shasum": ""
             },
             "require": {
