@@ -1,50 +1,45 @@
-FROM php:8.3-apache
+FROM php:8.3-fpm-alpine
 
-# Install System Dependencies & PostgreSQL PHP Extension for Neon
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    git \
-    unzip \
-    zip \
+# Install System Dependencies & PostgreSQL + Redis PHP Extensions
+RUN apk add --no-cache \
+    postgresql-dev \
     libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    && docker-php-ext-install pdo pdo_pgsql pgsql bcmath gd
-
-# Enable Apache mod_rewrite for Laravel
-RUN a2enmod rewrite
-
-# Configure Apache DocumentRoot to Laravel /public
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/conf-available/*.conf
+    libzip-dev \
+    zip \
+    unzip \
+    git \
+    bash \
+    oniguruma-dev \
+    icu-dev \
+    $PHPIZE_DEPS \
+    && docker-php-ext-install pdo pdo_pgsql pgsql bcmath gd zip opcache \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del $PHPIZE_DEPS
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
+# Copy application files
 COPY . .
 
-# Ensure storage and bootstrap/cache directories exist
-RUN mkdir -p /var/www/html/storage/framework/views \
-             /var/www/html/storage/framework/sessions \
-             /var/www/html/storage/framework/cache \
-             /var/www/html/storage/logs \
-             /var/www/html/bootstrap/cache
+# Ensure storage & bootstrap/cache directories exist with proper permissions
+RUN mkdir -p storage/framework/views \
+             storage/framework/sessions \
+             storage/framework/cache \
+             storage/logs \
+             bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 storage bootstrap/cache
 
-# Disable Composer security advisory blocking BEFORE resolving packages
+# Install PHP dependencies
 ENV COMPOSER_ALLOW_SUPERUSER=1
-RUN COMPOSER_NO_AUDIT=1 composer update --no-dev --optimize-autoloader --no-interaction --no-security-blocking --no-blocking --no-scripts 2>&1
+RUN COMPOSER_NO_AUDIT=1 composer install --no-dev --optimize-autoloader --no-interaction --no-scripts 2>&1
 
+RUN chmod +x docker/entrypoint.sh entrypoint.sh || true
 
+EXPOSE 9000
 
-# Set correct permissions
-RUN chown -R www-data:www-data /var/www/html && \
-    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
-RUN chmod +x /var/www/html/entrypoint.sh
-
-EXPOSE 80
-
-ENTRYPOINT ["/var/www/html/entrypoint.sh"]
+CMD ["php-fpm"]

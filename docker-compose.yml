@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # 1. Nginx Reverse Proxy
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: feridhoo_nginx
+    ports:
+      - "80:80"
+      - "8080:80"
+    volumes:
+      - .:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - laravel-app
+    networks:
+      - feridhoo_net
+    restart: unless-stopped
+
+  # 2. Laravel Web Application (PHP-FPM)
+  laravel-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: feridhoo_app
+    entrypoint: ["docker/entrypoint.sh"]
+    volumes:
+      - .:/var/www/html
+    environment:
+      APP_NAME: "FeridhooTours"
+      APP_ENV: "production"
+      APP_DEBUG: "false"
+      APP_KEY: "base64:O/gBy/p6QBDSt68/nNQycolDLEjjB02fzoRKQojc+PI="
+      APP_URL: "http://localhost"
+      LOG_CHANNEL: "stderr"
+      
+      DB_CONNECTION: "pgsql"
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+      DB_DATABASE: "feridhootours"
+      DB_USERNAME: "feridhoouser"
+      DB_PASSWORD: "secretpassword123"
+
+      CACHE_STORE: "redis"
+      SESSION_DRIVER: "redis"
+      QUEUE_CONNECTION: "redis"
+
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_CLIENT: "phpredis"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - feridhoo_net
+    restart: unless-stopped
+
+  # 3. Queue Worker Container
+  queue-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: feridhoo_queue
+    command: php artisan queue:work redis --tries=3 --timeout=90 --verbose
+    volumes:
+      - .:/var/www/html
+    environment:
+      APP_ENV: "production"
+      APP_KEY: "base64:O/gBy/p6QBDSt68/nNQycolDLEjjB02fzoRKQojc+PI="
+      
+      DB_CONNECTION: "pgsql"
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+      DB_DATABASE: "feridhootours"
+      DB_USERNAME: "feridhoouser"
+      DB_PASSWORD: "secretpassword123"
+
+      CACHE_STORE: "redis"
+      QUEUE_CONNECTION: "redis"
+
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_CLIENT: "phpredis"
+    depends_on:
+      - laravel-app
+      - redis
+      - postgres
+    networks:
+      - feridhoo_net
+    restart: unless-stopped
+
+  # 4. Redis Container (Cache, Session & Queues)
+  redis:
+    image: redis:7-alpine
+    container_name: feridhoo_redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - feridhoo_net
+    restart: unless-stopped
+
+  # 5. PostgreSQL Database Container
+  postgres:
+    image: postgres:16-alpine
+    container_name: feridhoo_postgres
+    environment:
+      POSTGRES_DB: "feridhootours"
+      POSTGRES_USER: "feridhoouser"
+      POSTGRES_PASSWORD: "secretpassword123"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U feridhoouser -d feridhootours"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - feridhoo_net
+    restart: unless-stopped
+
+networks:
+  feridhoo_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
