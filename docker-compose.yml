@@ -31,8 +31,9 @@ services:
     environment:
       APP_NAME: "FeridhooTours"
       APP_ENV: "production"
-      APP_DEBUG: "false"
+      APP_DEBUG: "true"
       APP_KEY: "base64:O/gBy/p6QBDSt68/nNQycolDLEjjB02fzoRKQojc+PI="
+
       APP_URL: "http://localhost"
       LOG_CHANNEL: "stderr"
       
