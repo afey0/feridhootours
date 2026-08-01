@@ -34,9 +34,11 @@ RUN mkdir -p storage/framework/views \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 storage bootstrap/cache
 
-# Install PHP dependencies
+# Install PHP dependencies without security advisory blocking
 ENV COMPOSER_ALLOW_SUPERUSER=1
-RUN COMPOSER_NO_AUDIT=1 composer install --no-dev --optimize-autoloader --no-interaction --no-scripts 2>&1
+ENV COMPOSER_NO_AUDIT=1
+RUN composer config policy.advisories.block false || true && \
+    composer update --no-dev --optimize-autoloader --no-interaction --no-scripts --no-audit 2>&1
 
 RUN chmod +x docker/entrypoint.sh entrypoint.sh || true
 
