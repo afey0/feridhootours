@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MOCK_SCHEDULES, MOCK_VESSELS, generateMockDeck, ATolls } from '../data/mockData';
-import type { Seat, Schedule, Booking, Jetty, Vessel } from '../data/mockData';
+import type { Seat, Schedule, Booking, Jetty, Vessel, Passenger } from '../data/mockData';
+
 import type { AuditLogEntry, AuditAction, AuditEntityType } from '../types/audit';
 import { createAuditEntry } from '../services/auditLogger';
 import { broadcastRealtimeEvent, subscribeRealtimeEvents } from '../services/dbClient';
@@ -704,10 +705,10 @@ export const usePlatformStore = () => {
 
     adminUnlockSeats(booking.scheduleId, booking.selectedSeatIds);
 
-    let updatedBooking: Booking | null = null;
+    let updatedBooking: Booking | undefined;
     globalBookings = globalBookings.map(b => {
       if (b.id === bookingId) {
-        updatedBooking = {
+        const updated: Booking = {
           ...b,
           status: 'cancelled',
           refundAmount: finalRefundAmount,
@@ -721,7 +722,8 @@ export const usePlatformStore = () => {
           refundAccountNumber: bankDetails?.accountNumber || b.refundAccountNumber,
           refundRequestSlip: bankDetails?.requestSlip || b.refundRequestSlip
         };
-        return updatedBooking;
+        updatedBooking = updated;
+        return updated;
       }
       return b;
     });
@@ -750,10 +752,10 @@ export const usePlatformStore = () => {
     const calc = calculateRefund(booking);
     const finalRefundAmount = customRefundAmount !== undefined ? customRefundAmount : (booking.refundAmount !== undefined ? booking.refundAmount : calc.refundAmount);
 
-    let updatedBooking: Booking | null = null;
+    let updatedBooking: Booking | undefined;
     globalBookings = globalBookings.map(b => {
       if (b.id === bookingId) {
-        updatedBooking = {
+        const updated: Booking = {
           ...b,
           status: 'cancelled',
           refundStatus: 'completed',
@@ -762,10 +764,12 @@ export const usePlatformStore = () => {
           refundedAt: new Date().toISOString(),
           refundReason: reason || b.refundReason || 'Manual bank transfer complete.'
         };
-        return updatedBooking;
+        updatedBooking = updated;
+        return updated;
       }
       return b;
     });
+
 
     recordAuditLog('REFUND', 'BOOKING', bookingId, performedBy, { before: booking, after: updatedBooking }, { refundStatus: 'completed', refundAmount: finalRefundAmount });
 

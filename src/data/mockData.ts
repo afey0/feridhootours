@@ -80,6 +80,13 @@ export interface Booking {
   cancellationFee?: number;
   refundPercentage?: number;
   refundStatus?: 'full' | 'partial' | 'non_refundable' | 'none' | 'requested' | 'completed';
+  refundBankName?: string;
+  refundAccountName?: string;
+  refundAccountNumber?: string;
+  refundReceiptImage?: string;
+  refundedAt?: string;
+  refundRequestSlip?: string;
+  refundReason?: string;
 }
 
 export interface SavedPassenger {
@@ -150,6 +157,8 @@ export const INITIAL_JETTIES: Jetty[] = [
   { id: 'FER', name: 'Feridhoo Harbor Terminal' },
 ];
 
+export const ATolls: Jetty[] = INITIAL_JETTIES;
+
 export const INITIAL_VESSELS: Vessel[] = [
   {
     id: 'VES-001',
@@ -172,6 +181,8 @@ export const INITIAL_VESSELS: Vessel[] = [
     premiumRows: '2-3',
   },
 ];
+
+export const MOCK_VESSELS: Vessel[] = INITIAL_VESSELS;
 
 export const INITIAL_SCHEDULES: Schedule[] = [
   {
@@ -213,3 +224,38 @@ export const INITIAL_SCHEDULES: Schedule[] = [
     maintenance: false,
   },
 ];
+
+export const MOCK_SCHEDULES: Schedule[] = INITIAL_SCHEDULES;
+
+export const generateMockDeck = (hasBooked: boolean = false): Seat[] => {
+  const seats: Seat[] = [];
+  let seatIdCounter = 1;
+  const rows = 8;
+  const cols = 4;
+
+  for (let r = 1; r <= rows; r++) {
+    for (let c = 1; c <= cols; c++) {
+      let seatClass: 'Economy' | 'Premium' | 'VIP' = 'Economy';
+      if (r <= 2) seatClass = 'VIP';
+      else if (r <= 4) seatClass = 'Premium';
+
+      const attributes: ('window' | 'aisle' | 'accessibility')[] = [];
+      if (c === 1 || c === cols) attributes.push('window');
+      else attributes.push('aisle');
+      if (r === rows) attributes.push('accessibility');
+
+      let status: 'available' | 'locked' | 'booked' | 'selected' = 'available';
+      if (hasBooked && r === 3 && c === 1) status = 'booked';
+
+      seats.push({
+        id: `S-${seatIdCounter++}`,
+        row: r,
+        col: c,
+        status,
+        class: seatClass,
+        attributes
+      });
+    }
+  }
+  return seats;
+};
