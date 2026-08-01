@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 class Navigation extends Component
 {
     public $showDrawer = false;
+    public $showUserDropdown = false;
     public $showLoginModal = false;
     public $authMode = 'signin'; // 'signin', 'signup', 'forgot'
 
@@ -27,6 +28,12 @@ class Navigation extends Component
     public function toggleDrawer()
     {
         $this->showDrawer = !$this->showDrawer;
+        $this->showUserDropdown = false;
+    }
+
+    public function toggleUserDropdown()
+    {
+        $this->showUserDropdown = !$this->showUserDropdown;
     }
 
     public function openLoginModal($mode = 'signin')
@@ -35,6 +42,8 @@ class Navigation extends Component
         $this->errorMessage = null;
         $this->successMessage = null;
         $this->showLoginModal = true;
+        $this->showDrawer = false;
+        $this->showUserDropdown = false;
     }
 
     public function closeLoginModal()
@@ -125,6 +134,8 @@ class Navigation extends Component
     {
         Auth::logout();
         session()->forget(['user_role', 'user_name']);
+        $this->showUserDropdown = false;
+        $this->showDrawer = false;
         return $this->redirect('/', navigate: true);
     }
 

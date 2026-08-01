@@ -35,12 +35,12 @@
         @endif
     </div>
 
-    <!-- Right Side Actions / User Menu -->
+    <!-- Right Side Actions / User State -->
     <div class="flex items-center gap-3">
         @if($currentUser)
-            <!-- User Dropdown Menu -->
-            <div class="relative" x-data="{ open: false }">
-                <button @click="open = !open" class="flex items-center gap-2.5 bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-2xl shadow-sm cursor-pointer transition focus:outline-none text-left">
+            <!-- User Profile Button (Desktop) -->
+            <div class="relative hidden lg:block">
+                <button wire:click="toggleUserDropdown" class="flex items-center gap-2.5 bg-white hover:bg-slate-50 border border-slate-200 px-3.5 py-2 rounded-2xl shadow-sm cursor-pointer transition focus:outline-none text-left">
                     <div class="w-7 h-7 bg-gradient-to-tr from-sky-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-black shrink-0 shadow-sm font-display">
                         {{ strtoupper(substr($currentUser->name, 0, 1)) }}
                     </div>
@@ -48,61 +48,63 @@
                         <span class="text-xs font-extrabold text-slate-850 leading-none font-display">{{ $currentUser->name }}</span>
                         <span class="text-[9px] font-extrabold uppercase tracking-wider text-sky-600 leading-none mt-0.5">{{ strtoupper(str_replace('_', ' ', $currentUser->role)) }}</span>
                     </div>
-                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </button>
 
-                <!-- Dropdown Menu -->
-                <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-60 bg-white border border-slate-200 rounded-3xl shadow-2xl py-3 z-50 text-left animate-fade-in">
-                    <div class="px-4 py-2 border-b border-slate-100 mb-1.5">
-                        <span class="text-[9px] text-slate-400 font-black block uppercase tracking-wider">Signed In As</span>
-                        <span class="text-xs font-extrabold text-slate-800 block truncate mt-0.5">{{ $currentUser->email }}</span>
-                    </div>
+                @if($showUserDropdown)
+                    <div class="absolute right-0 mt-2 w-60 bg-white border border-slate-200 rounded-3xl shadow-2xl py-3 z-50 text-left animate-fade-in">
+                        <div class="px-4 py-2 border-b border-slate-100 mb-1.5">
+                            <span class="text-[9px] text-slate-400 font-black block uppercase tracking-wider">Signed In As</span>
+                            <span class="text-xs font-extrabold text-slate-800 block truncate mt-0.5">{{ $currentUser->email }}</span>
+                        </div>
 
-                    @if(in_array($currentUser->role, ['admin', 'super_admin']))
-                        <a href="/admin" class="block px-4 py-2.5 text-xs font-extrabold text-sky-700 bg-sky-50/80 hover:bg-sky-100 transition flex items-center gap-2 border-b border-sky-100 mb-1">
-                            ⚙️ Operator Dashboard
-                        </a>
-                        <a href="/admin?tab=reports" class="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
-                            📊 Reports & Analytics
-                        </a>
-                        <a href="/admin?tab=emails" class="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
-                            ✉️ Email Control Center
-                        </a>
-                        <a href="/admin?tab=users" class="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
-                            👥 User Directory
-                        </a>
-                        @if($currentUser->role === 'super_admin')
-                            <a href="/admin?tab=audit" class="block px-4 py-2 text-xs font-semibold text-amber-700 hover:bg-amber-50 transition">
-                                🛡️ Audit Logs & History
+                        @if(in_array($currentUser->role, ['admin', 'super_admin']))
+                            <a href="/admin" class="block px-4 py-2.5 text-xs font-extrabold text-sky-700 bg-sky-50/80 hover:bg-sky-100 transition flex items-center gap-2 border-b border-sky-100 mb-1">
+                                ⚙️ Operator Dashboard
                             </a>
+                            <a href="/admin?tab=reports" class="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
+                                📊 Reports & Analytics
+                            </a>
+                            <a href="/admin?tab=emails" class="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
+                                ✉️ Email Control Center
+                            </a>
+                            <a href="/admin?tab=users" class="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
+                                👥 User Directory
+                            </a>
+                            @if($currentUser->role === 'super_admin')
+                                <a href="/admin?tab=audit" class="block px-4 py-2 text-xs font-semibold text-amber-700 hover:bg-amber-50 transition">
+                                    🛡️ Audit Logs & History
+                                </a>
+                            @endif
+                            <div class="my-1 border-t border-slate-100"></div>
                         @endif
-                        <div class="my-1 border-t border-slate-100"></div>
-                    @endif
 
-                    <a href="/my-bookings" class="block px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
-                        🎟️ My Bookings
-                    </a>
+                        <a href="/my-bookings" class="block px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
+                            🎟️ My Bookings
+                        </a>
 
-                    <button wire:click="logout" class="w-full text-left px-4 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-50 transition border-t border-slate-100 mt-1.5 cursor-pointer">
-                        🚪 Sign Out Account
-                    </button>
-                </div>
+                        <button wire:click="logout" class="w-full text-left px-4 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-50 transition border-t border-slate-100 mt-1.5 cursor-pointer">
+                            🚪 Sign Out Account
+                        </button>
+                    </div>
+                @endif
             </div>
         @else
-            <button wire:click="openLoginModal('signin')" class="bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold text-xs px-5 py-2.5 rounded-2xl shadow-lg shadow-sky-600/20 transition cursor-pointer flex items-center gap-2 font-display">
+            <!-- Sign In Button (Desktop) -->
+            <button wire:click="openLoginModal('signin')" class="hidden lg:flex bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold text-xs px-5 py-2.5 rounded-2xl shadow-lg shadow-sky-600/20 transition cursor-pointer items-center gap-2 font-display">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                 <span>Sign In / Register</span>
             </button>
         @endif
 
-        <!-- Mobile & Tablet Drawer Trigger Button (< 1024px) -->
+        <!-- Mobile & Tablet Hamburger Trigger Button (< 1024px) -->
         <button wire:click="toggleDrawer" class="lg:hidden p-2.5 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 transition shadow-md flex items-center gap-2 text-xs font-extrabold cursor-pointer">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
             <span class="hidden sm:inline font-bold">Menu</span>
         </button>
     </div>
 
-    <!-- Responsive Mobile & Tablet Drawer -->
+    <!-- Responsive Mobile & Tablet Drawer (< 1024px) -->
     @if($showDrawer)
         <div class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex justify-end animate-fade-in" wire:click.self="toggleDrawer">
             <div class="w-80 max-w-[85vw] bg-white h-full border-l border-slate-200 p-6 flex flex-col justify-between text-left shadow-2xl overflow-y-auto">
@@ -180,7 +182,7 @@
 
                 @if($currentUser)
                     <div class="pt-6 border-t border-slate-100 mt-6">
-                        <button wire:click="logout" class="w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 font-extrabold rounded-2xl text-xs border border-rose-200 transition">
+                        <button wire:click="logout" class="w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 font-extrabold rounded-2xl text-xs border border-rose-200 transition cursor-pointer">
                             🚪 Sign Out Account
                         </button>
                     </div>
