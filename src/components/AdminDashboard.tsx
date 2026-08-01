@@ -878,6 +878,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                     <div className="flex gap-2 justify-start lg:justify-end">
                       <button
                         className="bg-transparent border border-amber-500/30 text-amber-600 hover:bg-amber-500/10 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer"
+                        title="Edit Vessel Specifications & Seat Layout"
                         onClick={() => {
                           setEditingVesselId(v.id);
                           setVesselFormName(v.name);
@@ -899,6 +900,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                       </button>
                       <button
                         className="bg-transparent border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer"
+                        title="Delete Vessel from Fleet Registry"
                         onClick={() => {
                           const result = removeVessel(v.id);
                           if (!result.success) {
@@ -910,6 +912,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                       >
                         Delete
                       </button>
+
                     </div>
                   </div>
                 );
@@ -1026,6 +1029,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                           ? 'border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10' 
                           : 'border-slate-300 text-slate-500 hover:bg-slate-100'
                       }`}
+                      title={s.disabled ? "Enable Daily Route Schedule" : "Disable Daily Route Schedule"}
                       onClick={() => editSchedule(s.id, { disabled: !s.disabled })}
                     >
                       {s.disabled ? 'Enable' : 'Disable'}
@@ -1036,24 +1040,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                           ? 'border-sky-500/30 text-sky-600 hover:bg-sky-500/10' 
                           : 'border-amber-500 text-amber-600 hover:bg-amber-50'
                       }`}
+                      title={s.maintenance ? "Set Active Operational Mode" : "Set Maintenance Mode"}
                       onClick={() => editSchedule(s.id, { maintenance: !s.maintenance })}
                     >
                       {s.maintenance ? 'Active Mode' : 'Maintenance'}
                     </button>
                     <button 
                       className="bg-transparent border border-sky-500/30 text-sky-600 hover:bg-sky-500/10 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer"
+                      title="Manage Seating Map & Lock/Release Individual Seats"
                       onClick={() => setManagingScheduleId(s.id)}
                     >
                       Manage Seats
                     </button>
                     <button 
                       className="bg-transparent border border-amber-500/30 text-amber-600 hover:bg-amber-500/10 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer"
+                      title="Edit Route Schedule Details & Pricing"
                       onClick={() => handleOpenEditForm(s.id)}
                     >
-                      Edit Route
+                      Edit
                     </button>
                     <button 
                       className="bg-transparent border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer"
+                      title="Cancel This Route Schedule"
                       onClick={() => {
                         const hasActiveBookings = bookings.some(b => b.scheduleId === s.id && (b.status === 'verified' || b.status === 'pending_verification'));
                         if (hasActiveBookings) {

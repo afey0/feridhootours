@@ -223,10 +223,12 @@ export const MyBookings: React.FC<Props> = ({ onBack, user }) => {
                           setSelectedBooking(b);
                           setShowCancelConfirm(b.id);
                         }}
+                        title="Cancel Ticket Reservation & Release Seat"
                         className="text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-[10px] font-extrabold px-2.5 py-1 rounded-lg transition cursor-pointer"
                       >
                         Cancel & Refund
                       </button>
+
                     ) : (
                       <span className="text-[10px] text-rose-600 font-extrabold bg-rose-50 border border-rose-200 px-2 py-0.5 rounded">
                         {b.refundPercentage ?? 100}% Refunded
