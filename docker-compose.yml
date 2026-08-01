@@ -25,8 +25,11 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: feridhoo_app
-    entrypoint: ["docker/entrypoint.sh"]
+    entrypoint:
+      - /bin/sh
+      - /var/www/html/docker/entrypoint.sh
     volumes:
+
       - .:/var/www/html
       - vendor_data:/var/www/html/vendor
       - storage_views:/var/www/html/storage/framework/views
