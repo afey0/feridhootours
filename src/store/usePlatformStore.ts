@@ -315,6 +315,51 @@ export const usePlatformStore = () => {
     broadcastRealtimeEvent('SEATS_LOCKED', { scheduleId, seatIds });
   };
 
+  const lockSeatsCheckout = (scheduleId: string, seatIds: string[], passengers: Passenger[] = [], user?: any): string => {
+    const deck = globalDecks[scheduleId];
+    if (deck) {
+      globalDecks[scheduleId] = deck.map(seat => {
+        if (seatIds.includes(seat.id)) {
+          return { ...seat, status: 'locked' };
+        }
+        return seat;
+      });
+      const schedule = globalSchedules.find(s => s.id === scheduleId);
+      if (schedule) {
+        schedule.availableSeats = globalDecks[scheduleId].filter(s => s.status === 'available').length;
+      }
+    }
+
+    const schedule = globalSchedules.find(s => s.id === scheduleId);
+    const bookingId = `SFY-LOCK-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+    const newBooking: Booking = {
+      id: bookingId,
+      scheduleId,
+      vesselName: schedule?.vesselName || 'Speedboat',
+      vesselType: schedule?.vesselType || 'Speedboat',
+      departureTime: schedule?.departureTime || '08:30 AM',
+      arrivalTime: schedule?.arrivalTime || '09:15 AM',
+      routeFrom: schedule?.routeFrom || 'MLE',
+      routeTo: schedule?.routeTo || 'MAF',
+      passengers: passengers.length > 0 ? passengers : seatIds.map(sId => ({ name: user?.name || 'Guest Passenger', age: 28, gender: 'Male', idNumber: '', seatId: sId })),
+      selectedSeatIds: seatIds,
+      totalAmount: (schedule?.price || 35) * seatIds.length,
+      discountApplied: 0,
+      paymentMethod: 'card',
+      status: 'in_checkout',
+      createdAt: new Date().toISOString(),
+      userId: user?.id,
+      bookedBy: user?.name || passengers[0]?.name || 'Guest Passenger',
+      passengerEmail: user?.email || 'guest@feridhootours.mv'
+    };
+
+    globalBookings.unshift(newBooking);
+    notifyStoreListeners();
+    broadcastRealtimeEvent('SEATS_LOCKED', { scheduleId, seatIds, bookingId });
+    return bookingId;
+  };
+
+
   const adminUnlockSeats = (scheduleId: string, seatIds: string[]) => {
     const deck = globalDecks[scheduleId];
     if (!deck) return;
@@ -801,7 +846,9 @@ const getCurrentAuthUser = (): any => {
     showAlert,
     hideAlert,
     bookSeats,
+    lockSeatsCheckout,
     adminLockSeats,
+
     adminUnlockSeats,
     addSchedule,
     editSchedule,

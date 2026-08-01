@@ -27,6 +27,8 @@ export interface Schedule {
   price: number;
   routeFrom: string;
   routeTo: string;
+  recurrence?: 'Daily' | 'Weekly' | 'Monthly' | 'Specific Date';
+  scheduleDate?: string;
   amenities: string[];
   stops?: string[];
   disabled?: boolean;
@@ -67,7 +69,7 @@ export interface Booking {
   promoCodeUsed?: string;
   paymentMethod: 'card' | 'bank_transfer';
   receiptImage?: string; // Data URL or filename
-  status: 'pending_verification' | 'verified' | 'rejected' | 'cancelled';
+  status: 'pending_verification' | 'verified' | 'rejected' | 'cancelled' | 'in_checkout';
   rejectionReason?: string;
   createdAt: string;
   agencyId?: string; // ID of the agency if booked by an agency
@@ -78,145 +80,136 @@ export interface Booking {
   cancellationFee?: number;
   refundPercentage?: number;
   refundStatus?: 'full' | 'partial' | 'non_refundable' | 'none' | 'requested' | 'completed';
-  refundedAt?: string;
-  refundReason?: string;
-  refundBankName?: string;
-  refundAccountName?: string;
-  refundAccountNumber?: string;
-  refundReceiptImage?: string; // Operator proof of refund transfer slip
-  refundRequestSlip?: string; // Passenger bank document slip
 }
 
-export const ATolls: Jetty[] = [
-  { id: 'MLE', name: 'Malé City (Hulhumalé Ferry Terminal)' },
-  { id: 'HUL', name: 'Hulhumalé Jetty' },
-  { id: 'MAF', name: 'Maafushi Island' },
-  { id: 'FUL', name: 'Fulidhoo' },
-  { id: 'DHI', name: 'Dhigurah' }
+export interface SavedPassenger {
+  id: string;
+  name: string;
+  age: number;
+  gender: string;
+  idNumber: string;
+}
+
+export interface EmailConfig {
+  smtpHost: string;
+  smtpPort: number;
+  encryption: 'tls' | 'ssl' | 'none';
+  senderName: string;
+  senderEmail: string;
+  username: string;
+}
+
+export interface SystemAlert {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'warning' | 'error' | 'success';
+  createdAt: string;
+  targetRole?: 'all' | 'passenger' | 'agency' | 'admin';
+}
+
+export interface AlertModalState {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  type: 'info' | 'warning' | 'error' | 'success';
+}
+
+export interface SavedTraveler {
+  id: string;
+  name: string;
+  age: number;
+  gender: string;
+  idNumber: string;
+  passportExpiry?: string;
+  nationality?: string;
+  phone?: string;
+}
+
+export interface AuditLog {
+  id: string;
+  timestamp: string;
+  action: string;
+  entityType: 'booking' | 'schedule' | 'vessel' | 'user' | 'system';
+  entityId: string;
+  performedBy: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+  changes?: Record<string, { old: any; new: any }>;
+  metadata?: Record<string, any>;
+}
+
+export const INITIAL_JETTIES: Jetty[] = [
+  { id: 'MLE', name: 'Malé City Terminal (Hulhumalé Jetty)' },
+  { id: 'MAF', name: 'Maafushi Central Harbor' },
+  { id: 'FUL', name: 'Fulidhoo Island Jetty' },
+  { id: 'DHG', name: 'Dhigurah Main Pier' },
+  { id: 'FER', name: 'Feridhoo Harbor Terminal' },
 ];
 
-export const MOCK_SCHEDULES: Schedule[] = [
+export const INITIAL_VESSELS: Vessel[] = [
+  {
+    id: 'VES-001',
+    name: 'Kaani Princess',
+    type: 'Speedboat',
+    amenities: ['AC', 'Water', 'Life Jacket', 'USB Charger', 'WiFi'],
+    layoutRows: 8,
+    layoutCols: 4,
+    vipRows: '1-2',
+    premiumRows: '3-4',
+  },
+  {
+    id: 'VES-002',
+    name: 'Speedboat Alpha',
+    type: 'Speedboat',
+    amenities: ['AC', 'Water', 'Life Jacket'],
+    layoutRows: 6,
+    layoutCols: 4,
+    vipRows: '1',
+    premiumRows: '2-3',
+  },
+];
+
+export const INITIAL_SCHEDULES: Schedule[] = [
   {
     id: 'SCH-001',
+    vesselId: 'VES-001',
     vesselName: 'Kaani Princess',
     vesselType: 'Speedboat',
     departureTime: '08:30 AM',
     arrivalTime: '09:15 AM',
-    availableSeats: 12,
+    availableSeats: 31,
     totalSeats: 32,
-    price: 25.00,
+    price: 35.00,
     routeFrom: 'MLE',
     routeTo: 'MAF',
-    amenities: ['AC', 'Water', 'Life Jacket', 'USB Charger']
+    recurrence: 'Daily',
+    scheduleDate: '2026-08-01',
+    amenities: ['AC', 'Water', 'Life Jacket', 'USB Charger', 'WiFi'],
+    stops: ['Gulhi Island'],
+    disabled: false,
+    maintenance: false,
   },
   {
     id: 'SCH-002',
-    vesselName: 'MTCC Express',
-    vesselType: 'Ferry',
-    departureTime: '10:00 AM',
-    arrivalTime: '11:45 AM',
-    availableSeats: 45,
-    totalSeats: 32,
-    price: 5.00,
-    routeFrom: 'MLE',
-    routeTo: 'HUL',
-    amenities: ['Life Jacket', 'Toilets']
-  },
-  {
-    id: 'SCH-003',
-    vesselName: 'Ocean Explorer',
+    vesselId: 'VES-002',
+    vesselName: 'Speedboat Alpha',
     vesselType: 'Speedboat',
-    departureTime: '02:15 PM',
-    arrivalTime: '03:00 PM',
-    availableSeats: 2,
-    totalSeats: 32,
-    price: 30.00,
-    routeFrom: 'MLE',
-    routeTo: 'MAF',
-    amenities: ['AC', 'WiFi', 'Snacks', 'Life Jacket']
-  }
-];
-
-export const generateMockDeck = (clean = false): Seat[] => {
-  const seats: Seat[] = [];
-  let seatIdCounter = 1;
-  for (let row = 1; row <= 8; row++) {
-    for (let col = 1; col <= 4; col++) {
-      // Determine seat class based on row
-      let seatClass: Seat['class'] = 'Economy';
-      if (row <= 2) {
-        seatClass = 'VIP';
-      } else if (row <= 4) {
-        seatClass = 'Premium';
-      }
-
-      // Determine attributes
-      const attributes: Seat['attributes'] = [];
-      if (col === 1 || col === 4) {
-        attributes.push('window');
-      } else {
-        attributes.push('aisle');
-      }
-
-      // Special accessibility row
-      if (row === 8) {
-        attributes.push('accessibility');
-      }
-
-      let status: Seat['status'] = 'available';
-      
-      // Randomly assign some seats as booked or locked, except row 1 and 2 for easier testing
-      if (!clean) {
-        const rand = Math.random();
-        if (row > 2) {
-          if (rand > 0.8) status = 'booked';
-          else if (rand > 0.7) status = 'locked';
-        }
-      }
-
-      seats.push({
-        id: `S-${seatIdCounter++}`,
-        row,
-        col,
-        status,
-        class: seatClass,
-        attributes
-      });
-    }
-  }
-  return seats;
-};
-
-export const MOCK_VESSELS: Vessel[] = [
-  {
-    id: 'VSL-001',
-    name: 'Kaani Princess',
-    type: 'Speedboat',
-    amenities: ['AC', 'Water', 'Life Jacket', 'USB Charger'],
-    layoutRows: 8,
-    layoutCols: 4,
-    vipRows: '1-2',
-    premiumRows: '3-4'
+    departureTime: '10:30 AM',
+    arrivalTime: '12:00 PM',
+    availableSeats: 24,
+    totalSeats: 24,
+    price: 50.00,
+    routeFrom: 'MAF',
+    routeTo: 'FER',
+    recurrence: 'Weekly',
+    scheduleDate: '2026-08-01',
+    amenities: ['AC', 'Water', 'Life Jacket'],
+    stops: ['Fulidhoo Island'],
+    disabled: false,
+    maintenance: false,
   },
-  {
-    id: 'VSL-002',
-    name: 'MTCC Express',
-    type: 'Ferry',
-    amenities: ['Life Jacket', 'Toilets'],
-    layoutRows: 10,
-    layoutCols: 6,
-    vipRows: '',
-    premiumRows: '1-2'
-  },
-  {
-    id: 'VSL-003',
-    name: 'Ocean Explorer',
-    type: 'Speedboat',
-    amenities: ['AC', 'WiFi', 'Snacks', 'Life Jacket'],
-    layoutRows: 8,
-    layoutCols: 4,
-    vipRows: '1-2',
-    premiumRows: '3-4'
-  }
 ];
-
