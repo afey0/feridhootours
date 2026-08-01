@@ -6,7 +6,7 @@
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 <h1 class="text-3xl font-black text-slate-850 font-display">Operator Admin Console</h1>
             </div>
-            <p class="text-xs text-slate-500 font-medium mt-1">Fleet management, daily schedules, bank slip verification & user directory (Docker Stack)</p>
+            <p class="text-xs text-slate-500 font-medium mt-1">Fleet management, daily schedules, bank slip verification, audit logs & user directory</p>
         </div>
 
         @if(session()->has('flashMessage') || $flashMessage)
@@ -16,7 +16,7 @@
         @endif
     </div>
 
-    <!-- Admin Tabs -->
+    <!-- Admin Tabs Bar -->
     <div class="flex flex-wrap gap-2 border-b border-slate-200/80 pb-4">
         <button type="button" wire:click="setTab('vessels')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'vessels' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}">
             🚤 Fleet Vessels ({{ count($vessels) }})
@@ -32,6 +32,12 @@
         </button>
         <button type="button" wire:click="setTab('reports')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'reports' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}">
             📊 Financial Reports
+        </button>
+        <button type="button" wire:click="setTab('emails')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'emails' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}">
+            ✉️ Email Control
+        </button>
+        <button type="button" wire:click="setTab('audit')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'audit' ? 'bg-amber-500 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}">
+            🛡️ Audit Logs ({{ count($auditLogs) }})
         </button>
     </div>
 
@@ -191,6 +197,71 @@
                     <span class="text-xs font-extrabold text-slate-400 uppercase">Pending Bank Slips</span>
                     <div class="text-3xl font-black text-amber-600 font-display">{{ $bookings->where('status', 'pending_verification')->count() }}</div>
                 </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- TAB 6: EMAIL CONTROL CENTER -->
+    @if($activeTab === 'emails')
+        <div class="space-y-6">
+            <h3 class="text-lg font-extrabold text-slate-850 font-display">Email Dispatcher & Automated Notices</h3>
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+                <div class="p-4 bg-sky-50 border border-sky-200 rounded-2xl text-xs text-sky-800 font-semibold">
+                    ✉️ Automated Booking Confirmations, Bank Slip Audit Alerts & OTP verification dispatches are active via SMTP/Log Driver.
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 border border-slate-200 rounded-2xl space-y-2">
+                        <h4 class="font-extrabold text-xs text-slate-850">Booking Confirmation Template</h4>
+                        <p class="text-[11px] text-slate-500">Dispatched immediately after seat allocation & payment verification.</p>
+                        <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">Active</span>
+                    </div>
+                    <div class="p-4 border border-slate-200 rounded-2xl space-y-2">
+                        <h4 class="font-extrabold text-xs text-slate-850">Disruption & Weather Warning</h4>
+                        <p class="text-[11px] text-slate-500">Mass SMS & Email dispatch for weather delays or port maintenance.</p>
+                        <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded bg-sky-50 text-sky-700">Ready</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- TAB 7: AUDIT LOGS & SYSTEM HISTORY -->
+    @if($activeTab === 'audit')
+        <div class="space-y-6">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-extrabold text-slate-850 font-display">🛡️ Audit Logs & System History</h3>
+                <span class="px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-black">
+                    Super Admin View
+                </span>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                @if(count($auditLogs) === 0)
+                    <div class="p-8 text-center text-slate-500 text-xs font-semibold">
+                        No audit logs recorded yet. System activities will appear here.
+                    </div>
+                @else
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-500 font-extrabold uppercase border-b border-slate-200">
+                            <tr>
+                                <th class="p-4">Timestamp</th>
+                                <th class="p-4">Action</th>
+                                <th class="p-4">Performed By</th>
+                                <th class="p-4">Entity</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-medium">
+                            @foreach($auditLogs as $log)
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="p-4 font-mono text-slate-500">{{ $log->created_at }}</td>
+                                    <td class="p-4 font-extrabold text-slate-850">{{ $log->action }}</td>
+                                    <td class="p-4 text-slate-700">{{ $log->performed_by_name }} ({{ $log->performed_by_role }})</td>
+                                    <td class="p-4 font-mono text-sky-600">{{ $log->entity_type }}#{{ $log->entity_id }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @endif
             </div>
         </div>
     @endif

@@ -14,7 +14,7 @@
         </div>
     </a>
 
-    <!-- Desktop Navigation Links -->
+    <!-- Desktop Navigation Links (≥ 1024px) -->
     <div class="hidden lg:flex items-center gap-3 font-semibold text-xs">
         <a href="/" class="px-4 py-2 rounded-2xl transition font-extrabold {{ request()->is('/') ? 'bg-slate-900 text-white shadow-sm' : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200' }}">
             🔍 Find Schedules
@@ -38,49 +38,150 @@
     <!-- Right Side Actions / User Menu -->
     <div class="flex items-center gap-3">
         @if($currentUser)
-            <div class="flex items-center gap-3 bg-white border border-slate-200 rounded-2xl px-3.5 py-1.5 shadow-sm">
-                <div class="flex flex-col text-left">
-                    <span class="text-xs font-black text-slate-850 leading-tight font-display">{{ $currentUser->name }}</span>
-                    <span class="text-[9px] font-extrabold uppercase tracking-wider text-sky-600 leading-none mt-0.5">{{ strtoupper(str_replace('_', ' ', $currentUser->role)) }}</span>
-                </div>
-                <button wire:click="logout" class="p-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 transition cursor-pointer" title="Sign Out">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            <!-- User Dropdown Menu -->
+            <div class="relative" x-data="{ open: false }">
+                <button @click="open = !open" class="flex items-center gap-2.5 bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-2xl shadow-sm cursor-pointer transition focus:outline-none text-left">
+                    <div class="w-7 h-7 bg-gradient-to-tr from-sky-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-black shrink-0 shadow-sm font-display">
+                        {{ strtoupper(substr($currentUser->name, 0, 1)) }}
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xs font-extrabold text-slate-850 leading-none font-display">{{ $currentUser->name }}</span>
+                        <span class="text-[9px] font-extrabold uppercase tracking-wider text-sky-600 leading-none mt-0.5">{{ strtoupper(str_replace('_', ' ', $currentUser->role)) }}</span>
+                    </div>
+                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </button>
+
+                <!-- Dropdown Menu -->
+                <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-60 bg-white border border-slate-200 rounded-3xl shadow-2xl py-3 z-50 text-left animate-fade-in">
+                    <div class="px-4 py-2 border-b border-slate-100 mb-1.5">
+                        <span class="text-[9px] text-slate-400 font-black block uppercase tracking-wider">Signed In As</span>
+                        <span class="text-xs font-extrabold text-slate-800 block truncate mt-0.5">{{ $currentUser->email }}</span>
+                    </div>
+
+                    @if(in_array($currentUser->role, ['admin', 'super_admin']))
+                        <a href="/admin" class="block px-4 py-2.5 text-xs font-extrabold text-sky-700 bg-sky-50/80 hover:bg-sky-100 transition flex items-center gap-2 border-b border-sky-100 mb-1">
+                            ⚙️ Operator Dashboard
+                        </a>
+                        <a href="/admin?tab=reports" class="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
+                            📊 Reports & Analytics
+                        </a>
+                        <a href="/admin?tab=emails" class="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
+                            ✉️ Email Control Center
+                        </a>
+                        <a href="/admin?tab=users" class="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
+                            👥 User Directory
+                        </a>
+                        @if($currentUser->role === 'super_admin')
+                            <a href="/admin?tab=audit" class="block px-4 py-2 text-xs font-semibold text-amber-700 hover:bg-amber-50 transition">
+                                🛡️ Audit Logs & History
+                            </a>
+                        @endif
+                        <div class="my-1 border-t border-slate-100"></div>
+                    @endif
+
+                    <a href="/my-bookings" class="block px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
+                        🎟️ My Bookings
+                    </a>
+
+                    <button wire:click="logout" class="w-full text-left px-4 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-50 transition border-t border-slate-100 mt-1.5 cursor-pointer">
+                        🚪 Sign Out Account
+                    </button>
+                </div>
             </div>
         @else
-            <button wire:click="openLoginModal('signin')" class="bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold text-xs px-5 py-2.5 rounded-2xl shadow-lg shadow-sky-600/20 transition cursor-pointer flex items-center gap-2">
+            <button wire:click="openLoginModal('signin')" class="bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold text-xs px-5 py-2.5 rounded-2xl shadow-lg shadow-sky-600/20 transition cursor-pointer flex items-center gap-2 font-display">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                 <span>Sign In / Register</span>
             </button>
         @endif
 
-        <!-- Mobile Drawer Toggle -->
-        <button wire:click="toggleDrawer" class="lg:hidden p-2.5 rounded-2xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition">
+        <!-- Mobile & Tablet Drawer Trigger Button (< 1024px) -->
+        <button wire:click="toggleDrawer" class="lg:hidden p-2.5 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 transition shadow-md flex items-center gap-2 text-xs font-extrabold cursor-pointer">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <span class="hidden sm:inline font-bold">Menu</span>
         </button>
     </div>
 
-    <!-- Mobile Slide-out Drawer -->
+    <!-- Responsive Mobile & Tablet Drawer -->
     @if($showDrawer)
-        <div class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex justify-end animate-fade-in" wire:click.self="toggleDrawer">
-            <div class="w-80 bg-white h-full border-l border-slate-200 p-6 flex flex-col justify-between text-left shadow-2xl">
-                <div>
-                    <div class="flex justify-between items-center pb-5 border-b border-slate-100">
-                        <span class="font-extrabold text-slate-850 text-base font-display">FeridhooTours Menu</span>
-                        <button wire:click="toggleDrawer" class="p-1 rounded-lg text-slate-400 hover:text-slate-700">✕</button>
+        <div class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex justify-end animate-fade-in" wire:click.self="toggleDrawer">
+            <div class="w-80 max-w-[85vw] bg-white h-full border-l border-slate-200 p-6 flex flex-col justify-between text-left shadow-2xl overflow-y-auto">
+                <div class="space-y-6">
+                    <!-- Drawer Header -->
+                    <div class="flex justify-between items-center pb-4 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white shadow-sm">
+                                ⚓
+                            </div>
+                            <span class="font-extrabold text-slate-850 text-base font-display">Navigation Menu</span>
+                        </div>
+                        <button wire:click="toggleDrawer" class="w-8 h-8 rounded-xl bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center cursor-pointer">✕</button>
                     </div>
 
-                    <div class="space-y-3 mt-6">
-                        <a href="/" class="block px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 font-extrabold text-xs">🔍 Find Schedules</a>
-                        <a href="/my-bookings" class="block px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 font-extrabold text-xs">🎟️ My Bookings</a>
-                        <a href="/admin" class="block px-4 py-3 rounded-2xl bg-sky-50 text-sky-700 border border-sky-200 font-extrabold text-xs">⚙️ Admin Panel</a>
+                    <!-- User Profile Card inside Drawer -->
+                    <div class="bg-sky-50/60 border border-sky-100 rounded-2xl p-4">
+                        @if($currentUser)
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gradient-to-tr from-sky-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-sm font-black shrink-0 font-display">
+                                    {{ strtoupper(substr($currentUser->name, 0, 1)) }}
+                                </div>
+                                <div class="flex flex-col text-left overflow-hidden">
+                                    <span class="text-xs font-extrabold text-slate-850 truncate font-display">{{ $currentUser->name }}</span>
+                                    <span class="text-[10px] text-slate-500 truncate font-medium">{{ $currentUser->email }}</span>
+                                    <span class="inline-block bg-sky-100 text-sky-800 text-[9px] font-black uppercase px-2 py-0.5 rounded-md mt-1 w-fit">
+                                        {{ strtoupper(str_replace('_', ' ', $currentUser->role)) }}
+                                    </span>
+                                </div>
+                            </div>
+                        @else
+                            <div class="space-y-2">
+                                <h4 class="font-extrabold text-slate-850 text-xs font-display">Welcome to FeridhooTours</h4>
+                                <p class="text-[11px] text-slate-500 font-medium">Sign in to access your digital tickets and saved manifests.</p>
+                                <button wire:click="openLoginModal('signin')" class="w-full py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs rounded-xl shadow-md">
+                                    Sign In or Register
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Navigation Links inside Drawer -->
+                    <div class="space-y-2 font-semibold text-xs">
+                        <a href="/" class="block px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 font-extrabold hover:bg-slate-100 transition">
+                            🔍 Find Schedules
+                        </a>
+                        <a href="/my-bookings" class="block px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 font-extrabold hover:bg-slate-100 transition">
+                            🎟️ My Bookings & Boarding Passes
+                        </a>
+
+                        @if($currentUser && in_array($currentUser->role, ['admin', 'super_admin']))
+                            <div class="pt-3 pb-1 text-[10px] font-black text-slate-400 uppercase tracking-wider px-2">
+                                Operator Admin Modules
+                            </div>
+                            <a href="/admin" class="block px-4 py-2.5 rounded-xl bg-sky-600 text-white font-extrabold shadow-sm">
+                                ⚙️ Admin Console
+                            </a>
+                            <a href="/admin?tab=reports" class="block px-4 py-2 text-slate-700 hover:bg-sky-50 hover:text-sky-700 rounded-xl transition">
+                                📊 Reports & Analytics
+                            </a>
+                            <a href="/admin?tab=emails" class="block px-4 py-2 text-slate-700 hover:bg-sky-50 hover:text-sky-700 rounded-xl transition">
+                                ✉️ Email Control Center
+                            </a>
+                            <a href="/admin?tab=users" class="block px-4 py-2 text-slate-700 hover:bg-sky-50 hover:text-sky-700 rounded-xl transition">
+                                👥 User Directory
+                            </a>
+                            @if($currentUser->role === 'super_admin')
+                                <a href="/admin?tab=audit" class="block px-4 py-2 text-amber-700 hover:bg-amber-50 rounded-xl transition">
+                                    🛡️ Audit Logs & System History
+                                </a>
+                            @endif
+                        @endif
                     </div>
                 </div>
 
-                @if(!$currentUser)
-                    <div class="pt-6 border-t border-slate-100">
-                        <button wire:click="openLoginModal('signin')" class="w-full py-3.5 bg-gradient-to-r from-sky-600 to-indigo-600 text-white font-extrabold rounded-2xl text-xs shadow-lg shadow-sky-600/20">
-                            Sign In / Register
+                @if($currentUser)
+                    <div class="pt-6 border-t border-slate-100 mt-6">
+                        <button wire:click="logout" class="w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 font-extrabold rounded-2xl text-xs border border-rose-200 transition">
+                            🚪 Sign Out Account
                         </button>
                     </div>
                 @endif
@@ -92,10 +193,8 @@
     @if($showLoginModal)
         <div class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" wire:click.self="closeLoginModal">
             <div class="bg-white border border-slate-200/80 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl relative text-left">
-                <!-- Modal Close Button -->
                 <button wire:click="closeLoginModal" class="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 rounded-lg">✕</button>
 
-                <!-- Tabs header -->
                 <div class="mb-6 border-b border-slate-100 pb-4">
                     <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight font-display">
                         {{ $authMode === 'signin' ? 'Sign In to FeridhooTours' : ($authMode === 'signup' ? 'Create Your Account' : 'Reset Your Password') }}
