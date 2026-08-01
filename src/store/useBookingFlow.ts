@@ -20,7 +20,32 @@ export const useBookingFlow = () => {
   const [passengerCount, setPassengerCount] = useState<number>(1);
   const [departureDate, setDepartureDate] = useState<string>('2026-06-24');
 
-  const { addBooking, lockSeatsCheckout, adminUnlockSeats } = usePlatformStore();
+  const { addBooking, lockSeatsCheckout, adminUnlockSeats, showAlert } = usePlatformStore();
+
+  const reserveSeats = async (user?: any) => {
+    if (selectedSeats.length !== passengerCount) return; // Strict validation
+    
+    setIsLocking(true);
+    // Simulate API call to acquire distributed lock
+    await new Promise(resolve => setTimeout(resolve, 600));
+    setIsLocking(false);
+
+    if (selectedSchedule) {
+      const res = lockSeatsCheckout(selectedSchedule.id, selectedSeats.map(s => s.id), passengers, user);
+      if (res && !res.success) {
+        showAlert(res.message || 'Seat conflict detected', 'Double Booking Conflict', 'error');
+        return;
+      }
+    }
+
+    // Set expiry 10 minutes from now
+    const expiry = new Date();
+    expiry.setMinutes(expiry.getMinutes() + 10);
+    setLockExpiresAt(expiry);
+    
+    setCurrentStep('passenger_details');
+  };
+
 
   const goSearch = () => {
 
@@ -62,25 +87,7 @@ export const useBookingFlow = () => {
     });
   };
 
-  const reserveSeats = async (user?: any) => {
-    if (selectedSeats.length !== passengerCount) return; // Strict validation
-    
-    setIsLocking(true);
-    // Simulate API call to acquire distributed lock
-    await new Promise(resolve => setTimeout(resolve, 800));
-    setIsLocking(false);
-    
-    // Set expiry 10 minutes from now
-    const expiry = new Date();
-    expiry.setMinutes(expiry.getMinutes() + 10);
-    setLockExpiresAt(expiry);
 
-    if (selectedSchedule) {
-      lockSeatsCheckout(selectedSchedule.id, selectedSeats.map(s => s.id), passengers, user);
-    }
-    
-    setCurrentStep('passenger_details');
-  };
 
 
   const goBackToSeats = () => {

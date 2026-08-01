@@ -316,9 +316,18 @@ export const usePlatformStore = () => {
     broadcastRealtimeEvent('SEATS_LOCKED', { scheduleId, seatIds });
   };
 
-  const lockSeatsCheckout = (scheduleId: string, seatIds: string[], passengers: Passenger[] = [], user?: any): string => {
+  const lockSeatsCheckout = (scheduleId: string, seatIds: string[], passengers: Passenger[] = [], user?: any): { success: boolean; message?: string; bookingId?: string } => {
     const deck = globalDecks[scheduleId];
     if (deck) {
+      const conflictSeats = deck.filter(seat => seatIds.includes(seat.id) && (seat.status === 'booked' || seat.status === 'locked'));
+      if (conflictSeats.length > 0) {
+        const seatNames = conflictSeats.map(s => s.id.replace('S-', '')).join(', ');
+        return {
+          success: false,
+          message: `Seat ${seatNames} on this schedule date is already locked or booked by another traveler. Please select a different seat.`
+        };
+      }
+
       globalDecks[scheduleId] = deck.map(seat => {
         if (seatIds.includes(seat.id)) {
           return { ...seat, status: 'locked' };
@@ -357,8 +366,9 @@ export const usePlatformStore = () => {
     globalBookings.unshift(newBooking);
     notifyStoreListeners();
     broadcastRealtimeEvent('SEATS_LOCKED', { scheduleId, seatIds, bookingId });
-    return bookingId;
+    return { success: true, bookingId };
   };
+
 
 
   const adminUnlockSeats = (scheduleId: string, seatIds: string[]) => {
