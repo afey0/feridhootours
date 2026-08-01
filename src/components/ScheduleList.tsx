@@ -21,23 +21,26 @@ export const ScheduleList: React.FC<Props> = ({ fromPort, toPort, departureDate,
     targetDate.setHours(0,0,0,0);
     schedDate.setHours(0,0,0,0);
 
-    const rec = s.recurrence || 'Daily';
-    if (rec === 'Daily') {
-      return targetDate >= schedDate;
+    const rec = s.recurrence || 'Day';
+    if (rec === 'Day' || rec === 'Daily') {
+      return targetDate.getTime() === schedDate.getTime();
     }
-    if (rec === 'Weekly') {
-      if (targetDate < schedDate) return false;
-      return targetDate.getDay() === schedDate.getDay();
+    if (rec === '7 Days' || rec === 'Weekly') {
+      const endDate = new Date(schedDate);
+      endDate.setDate(endDate.getDate() + 6);
+      return targetDate >= schedDate && targetDate <= endDate;
     }
-    if (rec === 'Monthly') {
-      if (targetDate < schedDate) return false;
-      return targetDate.getDate() === schedDate.getDate();
+    if (rec === '30 Days' || rec === 'Monthly') {
+      const endDate = new Date(schedDate);
+      endDate.setDate(endDate.getDate() + 29);
+      return targetDate >= schedDate && targetDate <= endDate;
     }
     if (rec === 'Specific Date') {
       return dateStr === s.scheduleDate;
     }
     return true;
   };
+
 
   // Filter out disabled schedules and match route paths including intermediate stops and departureDate recurrence
   const visibleSchedules = schedules.filter(s => {

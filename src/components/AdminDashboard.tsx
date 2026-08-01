@@ -161,7 +161,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
   const [price, setPrice] = useState(20);
   const [routeFrom, setRouteFrom] = useState('MLE');
   const [routeTo, setRouteTo] = useState('MAF');
-  const [scheduleRecurrence, setScheduleRecurrence] = useState<'Daily' | 'Weekly' | 'Monthly' | 'Specific Date'>('Daily');
+  const [scheduleRecurrence, setScheduleRecurrence] = useState<'Day' | '7 Days' | '30 Days' | 'Specific Date'>('Day');
+
   const [scheduleDate, setScheduleDate] = useState('2026-08-01');
 
   
@@ -282,7 +283,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
     setPrice(s.price);
     setRouteFrom(s.routeFrom);
     setRouteTo(s.routeTo);
-    setScheduleRecurrence(s.recurrence || 'Daily');
+    setScheduleRecurrence((s.recurrence as any) || 'Day');
     setScheduleDate(s.scheduleDate || '2026-08-01');
     setStops(s.stops || []);
     setDisabled(!!s.disabled);
@@ -300,8 +301,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
     setPrice(20);
     setRouteFrom('MLE');
     setRouteTo('MAF');
-    setScheduleRecurrence('Daily');
+    setScheduleRecurrence('Day');
     setScheduleDate('2026-08-01');
+
     setStops([]);
     setDisabled(false);
     setMaintenance(false);
@@ -2589,9 +2591,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                       value={scheduleRecurrence}
                       onChange={(e) => setScheduleRecurrence(e.target.value as any)}
                     >
-                      <option value="Daily">Daily Transfer</option>
-                      <option value="Weekly">Weekly Transfer</option>
-                      <option value="Monthly">Monthly Transfer</option>
+                      <option value="Day">Day (1 Day Schedule - 24h Prior Notice)</option>
+                      <option value="7 Days">7 Days Schedule (7 Consecutive Days)</option>
+                      <option value="30 Days">30 Days Schedule (30 Consecutive Days)</option>
                       <option value="Specific Date">Specific Date Only</option>
                     </select>
                   </div>
@@ -2608,51 +2610,59 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                 </div>
 
                 {/* Dynamic Date Highlight Banner */}
-                {scheduleRecurrence === 'Daily' && (
-                  <div className="bg-sky-50 border border-sky-200 text-sky-800 p-3 rounded-2xl text-xs font-semibold flex items-center gap-2">
-                    <span>📅 <strong>Daily Schedule:</strong> Runs every day starting from {scheduleDate || 'today'}.</span>
+                {((scheduleRecurrence as string) === 'Day' || (scheduleRecurrence as string) === 'Daily') && (
+                  <div className="bg-sky-50 border border-sky-200 text-sky-800 p-3.5 rounded-2xl text-xs font-semibold space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span>📅 <strong>1 Day Schedule Active:</strong></span>
+                      <span className="font-mono text-[11px] font-bold bg-white px-2 py-0.5 rounded border border-sky-200">{scheduleDate}</span>
+                    </div>
+                    <p className="text-[11px] text-sky-700 font-medium">Schedule is active for 1 Day. <strong>Notice Rule:</strong> Must be configured by admin at least 24 hours prior to departure day.</p>
                   </div>
                 )}
 
-                {scheduleRecurrence === 'Weekly' && (() => {
+                {((scheduleRecurrence as string) === '7 Days' || (scheduleRecurrence as string) === 'Weekly') && (() => {
                   const start = new Date(scheduleDate || Date.now());
                   const end = new Date(start);
-                  end.setDate(end.getDate() + 7);
-                  const dayName = isNaN(start.getTime()) ? 'Day' : start.toLocaleDateString('en-US', { weekday: 'long' });
+                  end.setDate(end.getDate() + 6);
                   const endDateStr = isNaN(end.getTime()) ? '' : end.toISOString().split('T')[0];
                   return (
                     <div className="bg-indigo-50 border border-indigo-200 text-indigo-800 p-3.5 rounded-2xl text-xs font-semibold space-y-1">
                       <div className="flex items-center justify-between">
-                        <span>📅 <strong>Weekly Schedule Active Window:</strong></span>
+                        <span>📅 <strong>7 Days Schedule Active Window:</strong></span>
                         <span className="font-mono text-[11px] font-bold bg-white px-2 py-0.5 rounded border border-indigo-200">{scheduleDate} → {endDateStr}</span>
                       </div>
-                      <p className="text-[11px] text-indigo-700 font-medium">Highlights a 7-day week window and operates every <strong>{dayName}</strong> starting from {scheduleDate}.</p>
+                      <p className="text-[11px] text-indigo-700 font-medium">Highlights a 7-day schedule window starting from {scheduleDate}. <strong>Notice Rule:</strong> Must be configured 24 hours prior.</p>
                     </div>
                   );
                 })()}
 
-                {scheduleRecurrence === 'Monthly' && (() => {
+                {((scheduleRecurrence as string) === '30 Days' || (scheduleRecurrence as string) === 'Monthly') && (() => {
                   const start = new Date(scheduleDate || Date.now());
                   const end = new Date(start);
-                  end.setMonth(end.getMonth() + 1);
-                  const dayNum = isNaN(start.getTime()) ? 1 : start.getDate();
+                  end.setDate(end.getDate() + 29);
                   const endDateStr = isNaN(end.getTime()) ? '' : end.toISOString().split('T')[0];
                   return (
                     <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3.5 rounded-2xl text-xs font-semibold space-y-1">
                       <div className="flex items-center justify-between">
-                        <span>📅 <strong>Monthly Schedule Active Window:</strong></span>
+                        <span>📅 <strong>30 Days Schedule Active Window:</strong></span>
                         <span className="font-mono text-[11px] font-bold bg-white px-2 py-0.5 rounded border border-emerald-200">{scheduleDate} → {endDateStr}</span>
                       </div>
-                      <p className="text-[11px] text-emerald-700 font-medium">Highlights a 30-day month window and operates on day <strong>{dayNum}</strong> of every month starting from {scheduleDate}.</p>
+                      <p className="text-[11px] text-emerald-700 font-medium">Highlights a 30-day schedule window starting from {scheduleDate}. <strong>Notice Rule:</strong> Must be configured 24 hours prior.</p>
                     </div>
                   );
                 })()}
 
+
                 {scheduleRecurrence === 'Specific Date' && (
-                  <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-2xl text-xs font-semibold flex items-center gap-2">
-                    <span>📅 <strong>Specific Date Schedule:</strong> Operates strictly on {scheduleDate || 'selected date'} only.</span>
+                  <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3.5 rounded-2xl text-xs font-semibold space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span>📅 <strong>Specific Date Schedule:</strong></span>
+                      <span className="font-mono text-[11px] font-bold bg-white px-2 py-0.5 rounded border border-amber-200">{scheduleDate}</span>
+                    </div>
+                    <p className="text-[11px] text-amber-700 font-medium">Operates strictly on {scheduleDate || 'selected date'} only. <strong>Notice Rule:</strong> Must be configured 24 hours prior.</p>
                   </div>
                 )}
+
 
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

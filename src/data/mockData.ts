@@ -27,7 +27,8 @@ export interface Schedule {
   price: number;
   routeFrom: string;
   routeTo: string;
-  recurrence?: 'Daily' | 'Weekly' | 'Monthly' | 'Specific Date';
+  recurrence?: 'Day' | '7 Days' | '30 Days' | 'Specific Date' | 'Daily' | 'Weekly' | 'Monthly';
+
   scheduleDate?: string;
   amenities: string[];
   stops?: string[];
