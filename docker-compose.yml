@@ -11,6 +11,7 @@ services:
     volumes:
       - .:/var/www/html:ro
       - vendor_data:/var/www/html/vendor
+      - storage_views:/var/www/html/storage/framework/views:ro
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - laravel-app
@@ -28,6 +29,9 @@ services:
     volumes:
       - .:/var/www/html
       - vendor_data:/var/www/html/vendor
+      - storage_views:/var/www/html/storage/framework/views
+      - storage_cache:/var/www/html/storage/framework/cache
+      - storage_sessions:/var/www/html/storage/framework/sessions
     environment:
       APP_NAME: "FeridhooTours"
       APP_ENV: "production"
@@ -70,6 +74,9 @@ services:
     volumes:
       - .:/var/www/html
       - vendor_data:/var/www/html/vendor
+      - storage_views:/var/www/html/storage/framework/views
+      - storage_cache:/var/www/html/storage/framework/cache
+      - storage_sessions:/var/www/html/storage/framework/sessions
     environment:
       APP_ENV: "production"
       APP_KEY: "base64:O/gBy/p6QBDSt68/nNQycolDLEjjB02fzoRKQojc+PI="
@@ -138,3 +145,6 @@ volumes:
   postgres_data:
   redis_data:
   vendor_data:
+  storage_views:
+  storage_cache:
+  storage_sessions:
