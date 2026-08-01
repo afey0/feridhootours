@@ -59,7 +59,7 @@ class Navigation extends Component
             Auth::login($user);
             session(['user_role' => $user->role, 'user_name' => $user->name]);
             $this->closeLoginModal();
-            return redirect()->to(request()->header('Referer', '/'));
+            return $this->redirect('/', navigate: true);
         }
 
         $this->errorMessage = 'Invalid credentials provided.';
@@ -97,7 +97,7 @@ class Navigation extends Component
         session(['user_role' => $user->role, 'user_name' => $user->name]);
         $this->successMessage = 'Account created successfully!';
         $this->closeLoginModal();
-        return redirect()->to(request()->header('Referer', '/'));
+        return $this->redirect('/', navigate: true);
     }
 
     public function loginAs($role)
@@ -118,14 +118,14 @@ class Navigation extends Component
         }
 
         $this->closeLoginModal();
-        return redirect()->to(request()->header('Referer', '/'));
+        return $this->redirect('/', navigate: true);
     }
 
     public function logout()
     {
         Auth::logout();
         session()->forget(['user_role', 'user_name']);
-        return redirect()->to('/');
+        return $this->redirect('/', navigate: true);
     }
 
     public function render()

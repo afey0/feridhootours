@@ -77,6 +77,15 @@ class SearchSchedules extends Component
         if (!$this->selectedSchedule) return;
 
         $this->selectedVessel = Vessel::find($this->selectedSchedule->vessel_id) ?? Vessel::first();
+        if (!$this->selectedVessel) {
+            $this->selectedVessel = new Vessel([
+                'layout_rows' => 8,
+                'layout_cols' => 4,
+                'name' => $this->selectedSchedule->vessel_name ?? 'Speedboat Express',
+                'type' => 'Speedboat'
+            ]);
+        }
+
         $this->selectedSeats = [];
         $this->initPassengerData();
         $this->confirmedBooking = null;
