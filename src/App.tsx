@@ -55,7 +55,9 @@ function App() {
     lockExpiresAt,
     latestBookingRef,
     passengerCount,
+    departureDate,
     goSearch,
+
     setSearchParams,
     selectSchedule,
     toggleSeat,
@@ -263,6 +265,7 @@ function App() {
                 <ScheduleList 
                   fromPort={searchFromPort}
                   toPort={searchToPort}
+                  departureDate={departureDate}
                   onSelect={(sched) => {
                     if (!user) {
                       setAuthModalOpen(true);
@@ -272,6 +275,7 @@ function App() {
                     }
                   }} 
                 />
+
               </div>
             )}
 

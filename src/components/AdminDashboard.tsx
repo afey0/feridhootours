@@ -2601,10 +2601,59 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                       type="date" 
                       className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:outline-none focus:border-sky-500 font-semibold"
                       value={scheduleDate}
+                      min={new Date().toISOString().split('T')[0]}
                       onChange={(e) => setScheduleDate(e.target.value)}
                     />
                   </div>
                 </div>
+
+                {/* Dynamic Date Highlight Banner */}
+                {scheduleRecurrence === 'Daily' && (
+                  <div className="bg-sky-50 border border-sky-200 text-sky-800 p-3 rounded-2xl text-xs font-semibold flex items-center gap-2">
+                    <span>📅 <strong>Daily Schedule:</strong> Runs every day starting from {scheduleDate || 'today'}.</span>
+                  </div>
+                )}
+
+                {scheduleRecurrence === 'Weekly' && (() => {
+                  const start = new Date(scheduleDate || Date.now());
+                  const end = new Date(start);
+                  end.setDate(end.getDate() + 7);
+                  const dayName = isNaN(start.getTime()) ? 'Day' : start.toLocaleDateString('en-US', { weekday: 'long' });
+                  const endDateStr = isNaN(end.getTime()) ? '' : end.toISOString().split('T')[0];
+                  return (
+                    <div className="bg-indigo-50 border border-indigo-200 text-indigo-800 p-3.5 rounded-2xl text-xs font-semibold space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span>📅 <strong>Weekly Schedule Active Window:</strong></span>
+                        <span className="font-mono text-[11px] font-bold bg-white px-2 py-0.5 rounded border border-indigo-200">{scheduleDate} → {endDateStr}</span>
+                      </div>
+                      <p className="text-[11px] text-indigo-700 font-medium">Highlights a 7-day week window and operates every <strong>{dayName}</strong> starting from {scheduleDate}.</p>
+                    </div>
+                  );
+                })()}
+
+                {scheduleRecurrence === 'Monthly' && (() => {
+                  const start = new Date(scheduleDate || Date.now());
+                  const end = new Date(start);
+                  end.setMonth(end.getMonth() + 1);
+                  const dayNum = isNaN(start.getTime()) ? 1 : start.getDate();
+                  const endDateStr = isNaN(end.getTime()) ? '' : end.toISOString().split('T')[0];
+                  return (
+                    <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3.5 rounded-2xl text-xs font-semibold space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span>📅 <strong>Monthly Schedule Active Window:</strong></span>
+                        <span className="font-mono text-[11px] font-bold bg-white px-2 py-0.5 rounded border border-emerald-200">{scheduleDate} → {endDateStr}</span>
+                      </div>
+                      <p className="text-[11px] text-emerald-700 font-medium">Highlights a 30-day month window and operates on day <strong>{dayNum}</strong> of every month starting from {scheduleDate}.</p>
+                    </div>
+                  );
+                })()}
+
+                {scheduleRecurrence === 'Specific Date' && (
+                  <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-2xl text-xs font-semibold flex items-center gap-2">
+                    <span>📅 <strong>Specific Date Schedule:</strong> Operates strictly on {scheduleDate || 'selected date'} only.</span>
+                  </div>
+                )}
+
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="flex flex-col gap-2">

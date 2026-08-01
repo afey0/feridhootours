@@ -6,20 +6,51 @@ import type { Schedule } from '../data/mockData';
 interface Props {
   fromPort: string;
   toPort: string;
+  departureDate?: string;
   onSelect: (schedule: Schedule) => void;
 }
 
-export const ScheduleList: React.FC<Props> = ({ fromPort, toPort, onSelect }) => {
+export const ScheduleList: React.FC<Props> = ({ fromPort, toPort, departureDate, onSelect }) => {
   const { schedules, locations, showAlert } = usePlatformStore();
 
-  // Filter out disabled schedules and match route paths including intermediate stops
+  const isScheduleOperatingOnDate = (s: Schedule, dateStr?: string) => {
+    if (!dateStr) return true;
+    const targetDate = new Date(dateStr);
+    const schedDate = s.scheduleDate ? new Date(s.scheduleDate) : new Date('2026-08-01');
+    
+    targetDate.setHours(0,0,0,0);
+    schedDate.setHours(0,0,0,0);
+
+    const rec = s.recurrence || 'Daily';
+    if (rec === 'Daily') {
+      return targetDate >= schedDate;
+    }
+    if (rec === 'Weekly') {
+      if (targetDate < schedDate) return false;
+      return targetDate.getDay() === schedDate.getDay();
+    }
+    if (rec === 'Monthly') {
+      if (targetDate < schedDate) return false;
+      return targetDate.getDate() === schedDate.getDate();
+    }
+    if (rec === 'Specific Date') {
+      return dateStr === s.scheduleDate;
+    }
+    return true;
+  };
+
+  // Filter out disabled schedules and match route paths including intermediate stops and departureDate recurrence
   const visibleSchedules = schedules.filter(s => {
     if (s.disabled) return false;
     const path = [s.routeFrom, ...(s.stops || []), s.routeTo];
     const fromIndex = path.indexOf(fromPort);
     const toIndex = path.indexOf(toPort);
-    return fromIndex !== -1 && toIndex !== -1 && fromIndex < toIndex;
+    const routeMatches = fromIndex !== -1 && toIndex !== -1 && fromIndex < toIndex;
+    if (!routeMatches) return false;
+
+    return isScheduleOperatingOnDate(s, departureDate);
   });
+
 
   return (
     <div className="animate-fade-in space-y-6 text-left">

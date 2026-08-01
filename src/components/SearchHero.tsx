@@ -10,7 +10,8 @@ interface Props {
 
 export const SearchHero: React.FC<Props> = ({ onSearch, initialFromPort, initialToPort }) => {
   const { locations } = usePlatformStore();
-  const todayStr = '2026-06-24';
+  const todayStr = new Date().toISOString().split('T')[0];
+
   const [fromPort, setFromPort] = useState(initialFromPort || 'MLE');
   const [toPort, setToPort] = useState(initialToPort || 'MAF');
 

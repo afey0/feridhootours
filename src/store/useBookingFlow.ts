@@ -18,7 +18,8 @@ export const useBookingFlow = () => {
   
   // Track search validations
   const [passengerCount, setPassengerCount] = useState<number>(1);
-  const [departureDate, setDepartureDate] = useState<string>('2026-06-24');
+  const [departureDate, setDepartureDate] = useState<string>(new Date().toISOString().split('T')[0]);
+
 
   const { addBooking, lockSeatsCheckout, adminUnlockSeats, showAlert } = usePlatformStore();
 
