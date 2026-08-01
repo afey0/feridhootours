@@ -25,6 +25,7 @@ class SearchSchedules extends Component
     public $selectedSchedule = null;
     public $selectedVessel = null;
     public $selectedSeats = [];
+    public $reservedSeats = [];
     public $passengersData = [];
     
     // Payment & Promo
@@ -103,6 +104,19 @@ class SearchSchedules extends Component
             ]);
         }
 
+        // Fetch all reserved seat IDs for this schedule from existing active bookings
+        $existingBookings = Booking::where('schedule_id', $this->selectedSchedule->id)
+            ->whereIn('status', ['verified', 'pending_verification'])
+            ->get();
+
+        $this->reservedSeats = [];
+        foreach ($existingBookings as $b) {
+            if (is_array($b->selected_seat_ids)) {
+                $this->reservedSeats = array_merge($this->reservedSeats, $b->selected_seat_ids);
+            }
+        }
+        $this->reservedSeats = array_values(array_unique($this->reservedSeats));
+
         $this->selectedSeats = [];
         $this->initPassengerData();
         $this->currentStep = 'select_seats';
@@ -110,6 +124,11 @@ class SearchSchedules extends Component
 
     public function toggleSeat($seatId)
     {
+        if (in_array($seatId, $this->reservedSeats)) {
+            session()->flash('step_error', "Seat {$seatId} is already booked and reserved!");
+            return;
+        }
+
         if (in_array($seatId, $this->selectedSeats)) {
             $this->selectedSeats = array_values(array_filter($this->selectedSeats, fn($s) => $s !== $seatId));
         } else {
@@ -171,6 +190,20 @@ class SearchSchedules extends Component
     {
         if (!$this->selectedSchedule) return;
 
+        // Double check seat availability before saving to prevent race conditions
+        $alreadyTaken = Booking::where('schedule_id', $this->selectedSchedule->id)
+            ->whereIn('status', ['verified', 'pending_verification'])
+            ->get()
+            ->pluck('selected_seat_ids')
+            ->flatten()
+            ->intersect($this->selectedSeats);
+
+        if ($alreadyTaken->count() > 0) {
+            session()->flash('step_error', 'One or more selected seats were reserved just now by another passenger. Please select different seats.');
+            $this->selectSchedule($this->selectedSchedule->id);
+            return;
+        }
+
         $subtotal = $this->selectedSchedule->price * (int)$this->passengersCount;
         $totalAmount = max(0, $subtotal - $this->discount);
         $bookingId = 'SFY-' . strtoupper(substr(md5(uniqid()), 0, 6));
@@ -196,8 +229,11 @@ class SearchSchedules extends Component
             'passenger_email' => Auth::check() ? Auth::user()->email : 'guest@feridhootours.mv',
         ]);
 
-        // Decrement available seats
+        // Decrement available seats count on schedule
         $this->selectedSchedule->decrement('available_seats', count($this->selectedSeats));
+
+        // Re-sync reserved seats
+        $this->reservedSeats = array_values(array_unique(array_merge($this->reservedSeats, $this->selectedSeats)));
 
         $this->confirmedBooking = $booking;
         $this->currentStep = 'confirmation';

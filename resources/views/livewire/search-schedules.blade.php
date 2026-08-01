@@ -106,7 +106,7 @@
                 @if(count($schedules) === 0)
                     <div class="bg-white border border-slate-200 rounded-3xl p-12 text-center space-y-3">
                         <div class="text-4xl">⛵</div>
-                        <h4 class="text-base font-extrabold text-slate-800 font-display">No Scheduled Transfers Found</h4>
+                        <h4 class="text-base font-extrabold text-slate-880 font-display">No Scheduled Transfers Found</h4>
                         <p class="text-xs text-slate-500 max-w-md mx-auto">Try selecting a different departure island or destination port.</p>
                     </div>
                 @else
@@ -238,11 +238,20 @@
                             @for($c = 1; $c <= $cols; $c++)
                                 @php
                                     $seatId = 'S-' . $r . '-' . $c;
+                                    $isReserved = in_array($seatId, $reservedSeats);
                                     $isSelected = in_array($seatId, $selectedSeats);
                                 @endphp
-                                <button type="button" wire:click="toggleSeat('{{ $seatId }}')" class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-extrabold transition cursor-pointer border shadow-sm {{ $isSelected ? 'bg-emerald-500 text-white border-emerald-600 scale-105' : 'bg-white text-slate-700 border-slate-200 hover:bg-sky-50' }}">
-                                    {{ $r }}{{ chr(64 + $c) }}
-                                </button>
+
+                                @if($isReserved)
+                                    <button type="button" disabled class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-extrabold bg-rose-100 text-rose-500 border border-rose-300 cursor-not-allowed opacity-80 shadow-inner" title="Seat Reserved">
+                                        ✕
+                                    </button>
+                                @else
+                                    <button type="button" wire:click="toggleSeat('{{ $seatId }}')" class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-extrabold transition cursor-pointer border shadow-sm {{ $isSelected ? 'bg-emerald-500 text-white border-emerald-600 scale-105' : 'bg-white text-slate-700 border-slate-200 hover:bg-sky-50' }}">
+                                        {{ $r }}{{ chr(64 + $c) }}
+                                    </button>
+                                @endif
+
                                 @if($c == ceil($cols / 2))
                                     <div class="w-4"></div> <!-- Aisle -->
                                 @endif
@@ -251,9 +260,10 @@
                     @endfor
                 </div>
 
-                <div class="flex items-center gap-4 text-xs font-bold text-slate-600 pt-4 border-t border-slate-200 w-full justify-center">
+                <div class="flex flex-wrap items-center gap-4 text-xs font-bold text-slate-600 pt-4 border-t border-slate-200 w-full justify-center">
                     <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 bg-white border border-slate-300 rounded-md"></span> Available</span>
                     <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 bg-emerald-500 rounded-md"></span> Selected ({{ count($selectedSeats) }}/{{ $passengersCount }})</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 bg-rose-100 border border-rose-300 rounded-md flex items-center justify-center text-[10px] text-rose-500 font-black">✕</span> Reserved</span>
                 </div>
             </div>
 
