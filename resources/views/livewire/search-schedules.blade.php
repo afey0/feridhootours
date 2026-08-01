@@ -1,372 +1,414 @@
-<div class="space-y-6 sm:space-y-8 text-left animate-fade-in">
-
-    <!-- Stepper Header -->
-    <div class="glass-panel rounded-2xl sm:rounded-full px-4 py-3 border border-slate-200/80 shadow-sm flex items-center justify-center gap-2 sm:gap-4 flex-wrap max-w-2xl mx-auto">
-        <div class="flex items-center gap-2 text-sky-600 font-extrabold">
-            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-black bg-gradient-to-tr from-sky-600 to-indigo-600 text-white shadow-md shadow-sky-600/20">
-                1
+<div class="space-y-8 animate-fade-in text-left">
+    <!-- Stepper Navigation Header -->
+    <div class="glass-panel p-3.5 sm:p-4 rounded-3xl border border-slate-200/80 shadow-sm flex justify-between items-center bg-white">
+        <div class="flex items-center gap-2 sm:gap-6 w-full justify-between sm:justify-start text-xs font-extrabold font-display">
+            <!-- Step 1: Departures -->
+            <div wire:click="goBackToSearch" class="flex items-center gap-2 cursor-pointer transition {{ $currentStep === 'search' ? 'text-sky-600 font-black' : 'text-slate-400 hover:text-slate-700' }}">
+                <div class="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black {{ $currentStep === 'search' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-slate-100 text-slate-500' }}">1</div>
+                <span class="hidden sm:inline">Departures</span>
             </div>
-            <span class="text-xs sm:text-sm font-bold">Departures</span>
-        </div>
-        <div class="w-4 sm:w-8 md:w-10 h-[2px] rounded-full bg-slate-200"></div>
 
-        <div class="flex items-center gap-2 text-slate-400 font-semibold">
-            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-black bg-white text-slate-400 border border-slate-200">
-                2
-            </div>
-            <span class="text-xs sm:text-sm hidden md:inline font-bold">Seat Layout</span>
-        </div>
-        <div class="w-4 sm:w-8 md:w-10 h-[2px] rounded-full bg-slate-200"></div>
+            <div class="w-6 sm:w-12 h-0.5 bg-slate-200"></div>
 
-        <div class="flex items-center gap-2 text-slate-400 font-semibold">
-            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-black bg-white text-slate-400 border border-slate-200">
-                3
+            <!-- Step 2: Seat Layout -->
+            <div class="flex items-center gap-2 {{ $currentStep === 'select_seats' ? 'text-sky-600 font-black' : 'text-slate-400' }}">
+                <div class="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black {{ $currentStep === 'select_seats' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-slate-100 text-slate-500' }}">2</div>
+                <span class="hidden sm:inline">Seat Layout</span>
             </div>
-            <span class="text-xs sm:text-sm hidden md:inline font-bold">Passenger Info</span>
-        </div>
-        <div class="w-4 sm:w-8 md:w-10 h-[2px] rounded-full bg-slate-200"></div>
 
-        <div class="flex items-center gap-2 text-slate-400 font-semibold">
-            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-black bg-white text-slate-400 border border-slate-200">
-                4
+            <div class="w-6 sm:w-12 h-0.5 bg-slate-200"></div>
+
+            <!-- Step 3: Passenger Info -->
+            <div class="flex items-center gap-2 {{ $currentStep === 'passenger_details' ? 'text-sky-600 font-black' : 'text-slate-400' }}">
+                <div class="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black {{ $currentStep === 'passenger_details' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-slate-100 text-slate-500' }}">3</div>
+                <span class="hidden sm:inline">Passenger Info</span>
             </div>
-            <span class="text-xs sm:text-sm hidden md:inline font-bold">Payment</span>
+
+            <div class="w-6 sm:w-12 h-0.5 bg-slate-200"></div>
+
+            <!-- Step 4: Payment -->
+            <div class="flex items-center gap-2 {{ in_array($currentStep, ['payment', 'confirmation']) ? 'text-sky-600 font-black' : 'text-slate-400' }}">
+                <div class="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black {{ in_array($currentStep, ['payment', 'confirmation']) ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-slate-100 text-slate-500' }}">4</div>
+                <span class="hidden sm:inline">Payment</span>
+            </div>
         </div>
     </div>
 
-    <!-- Search Hero Form -->
-    <div class="glass-panel rounded-3xl overflow-hidden shadow-xl border border-slate-200/80 text-left">
-        <form wire:submit.prevent="$refresh" class="p-5 md:p-8 space-y-6">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
-                <!-- FROM -->
-                <div class="lg:col-span-3 flex flex-col gap-2">
-                    <label class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                        📍 Departure Port
-                    </label>
-                    <select wire:model.live="fromPort" class="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-slate-800 text-sm font-semibold focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition duration-200 cursor-pointer h-12">
+    @if(session()->has('step_error'))
+        <div class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-2xl text-xs font-bold animate-fade-in">
+            ⚠️ {{ session('step_error') }}
+        </div>
+    @endif
+
+    <!-- STEP 1: SEARCH & SCHEDULES LIST -->
+    @if($currentStep === 'search')
+        <!-- Search Hero Card -->
+        <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-lg bg-gradient-to-b from-white to-sky-50/30 space-y-6">
+            <div class="space-y-1">
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-850 font-display">Book Island Speedboats & Inter-Atoll Ferries</h1>
+                <p class="text-xs sm:text-sm text-slate-500 font-medium">Real-time schedule search, instant seat reservation, and digital boarding pass generation.</p>
+            </div>
+
+            <form wire:submit.prevent="executeSearch" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                <!-- From Port -->
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Departure Port</label>
+                    <select wire:model="fromPort" class="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-slate-800 text-xs font-bold focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition">
                         @foreach($jetties as $j)
-                            <option value="{{ $j->id }}">{{ $j->name }}</option>
+                            <option value="{{ $j->id }}">{{ $j->name }} ({{ $j->location }})</option>
                         @endforeach
                     </select>
                 </div>
 
-                <!-- SWAP BUTTON -->
-                <div class="hidden lg:flex lg:col-span-1 justify-center pb-1">
-                    <button type="button" wire:click="swapPorts" class="w-10 h-10 rounded-2xl bg-sky-50 border border-sky-200 text-sky-600 hover:bg-sky-100 flex items-center justify-center cursor-pointer transition shadow-sm active:scale-95 shrink-0" title="Swap Ports">
-                        ⇄
-                    </button>
-                </div>
-
-                <!-- TO -->
-                <div class="lg:col-span-3 flex flex-col gap-2">
-                    <label class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                        📍 Destination Port
-                    </label>
-                    <select wire:model.live="toPort" class="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-slate-800 text-sm font-semibold focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition duration-200 cursor-pointer h-12">
+                <!-- Swap & To Port -->
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Destination Port</label>
+                    <select wire:model="toPort" class="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-slate-800 text-xs font-bold focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition">
                         @foreach($jetties as $j)
-                            <option value="{{ $j->id }}">{{ $j->name }}</option>
+                            <option value="{{ $j->id }}">{{ $j->name }} ({{ $j->location }})</option>
                         @endforeach
                     </select>
                 </div>
 
-                <!-- DATE -->
-                <div class="lg:col-span-3 flex flex-col gap-2">
-                    <label class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                        📅 Travel Date
-                    </label>
-                    <input type="date" wire:model.live="travelDate" class="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-slate-800 text-sm font-semibold focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition duration-200 h-12">
+                <!-- Travel Date -->
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Travel Date</label>
+                    <input type="date" wire:model="travelDate" class="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-slate-800 text-xs font-bold focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition">
                 </div>
 
-                <!-- PASSENGERS -->
-                <div class="lg:col-span-2 flex flex-col gap-2">
-                    <label class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                        👥 Passengers
-                    </label>
-                    <select wire:model.live="passengersCount" class="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-slate-800 text-sm font-semibold focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition duration-200 cursor-pointer h-12">
-                        @for($n = 1; $n <= 6; $n++)
-                            <option value="{{ $n }}">{{ $n }} Passenger{{ $n > 1 ? 's' : '' }}</option>
-                        @endfor
-                    </select>
+                <!-- Passengers & Submit -->
+                <div class="space-y-1.5 flex flex-col justify-end">
+                    <label class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Passengers</label>
+                    <div class="flex gap-2">
+                        <select wire:model.live="passengersCount" class="w-1/3 bg-white border border-slate-200 rounded-2xl px-3 py-3 text-slate-800 text-xs font-bold">
+                            @for($i = 1; $i <= 8; $i++)
+                                <option value="{{ $i }}">{{ $i }}</option>
+                            @endfor
+                        </select>
+                        <button type="submit" class="w-2/3 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-2xl shadow-lg shadow-sky-600/20 transition flex items-center justify-center gap-1.5 font-display">
+                            🔍 Find Ferries
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Schedule Results List -->
+        @if($hasSearched)
+            <div class="space-y-4 pt-2">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="text-lg font-black text-slate-850 font-display">Available Transfers</h3>
+                    <span class="text-xs text-slate-500 font-bold bg-sky-50 text-sky-700 px-3 py-1 rounded-full border border-sky-200">
+                        {{ count($schedules) }} transfer(s) found
+                    </span>
+                </div>
+
+                @if(count($schedules) === 0)
+                    <div class="bg-white border border-slate-200 rounded-3xl p-12 text-center space-y-3">
+                        <div class="text-4xl">⛵</div>
+                        <h4 class="text-base font-extrabold text-slate-800 font-display">No Scheduled Transfers Found</h4>
+                        <p class="text-xs text-slate-500 max-w-md mx-auto">Try selecting a different departure island or destination port.</p>
+                    </div>
+                @else
+                    <div class="grid grid-cols-1 gap-4">
+                        @foreach($schedules as $s)
+                            <div class="bg-white border border-slate-200 hover:border-sky-300 rounded-3xl p-6 shadow-sm hover:shadow-md transition flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                <div class="space-y-2 flex-1">
+                                    <div class="flex items-center gap-3">
+                                        <h4 class="text-lg font-black text-slate-850 font-display">{{ $s->vessel_name }}</h4>
+                                        <span class="px-2.5 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200 text-[10px] font-extrabold uppercase">{{ $s->vessel_type }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-4 text-xs font-bold text-slate-600">
+                                        <span class="text-sky-600 font-extrabold">🕒 {{ $s->departure_time }} → {{ $s->arrival_time }}</span>
+                                        <span>💺 Available: {{ $s->available_seats }}/{{ $s->total_seats }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-4">
+                                    <div class="text-left md:text-right">
+                                        <span class="text-[10px] text-slate-400 font-extrabold uppercase block">Price / Seat</span>
+                                        <span class="text-2xl font-black text-slate-850 font-display">${{ number_format($s->price, 2) }}</span>
+                                    </div>
+                                    <button wire:click="selectSchedule('{{ $s->id }}')" class="px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs rounded-2xl shadow-md shadow-sky-600/20 transition cursor-pointer">
+                                        Select Seats →
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        @else
+            <!-- Landing Info Cards (Spotlight Destinations & Smart Transit Features) -->
+            <div class="space-y-12 pt-4">
+                <!-- Spotlight Atoll Destinations Cards -->
+                <div class="space-y-4">
+                    <h3 class="text-xl font-black text-slate-850 font-display">Spotlight Island Destinations</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div wire:click="selectPort('MAF')" class="group relative rounded-3xl overflow-hidden shadow-md cursor-pointer border border-slate-200">
+                            <img src="https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=600&q=80" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent p-4 flex flex-col justify-end text-white">
+                                <span class="text-xs font-bold text-sky-400 uppercase">South Male Atoll</span>
+                                <h4 class="text-lg font-black font-display">Maafushi Island</h4>
+                                <span class="text-xs font-semibold text-slate-200 mt-0.5">$25.00 · Daily 45m Transfer</span>
+                            </div>
+                        </div>
+
+                        <div wire:click="selectPort('FUL')" class="group relative rounded-3xl overflow-hidden shadow-md cursor-pointer border border-slate-200">
+                            <img src="https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=600&q=80" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent p-4 flex flex-col justify-end text-white">
+                                <span class="text-xs font-bold text-sky-400 uppercase">Vaavu Atoll</span>
+                                <h4 class="text-lg font-black font-display">Fulidhoo Island</h4>
+                                <span class="text-xs font-semibold text-slate-200 mt-0.5">$45.00 · Stingray Beach</span>
+                            </div>
+                        </div>
+
+                        <div wire:click="selectPort('DHG')" class="group relative rounded-3xl overflow-hidden shadow-md cursor-pointer border border-slate-200">
+                            <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent p-4 flex flex-col justify-end text-white">
+                                <span class="text-xs font-bold text-sky-400 uppercase">South Ari Atoll</span>
+                                <h4 class="text-lg font-black font-display">Dhigurah Sandspit</h4>
+                                <span class="text-xs font-semibold text-slate-200 mt-0.5">$65.00 · Whale Shark Point</span>
+                            </div>
+                        </div>
+
+                        <div wire:click="selectPort('MLE')" class="group relative rounded-3xl overflow-hidden shadow-md cursor-pointer border border-slate-200">
+                            <img src="https://images.unsplash.com/photo-1586861635167-e5223aadc9fe?auto=format&fit=crop&w=600&q=80" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent p-4 flex flex-col justify-end text-white">
+                                <span class="text-xs font-bold text-sky-400 uppercase">Capital Region</span>
+                                <h4 class="text-lg font-black font-display">Malé Central Pier</h4>
+                                <span class="text-xs font-semibold text-slate-200 mt-0.5">Airports & Harbor Hub</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Smart Transit Features Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-2">
+                        <div class="w-10 h-10 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl font-bold">⚡</div>
+                        <h4 class="text-base font-extrabold text-slate-850 font-display">Instant Digital Tickets</h4>
+                        <p class="text-xs text-slate-500 font-medium leading-relaxed">Generates offline QR digital boarding passes immediately upon payment confirmation.</p>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-2">
+                        <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-bold">💺</div>
+                        <h4 class="text-base font-extrabold text-slate-850 font-display">Live Interactive Seating</h4>
+                        <p class="text-xs text-slate-500 font-medium leading-relaxed">Pick exact seats with real-time availability updates for Economy, VIP, and Premium cabins.</p>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-2">
+                        <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold">🏦</div>
+                        <h4 class="text-base font-extrabold text-slate-850 font-display">BML & Card Instant Pay</h4>
+                        <p class="text-xs text-slate-500 font-medium leading-relaxed">Supports Bank of Maldives direct transfers with automated receipt verification.</p>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endif
+
+    <!-- STEP 2: SELECT SEATS ON PAGE -->
+    @if($currentStep === 'select_seats' && $selectedSchedule)
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+                <div>
+                    <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Step 2 of 4</span>
+                    <h2 class="text-2xl font-black text-slate-850 font-display">Pick Your Preferred Seat Layout</h2>
+                    <p class="text-xs text-slate-500 font-medium">Select {{ $passengersCount }} seat(s) on {{ $selectedSchedule->vessel_name }}</p>
+                </div>
+                <button wire:click="goBackToSearch" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-xl">
+                    ← Change Route
+                </button>
+            </div>
+
+            <!-- Seat Map Layout -->
+            <div class="bg-slate-50 border border-slate-200 rounded-3xl p-6 flex flex-col items-center space-y-4">
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Front (Bow)</div>
+                <div class="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[10px] border-b-sky-500"></div>
+
+                @php
+                    $rows = $selectedVessel->layout_rows ?? 8;
+                    $cols = $selectedVessel->layout_cols ?? 4;
+                @endphp
+
+                <div class="grid gap-2.5 max-w-sm mx-auto">
+                    @for($r = 1; $r <= $rows; $r++)
+                        <div class="flex items-center gap-2 justify-center">
+                            <span class="text-[10px] font-bold text-slate-400 w-4">R{{ $r }}</span>
+                            @for($c = 1; $c <= $cols; $c++)
+                                @php
+                                    $seatId = 'S-' . $r . '-' . $c;
+                                    $isSelected = in_array($seatId, $selectedSeats);
+                                @endphp
+                                <button type="button" wire:click="toggleSeat('{{ $seatId }}')" class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-extrabold transition cursor-pointer border shadow-sm {{ $isSelected ? 'bg-emerald-500 text-white border-emerald-600 scale-105' : 'bg-white text-slate-700 border-slate-200 hover:bg-sky-50' }}">
+                                    {{ $r }}{{ chr(64 + $c) }}
+                                </button>
+                                @if($c == ceil($cols / 2))
+                                    <div class="w-4"></div> <!-- Aisle -->
+                                @endif
+                            @endfor
+                        </div>
+                    @endfor
+                </div>
+
+                <div class="flex items-center gap-4 text-xs font-bold text-slate-600 pt-4 border-t border-slate-200 w-full justify-center">
+                    <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 bg-white border border-slate-300 rounded-md"></span> Available</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 bg-emerald-500 rounded-md"></span> Selected ({{ count($selectedSeats) }}/{{ $passengersCount }})</span>
                 </div>
             </div>
 
             <div class="flex justify-end pt-2">
-                <button type="submit" class="w-full sm:w-auto bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-black px-8 py-3.5 rounded-2xl shadow-lg shadow-sky-600/20 hover:shadow-sky-600/35 transition duration-200 flex items-center justify-center gap-2.5 cursor-pointer text-sm font-display">
-                    🔍 Find Schedules
+                <button wire:click="proceedToPassengerDetails" class="px-8 py-3.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-sky-600/20 transition cursor-pointer">
+                    Proceed to Passenger Info →
                 </button>
             </div>
-        </form>
-    </div>
-
-    <!-- Schedules Results List -->
-    <div class="space-y-6 mt-8">
-        <div class="flex justify-between items-center border-b border-slate-200/80 pb-4">
-            <div>
-                <h3 class="text-xl font-extrabold tracking-tight text-slate-850 flex items-center gap-2 font-display">
-                    ⛵ Available Daily Schedules
-                </h3>
-                <p class="text-slate-500 text-xs mt-1 font-semibold">Direct speedboats for selected route and date</p>
-            </div>
-            <span class="px-3 py-1 rounded-full bg-sky-50 text-sky-700 text-xs font-black border border-sky-200">
-                {{ count($schedules) }} Schedules Found
-            </span>
         </div>
+    @endif
 
-        @if(count($schedules) === 0)
-            <div class="bg-white border border-slate-200 rounded-3xl p-12 text-center text-slate-500 shadow-sm space-y-3">
-                <div class="text-4xl">🚤</div>
-                <h4 class="font-extrabold text-slate-850 text-base font-display">No direct schedules found for selected route</h4>
-                <p class="text-xs text-slate-500 max-w-md mx-auto">Try selecting a different departure or destination port (e.g. Malé to Maafushi).</p>
+    <!-- STEP 3: PASSENGER DETAILS ON PAGE -->
+    @if($currentStep === 'passenger_details' && $selectedSchedule)
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                <div>
+                    <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Step 3 of 4</span>
+                    <h2 class="text-2xl font-black text-slate-850 font-display">Enter Passenger Manifest Info</h2>
+                </div>
+                <button wire:click="goBackToSeats" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-xl">
+                    ← Back to Seats
+                </button>
             </div>
-        @else
-            <div class="grid grid-cols-1 gap-4">
-                @foreach($schedules as $s)
-                    <div class="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row justify-between md:items-center gap-5 text-left">
-                        <div class="flex items-center gap-5">
-                            <div class="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-200 text-sky-600 flex items-center justify-center font-bold text-2xl shrink-0">
-                                🚤
-                            </div>
-                            <div class="space-y-1">
-                                <div class="flex items-center gap-3">
-                                    <h4 class="font-extrabold text-slate-850 text-lg font-display">{{ $s->vessel_name }}</h4>
-                                    <span class="px-2.5 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200 text-[10px] font-black uppercase">{{ $s->vessel_type }}</span>
-                                </div>
-                                <div class="text-xs font-semibold text-slate-500 flex flex-wrap items-center gap-3">
-                                    <span>🕒 {{ $s->departure_time }} → {{ $s->arrival_time }}</span>
-                                    <span>•</span>
-                                    <span>💺 {{ $s->available_seats }} / {{ $s->total_seats }} seats available</span>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 border-slate-100 pt-4 md:pt-0">
-                            <div class="text-right">
-                                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Price From</span>
-                                <span class="text-2xl font-black text-slate-850 font-display">${{ number_format($s->price, 2) }}</span>
+            <div class="space-y-4">
+                @foreach($passengersData as $idx => $p)
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-extrabold text-xs text-slate-850">Passenger {{ $idx + 1 }} (Assigned Seat: {{ $p['seatId'] ?: 'N/A' }})</h4>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase">Full Name</label>
+                                <input type="text" wire:model="passengersData.{{ $idx }}.name" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs font-semibold" placeholder="Full Name" required>
                             </div>
-                            <button type="button" wire:click="openBookingModal('{{ $s->id }}')" class="bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold text-xs px-6 py-3.5 rounded-2xl shadow-lg shadow-sky-600/20 transition cursor-pointer flex items-center gap-2">
-                                <span>Select Seats</span>
-                                <span>→</span>
-                            </button>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase">ID / Passport</label>
+                                <input type="text" wire:model="passengersData.{{ $idx }}.idNumber" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs font-semibold" placeholder="A1234567">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase">Gender</label>
+                                <select wire:model="passengersData.{{ $idx }}.gender" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs font-semibold">
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 @endforeach
             </div>
-        @endif
-    </div>
 
-    <!-- Spotlight Atoll Destinations Section -->
-    <div class="space-y-6 mt-16 text-slate-800 border-t border-slate-200/80 pt-12">
-        <div>
-            <h3 class="text-xl font-extrabold tracking-tight text-slate-850 flex items-center gap-2 font-display">
-                🧩 Spotlight Atoll Destinations
-            </h3>
-            <p class="text-slate-500 text-xs mt-1 font-semibold">Explore stunning island destinations and schedule instant speedboats across the Maldives.</p>
+            <div class="flex justify-end pt-2">
+                <button wire:click="proceedToPayment" class="px-8 py-3.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-sky-600/20 transition cursor-pointer">
+                    Proceed to Payment →
+                </button>
+            </div>
         </div>
+    @endif
 
-        @php
-            $destinations = [
-                ['id' => 'MLE', 'name' => 'Malé Capital Hub', 'code' => 'MLE', 'desc' => 'Central commercial and airport transit terminal linking all island routes.', 'price' => '$5.00', 'img' => 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=500&auto=format&fit=crop&q=80'],
-                ['id' => 'MAF', 'name' => 'Maafushi Paradise', 'code' => 'MAF', 'desc' => 'Popular tourist island known for guesthouses, watersports, and bikini beach.', 'price' => '$25.00', 'img' => 'https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=500&auto=format&fit=crop&q=80'],
-                ['id' => 'DHG', 'name' => 'Dhigurah Sanctuary', 'code' => 'DHG', 'desc' => 'Beautiful long sandspit famous for year-round whale shark and manta sightings.', 'price' => '$45.00', 'img' => 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&auto=format&fit=crop&q=80'],
-                ['id' => 'FUL', 'name' => 'Fulidhoo Culture', 'code' => 'FUL', 'desc' => 'Quiet tropical getaway featuring stingray feeding and traditional Maldives vibes.', 'price' => '$35.00', 'img' => 'https://images.unsplash.com/photo-1540206395-68808572332f?w=500&auto=format&fit=crop&q=80'],
-            ];
-        @endphp
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            @foreach($destinations as $d)
-                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 text-left">
+    <!-- STEP 4: PAYMENT MODAL OVERLAY -->
+    @if($currentStep === 'payment' && $selectedSchedule)
+        <div class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+            <div class="bg-white border border-slate-200 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl space-y-6 text-left">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-4">
                     <div>
-                        <div class="relative w-full h-40 overflow-hidden bg-slate-150">
-                            <img src="{{ $d['img'] }}" alt="{{ $d['name'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                            <span class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-slate-800 text-[10px] px-2 py-0.5 rounded-md font-black font-mono border border-slate-200/60 shadow-sm uppercase">
-                                {{ $d['code'] }}
-                            </span>
-                        </div>
-                        <div class="p-5">
-                            <h4 class="font-extrabold text-base text-slate-850 font-display">{{ $d['name'] }}</h4>
-                            <p class="text-slate-500 text-xs mt-2 leading-relaxed font-medium">{{ $d['desc'] }}</p>
-                        </div>
+                        <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Step 4 of 4</span>
+                        <h2 class="text-2xl font-black text-slate-850 font-display">Review & Pay</h2>
                     </div>
-                    <div class="border-t border-slate-100 mx-5 pb-5 pt-4 flex justify-between items-center text-xs font-bold">
-                        <div>
-                            <span class="text-slate-400 block text-[9px] uppercase tracking-wider font-extrabold">Price From</span>
-                            <span class="text-slate-800 text-sm font-black">{{ $d['price'] }}</span>
+                    <button wire:click="$set('currentStep', 'passenger_details')" class="text-slate-400 hover:text-slate-700">✕</button>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2 text-xs font-bold">
+                    <div class="flex justify-between text-slate-700">
+                        <span>Transfer Ticket ({{ $passengersCount }} seat)</span>
+                        <span>${{ number_format($selectedSchedule->price * $passengersCount, 2) }}</span>
+                    </div>
+                    @if($discount > 0)
+                        <div class="flex justify-between text-emerald-600 font-extrabold">
+                            <span>Promo Discount (MALDIVES10)</span>
+                            <span>-${{ number_format($discount, 2) }}</span>
                         </div>
-                        <button type="button" wire:click="selectPort('{{ $d['id'] }}')" class="bg-white border border-slate-200 hover:bg-sky-500 hover:text-white hover:border-sky-500 cursor-pointer p-2.5 rounded-xl text-slate-700 transition flex items-center justify-center shadow-sm">
-                            →
+                    @endif
+                    <div class="flex justify-between text-slate-850 text-base font-black border-t border-slate-200 pt-2 font-display">
+                        <span>Total Due</span>
+                        <span class="text-sky-600">${{ number_format(max(0, ($selectedSchedule->price * $passengersCount) - $discount), 2) }}</span>
+                    </div>
+                </div>
+
+                <!-- Promo Code -->
+                <div class="flex gap-2">
+                    <input type="text" wire:model="promoCode" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold uppercase" placeholder="PROMO CODE (e.g. MALDIVES10)">
+                    <button wire:click="applyPromo" class="px-4 py-2 bg-slate-900 text-white font-extrabold text-xs rounded-xl">Apply</button>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="space-y-2">
+                    <label class="text-xs font-extrabold text-slate-500 uppercase">Select Payment Method</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" wire:click="$set('paymentMethod', 'card')" class="p-3 rounded-2xl border text-xs font-extrabold transition {{ $paymentMethod === 'card' ? 'bg-sky-50 border-sky-500 text-sky-700' : 'bg-white border-slate-200 text-slate-700' }}">
+                            💳 Credit Card
+                        </button>
+                        <button type="button" wire:click="$set('paymentMethod', 'bank_transfer')" class="p-3 rounded-2xl border text-xs font-extrabold transition {{ $paymentMethod === 'bank_transfer' ? 'bg-sky-50 border-sky-500 text-sky-700' : 'bg-white border-slate-200 text-slate-700' }}">
+                            🏦 Bank Transfer
+                        </button>
+                        <button type="button" wire:click="$set('paymentMethod', 'cash')" class="p-3 rounded-2xl border text-xs font-extrabold transition {{ $paymentMethod === 'cash' ? 'bg-sky-50 border-sky-500 text-sky-700' : 'bg-white border-slate-200 text-slate-700' }}">
+                            💵 Pay at Pier
                         </button>
                     </div>
                 </div>
-            @endforeach
-        </div>
-    </div>
 
-    <!-- Smart Transit Features Grid -->
-    <div class="space-y-6 mt-16 text-slate-800">
-        <div>
-            <h3 class="text-xl font-extrabold tracking-tight text-slate-850 flex items-center gap-2 font-display">
-                🚤 Smart Transit Features
-            </h3>
-            <p class="text-slate-500 text-xs mt-1 font-semibold">Reliable luxury speedboats and inter-island ferry services at your fingertips.</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="glass-panel border border-slate-200 bg-white rounded-2xl p-5 shadow-sm text-left space-y-2">
-                <div class="w-10 h-10 bg-sky-50 text-sky-600 border border-sky-100 rounded-xl flex items-center justify-center text-xl">🚤</div>
-                <h4 class="font-extrabold text-sm text-slate-850 font-display">Premium Speedboats</h4>
-                <p class="text-slate-500 text-xs leading-relaxed font-medium">Travel comfortably inside fully enclosed, air-conditioned speedboats featuring leather seating, USB charging ports, and free bottled water.</p>
-            </div>
-
-            <div class="glass-panel border border-slate-200 bg-white rounded-2xl p-5 shadow-sm text-left space-y-2">
-                <div class="w-10 h-10 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl flex items-center justify-center text-xl">🛡️</div>
-                <h4 class="font-extrabold text-sm text-slate-850 font-display">2FA Secure PNR</h4>
-                <p class="text-slate-500 text-xs leading-relaxed font-medium">Manage passenger names, seat maps, and departure times securely. Access is locked behind automated One-Time Passcodes (OTP).</p>
-            </div>
-
-            <div class="glass-panel border border-slate-200 bg-white rounded-2xl p-5 shadow-sm text-left space-y-2">
-                <div class="w-10 h-10 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-xl flex items-center justify-center text-xl">🏛️</div>
-                <h4 class="font-extrabold text-sm text-slate-850 font-display">Agency Manifest Tools</h4>
-                <p class="text-slate-500 text-xs leading-relaxed font-medium">Approved travel agencies can reserve seats in bulk, manage dynamic manifest registries, and settle balances via bank transfer slips.</p>
+                <button wire:click="confirmPayment" class="w-full py-4 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-sky-600/20 transition cursor-pointer font-display">
+                    Confirm & Issue Ticket →
+                </button>
             </div>
         </div>
-    </div>
+    @endif
 
-    <!-- Booking & Interactive Seat Selection Modal -->
-    @if($showBookingModal && $selectedSchedule)
-        <div class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in" wire:click.self="closeBookingModal">
-            <div class="bg-white border border-slate-200 rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl relative text-left my-8 max-h-[90vh] overflow-y-auto">
-                <button wire:click="closeBookingModal" class="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 rounded-lg">✕</button>
+    <!-- STEP 5: CONFIRMATION VIEW -->
+    @if($currentStep === 'confirmation' && $confirmedBooking)
+        <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-xl max-w-xl mx-auto space-y-6 text-center animate-fade-in">
+            <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto font-bold shadow-sm">
+                ✓
+            </div>
 
-                @if($confirmedBooking)
-                    <!-- Confirmation View -->
-                    <div class="text-center space-y-6 py-6">
-                        <div class="w-16 h-16 bg-emerald-50 border border-emerald-200 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto">
-                            ✓
-                        </div>
-                        <div>
-                            <h2 class="text-3xl font-black text-slate-850 font-display">Booking Confirmed!</h2>
-                            <p class="text-xs text-slate-500 mt-1">Ticket Reference: <span class="font-mono text-sky-600 font-extrabold text-base">{{ $confirmedBooking->id }}</span></p>
-                        </div>
-                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 max-w-md mx-auto text-left space-y-3 text-xs">
-                            <div class="flex justify-between border-b border-slate-200 pb-2">
-                                <span class="text-slate-500 font-medium">Vessel:</span>
-                                <span class="font-bold text-slate-850">{{ $confirmedBooking->vessel_name }}</span>
-                            </div>
-                            <div class="flex justify-between border-b border-slate-200 pb-2">
-                                <span class="text-slate-500 font-medium">Route:</span>
-                                <span class="font-bold text-slate-850">{{ $confirmedBooking->route_from }} → {{ $confirmedBooking->route_to }}</span>
-                            </div>
-                            <div class="flex justify-between border-b border-slate-200 pb-2">
-                                <span class="text-slate-500 font-medium">Time:</span>
-                                <span class="font-bold text-slate-850">{{ $confirmedBooking->departure_time }}</span>
-                            </div>
-                            <div class="flex justify-between border-b border-slate-200 pb-2">
-                                <span class="text-slate-500 font-medium">Seats Reserved:</span>
-                                <span class="font-bold text-sky-600">{{ implode(', ', $confirmedBooking->selected_seat_ids) }}</span>
-                            </div>
-                            <div class="flex justify-between pt-1">
-                                <span class="text-slate-500 font-medium">Total Paid:</span>
-                                <span class="font-extrabold text-emerald-600 text-sm">${{ number_format($confirmedBooking->total_amount, 2) }}</span>
-                            </div>
-                        </div>
-                        <div class="flex justify-center gap-3 pt-2">
-                            <a href="/my-bookings" class="px-6 py-3 rounded-2xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-md shadow-sky-600/20">
-                                View My Bookings
-                            </a>
-                            <button wire:click="closeBookingModal" class="px-6 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs">
-                                Done
-                            </button>
-                        </div>
-                    </div>
-                @else
-                    <!-- Seat Map & Details View -->
-                    <div class="space-y-6">
-                        <div>
-                            <span class="text-[10px] font-extrabold text-sky-600 uppercase tracking-widest">Instant Seat Allocation</span>
-                            <h2 class="text-2xl font-black text-slate-850 font-display">{{ $selectedSchedule->vessel_name }} Seating Plan</h2>
-                            <p class="text-xs text-slate-500 font-medium">Select {{ $passengersCount }} seat(s) for your voyage</p>
-                        </div>
+            <div class="space-y-1">
+                <h2 class="text-2xl font-black text-slate-850 font-display">Transfer Confirmed!</h2>
+                <p class="text-xs text-slate-500 font-medium">Your digital ticket reference has been generated.</p>
+            </div>
 
-                        @if(session()->has('booking_error'))
-                            <div class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-2xl text-xs font-bold">
-                                ⚠️ {{ session('booking_error') }}
-                            </div>
-                        @endif
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-3 text-left text-xs font-semibold">
+                <div class="flex justify-between">
+                    <span class="text-slate-400 uppercase">Ticket ID</span>
+                    <span class="font-mono font-bold text-sky-600 text-sm">{{ $confirmedBooking->id }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400 uppercase">Route</span>
+                    <span class="text-slate-850 font-bold">{{ $confirmedBooking->route_from }} → {{ $confirmedBooking->route_to }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400 uppercase">Seats</span>
+                    <span class="text-slate-850 font-bold">{{ implode(', ', $confirmedBooking->selected_seat_ids) }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400 uppercase">Total Paid</span>
+                    <span class="text-emerald-600 font-bold">${{ number_format($confirmedBooking->total_amount, 2) }}</span>
+                </div>
+            </div>
 
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                            <!-- Left: Interactive Seat Map -->
-                            <div class="lg:col-span-6 bg-slate-50 border border-slate-200 rounded-3xl p-6 text-center space-y-4 shadow-inner">
-                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">BOW (Front of Speedboat)</div>
-                                <div class="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[8px] border-b-sky-500 mx-auto"></div>
-
-                                <div class="grid grid-cols-4 gap-2.5 max-w-[240px] mx-auto py-4">
-                                    @for($s = 1; $s <= ($selectedVessel->layout_rows ?? 8) * ($selectedVessel->layout_cols ?? 4); $s++)
-                                        @php
-                                            $seatId = 'S-' . $s;
-                                            $isSelected = in_array($seatId, $selectedSeats);
-                                        @endphp
-                                        <button type="button" wire:click="toggleSeat('{{ $seatId }}')"
-                                            class="w-10 h-10 rounded-xl flex items-center justify-center text-xs font-extrabold border transition cursor-pointer {{ $isSelected ? 'bg-sky-600 text-white border-sky-600 shadow-md shadow-sky-600/30 scale-105' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100' }}">
-                                            {{ $s }}
-                                        </button>
-                                    @endfor
-                                </div>
-
-                                <div class="flex justify-center gap-4 text-[10px] font-extrabold text-slate-500 border-t border-slate-200 pt-3">
-                                    <div class="flex items-center gap-1.5"><div class="w-3.5 h-3.5 rounded-md bg-white border border-slate-200"></div> Available</div>
-                                    <div class="flex items-center gap-1.5"><div class="w-3.5 h-3.5 rounded-md bg-sky-600"></div> Selected</div>
-                                </div>
-                            </div>
-
-                            <!-- Right: Passenger Info & Payment -->
-                            <div class="lg:col-span-6 space-y-6">
-                                <div class="space-y-4">
-                                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Passenger Information</h4>
-                                    @foreach($passengersData as $idx => $p)
-                                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
-                                            <div class="flex justify-between items-center text-xs font-bold text-sky-600">
-                                                <span>Passenger {{ $idx + 1 }}</span>
-                                                <span>Seat: {{ $selectedSeats[$idx] ?? 'Not Selected' }}</span>
-                                            </div>
-                                            <div class="grid grid-cols-2 gap-2">
-                                                <input type="text" wire:model="passengersData.{{ $idx }}.name" placeholder="Full Name" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs font-semibold focus:border-sky-500 focus:outline-none" required>
-                                                <input type="text" wire:model="passengersData.{{ $idx }}.idNumber" placeholder="ID / Passport No." class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs font-semibold focus:border-sky-500 focus:outline-none">
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-
-                                <!-- Payment Options -->
-                                <div class="space-y-3">
-                                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Payment Method</h4>
-                                    <div class="grid grid-cols-3 gap-2">
-                                        <button type="button" wire:click="$set('paymentMethod', 'card')" class="py-2.5 px-2 rounded-xl border text-xs font-extrabold transition cursor-pointer {{ $paymentMethod === 'card' ? 'bg-sky-50 border-sky-500 text-sky-700 shadow-sm' : 'bg-white border-slate-200 text-slate-600' }}">
-                                            💳 Card
-                                        </button>
-                                        <button type="button" wire:click="$set('paymentMethod', 'bank_transfer')" class="py-2.5 px-2 rounded-xl border text-xs font-extrabold transition cursor-pointer {{ $paymentMethod === 'bank_transfer' ? 'bg-sky-50 border-sky-500 text-sky-700 shadow-sm' : 'bg-white border-slate-200 text-slate-600' }}">
-                                            🏦 Bank Slip
-                                        </button>
-                                        <button type="button" wire:click="$set('paymentMethod', 'cash')" class="py-2.5 px-2 rounded-xl border text-xs font-extrabold transition cursor-pointer {{ $paymentMethod === 'cash' ? 'bg-sky-50 border-sky-500 text-sky-700 shadow-sm' : 'bg-white border-slate-200 text-slate-600' }}">
-                                            💵 Cash Pier
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Total Summary & Action -->
-                                <div class="border-t border-slate-200 pt-4 flex items-center justify-between">
-                                    <div>
-                                        <span class="text-[10px] font-extrabold text-slate-400 uppercase block">Total Amount</span>
-                                        <div class="text-2xl font-black text-slate-850 font-display">${{ number_format($selectedSchedule->price * (int)$passengersCount, 2) }}</div>
-                                    </div>
-                                    <button type="button" wire:click="confirmBooking" class="bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold text-xs px-8 py-3.5 rounded-2xl shadow-lg shadow-sky-600/20 transition cursor-pointer">
-                                        Confirm Booking
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endif
+            <div class="flex gap-3">
+                <a href="/my-bookings" class="flex-1 py-3 bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs rounded-2xl shadow-md transition">
+                    View Boarding Pass →
+                </a>
+                <button wire:click="goBackToSearch" class="py-3 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-2xl transition">
+                    Done
+                </button>
             </div>
         </div>
     @endif

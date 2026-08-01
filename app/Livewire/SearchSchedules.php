@@ -11,20 +11,26 @@ use Illuminate\Support\Facades\Auth;
 
 class SearchSchedules extends Component
 {
+    // Step Engine: 'search', 'select_seats', 'passenger_details', 'payment', 'confirmation'
+    public $currentStep = 'search';
+    public $hasSearched = false;
+
     // Search Filters
     public $fromPort = 'MLE';
     public $toPort = 'MAF';
     public $travelDate = '';
     public $passengersCount = 1;
 
-    // Booking Modal State
-    public $showBookingModal = false;
+    // Booking Flow State
     public $selectedSchedule = null;
     public $selectedVessel = null;
     public $selectedSeats = [];
     public $passengersData = [];
+    
+    // Payment & Promo
+    public $promoCode = '';
+    public $discount = 0;
     public $paymentMethod = 'card'; // 'card', 'bank_transfer', 'cash'
-    public $bankReceiptUploaded = false;
 
     // Booking Success State
     public $confirmedBooking = null;
@@ -33,6 +39,12 @@ class SearchSchedules extends Component
     {
         $this->travelDate = date('Y-m-d');
         $this->initPassengerData();
+
+        if (request()->has('from') && request()->has('to')) {
+            $this->fromPort = request()->query('from');
+            $this->toPort = request()->query('to');
+            $this->hasSearched = true;
+        }
     }
 
     public function updatedPassengersCount()
@@ -64,14 +76,19 @@ class SearchSchedules extends Component
 
     public function selectPort($portId)
     {
-        if ($this->fromPort === $portId) {
-            $this->toPort = $portId;
-        } else {
-            $this->toPort = $portId;
-        }
+        $this->fromPort = 'MLE';
+        $this->toPort = $portId;
+        $this->hasSearched = true;
+        $this->currentStep = 'search';
     }
 
-    public function openBookingModal($scheduleId)
+    public function executeSearch()
+    {
+        $this->hasSearched = true;
+        $this->currentStep = 'search';
+    }
+
+    public function selectSchedule($scheduleId)
     {
         $this->selectedSchedule = Schedule::find($scheduleId);
         if (!$this->selectedSchedule) return;
@@ -81,23 +98,14 @@ class SearchSchedules extends Component
             $this->selectedVessel = new Vessel([
                 'layout_rows' => 8,
                 'layout_cols' => 4,
-                'name' => $this->selectedSchedule->vessel_name ?? 'Speedboat Express',
+                'name' => $this->selectedSchedule->vessel_name ?? 'Kaani Princess',
                 'type' => 'Speedboat'
             ]);
         }
 
         $this->selectedSeats = [];
         $this->initPassengerData();
-        $this->confirmedBooking = null;
-        $this->showBookingModal = true;
-    }
-
-    public function closeBookingModal()
-    {
-        $this->showBookingModal = false;
-        $this->selectedSchedule = null;
-        $this->selectedSeats = [];
-        $this->confirmedBooking = null;
+        $this->currentStep = 'select_seats';
     }
 
     public function toggleSeat($seatId)
@@ -110,22 +118,61 @@ class SearchSchedules extends Component
             }
         }
 
-        // Assign seat IDs to passenger items
+        // Sync seat IDs to passenger items
         foreach ($this->passengersData as $idx => $passenger) {
             $this->passengersData[$idx]['seatId'] = $this->selectedSeats[$idx] ?? '';
         }
     }
 
-    public function confirmBooking()
+    public function proceedToPassengerDetails()
     {
-        if (!$this->selectedSchedule) return;
-
         if (count($this->selectedSeats) < (int)$this->passengersCount) {
-            session()->flash('booking_error', 'Please select ' . $this->passengersCount . ' seat(s) before confirming.');
+            session()->flash('step_error', 'Please select ' . $this->passengersCount . ' seat(s) on the layout map.');
             return;
         }
 
-        $totalAmount = $this->selectedSchedule->price * (int)$this->passengersCount;
+        $this->currentStep = 'passenger_details';
+    }
+
+    public function proceedToPayment()
+    {
+        // Validate passenger names
+        foreach ($this->passengersData as $p) {
+            if (empty(trim($p['name'] ?? ''))) {
+                session()->flash('step_error', 'Please enter passenger names for all assigned seats.');
+                return;
+            }
+        }
+
+        $this->currentStep = 'payment';
+    }
+
+    public function goBackToSearch()
+    {
+        $this->currentStep = 'search';
+    }
+
+    public function goBackToSeats()
+    {
+        $this->currentStep = 'select_seats';
+    }
+
+    public function applyPromo()
+    {
+        if (strtoupper(trim($this->promoCode)) === 'MALDIVES10') {
+            $this->discount = 10.00;
+            session()->flash('promo_success', 'Promo code MALDIVES10 applied (-$10.00)');
+        } else {
+            session()->flash('promo_error', 'Invalid promo code. Try MALDIVES10');
+        }
+    }
+
+    public function confirmPayment()
+    {
+        if (!$this->selectedSchedule) return;
+
+        $subtotal = $this->selectedSchedule->price * (int)$this->passengersCount;
+        $totalAmount = max(0, $subtotal - $this->discount);
         $bookingId = 'SFY-' . strtoupper(substr(md5(uniqid()), 0, 6));
 
         $booking = Booking::create([
@@ -140,6 +187,8 @@ class SearchSchedules extends Component
             'passengers' => $this->passengersData,
             'selected_seat_ids' => $this->selectedSeats,
             'total_amount' => $totalAmount,
+            'discount_applied' => $this->discount,
+            'promo_code_used' => $this->discount > 0 ? $this->promoCode : null,
             'payment_method' => $this->paymentMethod,
             'status' => $this->paymentMethod === 'bank_transfer' ? 'pending_verification' : 'verified',
             'booked_by' => Auth::check() ? Auth::user()->name : ($this->passengersData[0]['name'] ?? 'Guest'),
@@ -151,6 +200,7 @@ class SearchSchedules extends Component
         $this->selectedSchedule->decrement('available_seats', count($this->selectedSeats));
 
         $this->confirmedBooking = $booking;
+        $this->currentStep = 'confirmation';
     }
 
     public function render()
