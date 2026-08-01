@@ -309,9 +309,10 @@ function App() {
                   scheduleId={selectedSchedule.id}
                   selectedSeats={selectedSeats} 
                   onToggleSeat={toggleSeat} 
-                  onConfirm={reserveSeats}
+                  onConfirm={() => reserveSeats(user)}
                   passengerCount={passengerCount}
                 />
+
               </div>
             )}
 

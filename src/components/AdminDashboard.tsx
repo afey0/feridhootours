@@ -981,6 +981,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                   <div className="min-w-[180px] text-left">
                     <div className="font-bold text-slate-800 text-lg leading-tight flex flex-wrap items-center gap-1.5">
                       {s.vesselName}
+                      <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 text-[9px] font-black px-2 py-0.5 rounded tracking-wider uppercase" title="Schedule Recurrence Frequency">
+                        📅 {s.recurrence || 'Daily'}
+                      </span>
+                      {s.scheduleDate && (
+                        <span className="bg-sky-50 text-sky-700 border border-sky-200 text-[9px] font-bold px-2 py-0.5 rounded" title="Effective Schedule Date">
+                          {s.scheduleDate}
+                        </span>
+                      )}
                       {s.disabled && (
                         <span className="bg-slate-105 text-slate-600 border border-slate-200 text-[8px] font-black px-1.5 py-0.5 rounded tracking-wider uppercase">
                           Disabled
@@ -992,6 +1000,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                         </span>
                       )}
                     </div>
+
                     <div className="text-slate-500 text-xs mt-1.5 font-medium">
                       {s.routeFrom} → {s.routeTo} | {s.departureTime}
                     </div>

@@ -52,6 +52,8 @@ export const MyBookings: React.FC<Props> = ({ onBack, user }) => {
 
   const getStatusBadge = (status: Booking['status']) => {
     switch (status) {
+      case 'in_checkout':
+        return <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200" title="Seat locked in active checkout session">🔒 Seat Locked (In Checkout)</span>;
       case 'verified':
         return <span className="status-badge verified">Verified</span>;
       case 'pending_verification':
@@ -64,6 +66,8 @@ export const MyBookings: React.FC<Props> = ({ onBack, user }) => {
         return null;
     }
   };
+
+
 
 
 

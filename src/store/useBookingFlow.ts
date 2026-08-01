@@ -20,9 +20,10 @@ export const useBookingFlow = () => {
   const [passengerCount, setPassengerCount] = useState<number>(1);
   const [departureDate, setDepartureDate] = useState<string>('2026-06-24');
 
-  const { addBooking, adminLockSeats, adminUnlockSeats } = usePlatformStore();
+  const { addBooking, lockSeatsCheckout, adminUnlockSeats } = usePlatformStore();
 
   const goSearch = () => {
+
     if (selectedSchedule && selectedSeats.length > 0) {
       adminUnlockSeats(selectedSchedule.id, selectedSeats.map(s => s.id));
     }
@@ -61,7 +62,7 @@ export const useBookingFlow = () => {
     });
   };
 
-  const reserveSeats = async () => {
+  const reserveSeats = async (user?: any) => {
     if (selectedSeats.length !== passengerCount) return; // Strict validation
     
     setIsLocking(true);
@@ -75,11 +76,12 @@ export const useBookingFlow = () => {
     setLockExpiresAt(expiry);
 
     if (selectedSchedule) {
-      adminLockSeats(selectedSchedule.id, selectedSeats.map(s => s.id));
+      lockSeatsCheckout(selectedSchedule.id, selectedSeats.map(s => s.id), passengers, user);
     }
     
     setCurrentStep('passenger_details');
   };
+
 
   const goBackToSeats = () => {
     if (selectedSchedule && selectedSeats.length > 0) {
