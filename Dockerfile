@@ -7,7 +7,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
-RUN npm run build || mkdir -p dist
+RUN npm run build
 
 # Stage 2: PHP / Laravel Application
 FROM php:8.3-fpm-alpine
