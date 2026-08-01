@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Users, Ship, AlertTriangle, ArrowLeft, Plus, CheckCircle, XCircle, FileText, X, CreditCard, DollarSign, Layers, Mail, Key, Trash2, ClipboardList, AlertCircle, ShieldAlert, Search, Download, Eye, Clock, List, Code, Check, Lock } from 'lucide-react';
+import { BarChart3, Users, Ship, AlertTriangle, ArrowLeft, Plus, CheckCircle, XCircle, FileText, X, CreditCard, DollarSign, Layers, Mail, Key, Trash2, ClipboardList, AlertCircle, ShieldAlert, Search, Download, Eye, Clock, List, Code, Check, Lock, Pencil, Unlock, Wrench, Armchair } from 'lucide-react';
+
 import { usePlatformStore } from '../store/usePlatformStore';
 import { useAuthStore, getCurrentAuthUser } from '../store/useAuthStore';
 import { SeatMap } from './SeatMap';
@@ -887,7 +888,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                     </div>
                     <div className="flex gap-2 justify-start lg:justify-end">
                       <button
-                        className="bg-transparent border border-amber-500/30 text-amber-600 hover:bg-amber-500/10 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer"
+                        className="bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
                         title="Edit Vessel Specifications & Seat Layout"
                         onClick={() => {
                           setEditingVesselId(v.id);
@@ -906,10 +907,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                           setShowVesselForm(true);
                         }}
                       >
-                        Edit
+                        <Pencil size={14} /> Edit
                       </button>
                       <button
-                        className="bg-transparent border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer"
+                        className="bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
                         title="Delete Vessel from Fleet Registry"
                         onClick={() => {
                           const result = removeVessel(v.id);
@@ -920,8 +921,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                           }
                         }}
                       >
-                        Delete
+                        <Trash2 size={14} /> Delete
                       </button>
+
 
                     </div>
                   </div>
@@ -1043,43 +1045,43 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
 
                   <div className="flex flex-wrap gap-2 justify-start lg:justify-end">
                     <button 
-                      className={`bg-transparent border font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer ${
+                      className={`font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm ${
                         s.disabled 
-                          ? 'border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10' 
-                          : 'border-slate-300 text-slate-500 hover:bg-slate-100'
+                          ? 'bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100' 
+                          : 'bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200'
                       }`}
                       title={s.disabled ? "Enable Daily Route Schedule" : "Disable Daily Route Schedule"}
                       onClick={() => editSchedule(s.id, { disabled: !s.disabled })}
                     >
-                      {s.disabled ? 'Enable' : 'Disable'}
+                      {s.disabled ? <Unlock size={14} /> : <Lock size={14} />} {s.disabled ? 'Enable' : 'Disable'}
                     </button>
                     <button 
-                      className={`bg-transparent border font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer ${
+                      className={`font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm ${
                         s.maintenance 
-                          ? 'border-sky-500/30 text-sky-600 hover:bg-sky-500/10' 
-                          : 'border-amber-500 text-amber-600 hover:bg-amber-50'
+                          ? 'bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100' 
+                          : 'bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100'
                       }`}
                       title={s.maintenance ? "Set Active Operational Mode" : "Set Maintenance Mode"}
                       onClick={() => editSchedule(s.id, { maintenance: !s.maintenance })}
                     >
-                      {s.maintenance ? 'Active Mode' : 'Maintenance'}
+                      <Wrench size={14} /> {s.maintenance ? 'Active Mode' : 'Maintenance'}
                     </button>
                     <button 
-                      className="bg-transparent border border-sky-500/30 text-sky-600 hover:bg-sky-500/10 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer"
+                      className="bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
                       title="Manage Seating Map & Lock/Release Individual Seats"
                       onClick={() => setManagingScheduleId(s.id)}
                     >
-                      Manage Seats
+                      <Armchair size={14} /> Manage Seats
                     </button>
                     <button 
-                      className="bg-transparent border border-amber-500/30 text-amber-600 hover:bg-amber-500/10 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer"
+                      className="bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
                       title="Edit Route Schedule Details & Pricing"
                       onClick={() => handleOpenEditForm(s.id)}
                     >
-                      Edit
+                      <Pencil size={14} /> Edit
                     </button>
                     <button 
-                      className="bg-transparent border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer"
+                      className="bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
                       title="Cancel This Route Schedule"
                       onClick={() => {
                         const hasActiveBookings = bookings.some(b => b.scheduleId === s.id && (b.status === 'verified' || b.status === 'pending_verification'));
@@ -1092,8 +1094,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                         }
                       }}
                     >
-                      Cancel Route
+                      <Trash2 size={14} /> Cancel Route
                     </button>
+
                   </div>
                 </div>
               );
