@@ -18,10 +18,8 @@ if [ ! -f "vendor/autoload.php" ]; then
     composer update --no-dev --optimize-autoloader --no-interaction --no-scripts --no-audit 2>&1 || true
 fi
 
-# Ensure storage directories exist with proper permissions
+# Ensure storage directories exist
 mkdir -p storage/framework/views storage/framework/sessions storage/framework/cache storage/logs bootstrap/cache
-chown -R www-data:www-data storage bootstrap/cache || true
-chmod -R 775 storage bootstrap/cache || true
 
 echo "==> Waiting for PostgreSQL database connection..."
 until php -r "try { new PDO('pgsql:host='.getenv('DB_HOST').';port='.getenv('DB_PORT').';dbname='.getenv('DB_DATABASE'), getenv('DB_USERNAME'), getenv('DB_PASSWORD')); exit(0); } catch (\Exception \$e) { exit(1); }" > /dev/null 2>&1; do
@@ -36,10 +34,16 @@ php artisan package:discover --ansi || true
 echo "==> Running Database Migrations & Seeding..."
 php artisan migrate:fresh --seed --force || php artisan migrate --force || true
 
-echo "==> Caching Configuration, Routes & Views..."
+echo "==> Caching Configuration & Routes..."
 php artisan config:cache || true
 php artisan route:cache || true
-php artisan view:cache || true
+
+# Clear cached views so php-fpm compiles them dynamically with www-data permissions
+php artisan view:clear || true
+
+echo "==> Setting storage permissions for www-data..."
+chown -R www-data:www-data storage bootstrap/cache || true
+chmod -R 777 storage bootstrap/cache || true
 
 echo "==> Starting PHP-FPM..."
 exec php-fpm
