@@ -124,11 +124,15 @@ export const ScheduleList: React.FC<Props> = ({ fromPort, toPort, onSelect }) =>
                     }`}>
                       {schedule.vesselType}
                     </span>
+                    <span className="inline-block text-[10px] font-black px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider" title="Schedule Recurrence Frequency">
+                      📅 {schedule.recurrence || 'Daily'}
+                    </span>
                     {inMaintenance && (
                       <span className="inline-block text-[10px] font-black px-2.5 py-0.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 uppercase tracking-wider animate-pulse">
                         Maintenance
                       </span>
                     )}
+
                   </div>
                 </div>
               </div>
