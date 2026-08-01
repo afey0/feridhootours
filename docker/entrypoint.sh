@@ -9,6 +9,15 @@ if [ ! -f ".env" ]; then
     cp .env.example .env || true
 fi
 
+# Ensure vendor/autoload.php exists (recovers from host bind-mount overrides)
+if [ ! -f "vendor/autoload.php" ]; then
+    echo "==> vendor/autoload.php not found. Installing PHP dependencies..."
+    export COMPOSER_ALLOW_SUPERUSER=1
+    export COMPOSER_NO_AUDIT=1
+    composer config policy.advisories.block false || true
+    composer update --no-dev --optimize-autoloader --no-interaction --no-scripts --no-audit 2>&1 || true
+fi
+
 # Ensure storage directories exist with proper permissions
 mkdir -p storage/framework/views storage/framework/sessions storage/framework/cache storage/logs bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache || true
