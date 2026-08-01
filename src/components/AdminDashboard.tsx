@@ -160,6 +160,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
   const [price, setPrice] = useState(20);
   const [routeFrom, setRouteFrom] = useState('MLE');
   const [routeTo, setRouteTo] = useState('MAF');
+  const [scheduleRecurrence, setScheduleRecurrence] = useState<'Daily' | 'Weekly' | 'Monthly' | 'Specific Date'>('Daily');
+  const [scheduleDate, setScheduleDate] = useState('2026-08-01');
+
   
   const [routeVesselId, setRouteVesselId] = useState('');
 
@@ -278,6 +281,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
     setPrice(s.price);
     setRouteFrom(s.routeFrom);
     setRouteTo(s.routeTo);
+    setScheduleRecurrence(s.recurrence || 'Daily');
+    setScheduleDate(s.scheduleDate || '2026-08-01');
     setStops(s.stops || []);
     setDisabled(!!s.disabled);
     setMaintenance(!!s.maintenance);
@@ -294,6 +299,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
     setPrice(20);
     setRouteFrom('MLE');
     setRouteTo('MAF');
+    setScheduleRecurrence('Daily');
+    setScheduleDate('2026-08-01');
     setStops([]);
     setDisabled(false);
     setMaintenance(false);
@@ -323,12 +330,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
       price,
       routeFrom,
       routeTo,
+      recurrence: scheduleRecurrence,
+      scheduleDate,
       totalSeats,
       amenities: vessel.amenities,
       stops,
       disabled,
       maintenance
     };
+
 
     let generatedSeats: Seat[] = [];
     if (vessel.customSeats && vessel.customSeats.length === totalSeats) {
@@ -2568,9 +2578,35 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Recurrence Frequency</label>
+                    <select 
+                      className="bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-800 text-xs focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 cursor-pointer font-semibold transition duration-200"
+                      value={scheduleRecurrence}
+                      onChange={(e) => setScheduleRecurrence(e.target.value as any)}
+                    >
+                      <option value="Daily">Daily Transfer</option>
+                      <option value="Weekly">Weekly Transfer</option>
+                      <option value="Monthly">Monthly Transfer</option>
+                      <option value="Specific Date">Specific Date Only</option>
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Schedule Date</label>
+                    <input 
+                      type="date" 
+                      className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:outline-none focus:border-sky-500 font-semibold"
+                      value={scheduleDate}
+                      onChange={(e) => setScheduleDate(e.target.value)}
+                    />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Departure Time</label>
+
                     <input 
                       type="text" 
                       className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-slate-800 text-sm focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 font-medium transition duration-200" 
