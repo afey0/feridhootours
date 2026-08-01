@@ -24,6 +24,8 @@ class Schedule extends Model
         'price',
         'route_from',
         'route_to',
+        'recurrence',
+        'schedule_date',
         'amenities',
         'stops',
         'disabled',
@@ -38,5 +40,6 @@ class Schedule extends Model
         'price' => 'decimal:2',
         'disabled' => 'boolean',
         'maintenance' => 'boolean',
+        'schedule_date' => 'date',
     ];
 }

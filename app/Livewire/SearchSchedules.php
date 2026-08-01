@@ -27,6 +27,7 @@ class SearchSchedules extends Component
     public $selectedSeats = [];
     public $reservedSeats = [];
     public $passengersData = [];
+    public $activeBookingId = null;
     
     // Payment & Promo
     public $promoCode = '';
@@ -104,9 +105,9 @@ class SearchSchedules extends Component
             ]);
         }
 
-        // Fetch all reserved seat IDs for this schedule from existing active bookings
+        // Fetch all reserved seat IDs for this schedule from existing active/checkout bookings
         $existingBookings = Booking::where('schedule_id', $this->selectedSchedule->id)
-            ->whereIn('status', ['verified', 'pending_verification'])
+            ->whereIn('status', ['verified', 'pending_verification', 'in_checkout'])
             ->get();
 
         $this->reservedSeats = [];
@@ -118,6 +119,7 @@ class SearchSchedules extends Component
         $this->reservedSeats = array_values(array_unique($this->reservedSeats));
 
         $this->selectedSeats = [];
+        $this->activeBookingId = null;
         $this->initPassengerData();
         $this->currentStep = 'select_seats';
     }
@@ -125,7 +127,7 @@ class SearchSchedules extends Component
     public function toggleSeat($seatId)
     {
         if (in_array($seatId, $this->reservedSeats)) {
-            session()->flash('step_error', "Seat {$seatId} is already booked and reserved!");
+            session()->flash('step_error', "Seat {$seatId} is already locked/reserved by a passenger!");
             return;
         }
 
@@ -150,6 +152,33 @@ class SearchSchedules extends Component
             return;
         }
 
+        // Lock seats in DB by creating a temporary pending reservation
+        if (!$this->activeBookingId) {
+            $bookingId = 'SFY-LOCK-' . strtoupper(substr(md5(uniqid()), 0, 5));
+            
+            Booking::create([
+                'id' => $bookingId,
+                'schedule_id' => $this->selectedSchedule->id,
+                'vessel_name' => $this->selectedSchedule->vessel_name,
+                'vessel_type' => $this->selectedSchedule->vessel_type,
+                'departure_time' => $this->selectedSchedule->departure_time,
+                'arrival_time' => $this->selectedSchedule->arrival_time,
+                'route_from' => $this->selectedSchedule->route_from,
+                'route_to' => $this->selectedSchedule->route_to,
+                'passengers' => $this->passengersData,
+                'selected_seat_ids' => $this->selectedSeats,
+                'total_amount' => $this->selectedSchedule->price * (int)$this->passengersCount,
+                'payment_method' => $this->paymentMethod,
+                'status' => 'in_checkout',
+                'booked_by' => Auth::check() ? Auth::user()->name : ($this->passengersData[0]['name'] ?? 'Guest Passenger'),
+                'user_id' => Auth::check() ? Auth::id() : null,
+                'passenger_email' => Auth::check() ? Auth::user()->email : 'guest@feridhootours.mv',
+            ]);
+
+            $this->activeBookingId = $bookingId;
+            $this->reservedSeats = array_values(array_unique(array_merge($this->reservedSeats, $this->selectedSeats)));
+        }
+
         $this->currentStep = 'passenger_details';
     }
 
@@ -161,6 +190,14 @@ class SearchSchedules extends Component
                 session()->flash('step_error', 'Please enter passenger names for all assigned seats.');
                 return;
             }
+        }
+
+        // Update active locked reservation with passenger names
+        if ($this->activeBookingId) {
+            Booking::where('id', $this->activeBookingId)->update([
+                'passengers' => $this->passengersData,
+                'booked_by' => $this->passengersData[0]['name'] ?? 'Guest Passenger',
+            ]);
         }
 
         $this->currentStep = 'payment';
@@ -190,50 +227,52 @@ class SearchSchedules extends Component
     {
         if (!$this->selectedSchedule) return;
 
-        // Double check seat availability before saving to prevent race conditions
-        $alreadyTaken = Booking::where('schedule_id', $this->selectedSchedule->id)
-            ->whereIn('status', ['verified', 'pending_verification'])
-            ->get()
-            ->pluck('selected_seat_ids')
-            ->flatten()
-            ->intersect($this->selectedSeats);
-
-        if ($alreadyTaken->count() > 0) {
-            session()->flash('step_error', 'One or more selected seats were reserved just now by another passenger. Please select different seats.');
-            $this->selectSchedule($this->selectedSchedule->id);
-            return;
-        }
-
         $subtotal = $this->selectedSchedule->price * (int)$this->passengersCount;
         $totalAmount = max(0, $subtotal - $this->discount);
-        $bookingId = 'SFY-' . strtoupper(substr(md5(uniqid()), 0, 6));
+        $finalStatus = $this->paymentMethod === 'bank_transfer' ? 'pending_verification' : 'verified';
 
-        $booking = Booking::create([
-            'id' => $bookingId,
-            'schedule_id' => $this->selectedSchedule->id,
-            'vessel_name' => $this->selectedSchedule->vessel_name,
-            'vessel_type' => $this->selectedSchedule->vessel_type,
-            'departure_time' => $this->selectedSchedule->departure_time,
-            'arrival_time' => $this->selectedSchedule->arrival_time,
-            'route_from' => $this->selectedSchedule->route_from,
-            'route_to' => $this->selectedSchedule->route_to,
-            'passengers' => $this->passengersData,
-            'selected_seat_ids' => $this->selectedSeats,
-            'total_amount' => $totalAmount,
-            'discount_applied' => $this->discount,
-            'promo_code_used' => $this->discount > 0 ? $this->promoCode : null,
-            'payment_method' => $this->paymentMethod,
-            'status' => $this->paymentMethod === 'bank_transfer' ? 'pending_verification' : 'verified',
-            'booked_by' => Auth::check() ? Auth::user()->name : ($this->passengersData[0]['name'] ?? 'Guest'),
-            'user_id' => Auth::check() ? Auth::id() : null,
-            'passenger_email' => Auth::check() ? Auth::user()->email : 'guest@feridhootours.mv',
-        ]);
+        if ($this->activeBookingId) {
+            Booking::where('id', $this->activeBookingId)->update([
+                'id' => str_replace('SFY-LOCK-', 'SFY-', $this->activeBookingId),
+                'passengers' => $this->passengersData,
+                'total_amount' => $totalAmount,
+                'discount_applied' => $this->discount,
+                'promo_code_used' => $this->discount > 0 ? $this->promoCode : null,
+                'payment_method' => $this->paymentMethod,
+                'status' => $finalStatus,
+                'booked_by' => Auth::check() ? Auth::user()->name : ($this->passengersData[0]['name'] ?? 'Guest Passenger'),
+                'user_id' => Auth::check() ? Auth::id() : null,
+                'passenger_email' => Auth::check() ? Auth::user()->email : 'guest@feridhootours.mv',
+            ]);
+
+            $newBookingId = str_replace('SFY-LOCK-', 'SFY-', $this->activeBookingId);
+            $booking = Booking::find($newBookingId);
+        } else {
+            $bookingId = 'SFY-' . strtoupper(substr(md5(uniqid()), 0, 6));
+            $booking = Booking::create([
+                'id' => $bookingId,
+                'schedule_id' => $this->selectedSchedule->id,
+                'vessel_name' => $this->selectedSchedule->vessel_name,
+                'vessel_type' => $this->selectedSchedule->vessel_type,
+                'departure_time' => $this->selectedSchedule->departure_time,
+                'arrival_time' => $this->selectedSchedule->arrival_time,
+                'route_from' => $this->selectedSchedule->route_from,
+                'route_to' => $this->selectedSchedule->route_to,
+                'passengers' => $this->passengersData,
+                'selected_seat_ids' => $this->selectedSeats,
+                'total_amount' => $totalAmount,
+                'discount_applied' => $this->discount,
+                'promo_code_used' => $this->discount > 0 ? $this->promoCode : null,
+                'payment_method' => $this->paymentMethod,
+                'status' => $finalStatus,
+                'booked_by' => Auth::check() ? Auth::user()->name : ($this->passengersData[0]['name'] ?? 'Guest Passenger'),
+                'user_id' => Auth::check() ? Auth::id() : null,
+                'passenger_email' => Auth::check() ? Auth::user()->email : 'guest@feridhootours.mv',
+            ]);
+        }
 
         // Decrement available seats count on schedule
         $this->selectedSchedule->decrement('available_seats', count($this->selectedSeats));
-
-        // Re-sync reserved seats
-        $this->reservedSeats = array_values(array_unique(array_merge($this->reservedSeats, $this->selectedSeats)));
 
         $this->confirmedBooking = $booking;
         $this->currentStep = 'confirmation';

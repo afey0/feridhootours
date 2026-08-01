@@ -2,8 +2,8 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200/80 pb-6">
         <div>
-            <h1 class="text-3xl font-black text-slate-850 font-display">My Digital Boarding Passes</h1>
-            <p class="text-xs text-slate-500 font-medium mt-1">Manage your speedboat bookings, view seat assignments, and upload payment receipts.</p>
+            <h1 class="text-3xl font-black text-slate-850 font-display">My Digital Boarding Passes & Reservations</h1>
+            <p class="text-xs text-slate-500 font-medium mt-1">Manage your speedboat bookings, view seat assignments, check-in, and upload payment receipts.</p>
         </div>
         <div class="relative w-full sm:w-72">
             <input type="text" wire:model.live="searchQuery" placeholder="Search by Ticket ID (e.g. SFY...)" class="w-full bg-white border border-slate-200 rounded-2xl px-4 py-2.5 text-xs text-slate-800 font-semibold focus:border-sky-500 focus:outline-none shadow-sm">
@@ -42,12 +42,13 @@
                                 $statusClasses = [
                                     'verified' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
                                     'pending_verification' => 'bg-amber-50 text-amber-700 border-amber-200',
+                                    'in_checkout' => 'bg-sky-50 text-sky-700 border-sky-200',
                                     'rejected' => 'bg-rose-50 text-rose-700 border-rose-200',
                                     'cancelled' => 'bg-slate-100 text-slate-500 border-slate-200',
                                 ];
                             @endphp
-                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border {{ $statusClasses[$b->status] ?? 'bg-slate-100 text-slate-600' }}">
-                                {{ str_replace('_', ' ', $b->status) }}
+                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border {{ $statusClasses[$b->status] ?? 'bg-slate-100 text-slate-600' }}" title="Current Reservation Status">
+                                {{ str_replace('_', ' ', $b->status === 'in_checkout' ? 'Seat Locked (In Checkout)' : $b->status) }}
                             </span>
                         </div>
                     </div>
@@ -71,24 +72,24 @@
                         </div>
                     </div>
 
-                    <!-- Actions Bar -->
+                    <!-- Actions Bar with Bootstrap-Style Icons & Hover Tooltips -->
                     <div class="flex flex-wrap items-center justify-between border-t border-slate-100 pt-4 gap-3">
                         <span class="text-[11px] text-slate-500">Booked by <strong class="text-slate-800">{{ $b->booked_by }}</strong></span>
 
                         <div class="flex items-center gap-2">
                             @if($b->status === 'pending_verification')
-                                <button type="button" wire:click="uploadBankSlip('{{ $b->id }}')" class="px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-extrabold transition">
+                                <button type="button" wire:click="uploadBankSlip('{{ $b->id }}')" class="p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5" title="Upload Bank Transfer Payment Receipt for Operator Audit">
                                     📤 Upload Bank Slip
                                 </button>
                             @endif
 
-                            <button type="button" wire:click="openTicketModal('{{ $b->id }}')" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold transition shadow-sm">
+                            <button type="button" wire:click="openTicketModal('{{ $b->id }}')" class="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold transition shadow-sm cursor-pointer flex items-center gap-1.5" title="View Digital QR Boarding Pass">
                                 🎟️ Boarding Pass
                             </button>
 
                             @if($b->status !== 'cancelled')
-                                <button type="button" wire:click="cancelBooking('{{ $b->id }}')" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition">
-                                    Cancel
+                                <button type="button" wire:click="cancelBooking('{{ $b->id }}')" class="p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition cursor-pointer flex items-center gap-1.5" title="Cancel Ticket Reservation & Release Seat">
+                                    ❌ Cancel
                                 </button>
                             @endif
                         </div>
@@ -102,7 +103,7 @@
     @if($showTicketModal && $selectedBooking)
         <div class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" wire:click.self="closeTicketModal">
             <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 shadow-2xl relative text-left space-y-6">
-                <button wire:click="closeTicketModal" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1">✕</button>
+                <button wire:click="closeTicketModal" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1 cursor-pointer" title="Close Ticket Window">✕</button>
 
                 <div class="text-center space-y-2 border-b border-slate-100 pb-4">
                     <span class="text-[10px] font-extrabold uppercase tracking-widest text-sky-600">Maldives Maritime Pass</span>
@@ -139,7 +140,7 @@
                 </div>
 
                 <div class="text-center pt-2">
-                    <button wire:click="closeTicketModal" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-2xl">
+                    <button wire:click="closeTicketModal" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-2xl cursor-pointer" title="Close Ticket Overlay">
                         Close Boarding Pass
                     </button>
                 </div>

@@ -35,6 +35,8 @@ class AdminDashboard extends Component
     public $scheduleArrivalTime = '09:15 AM';
     public $schedulePrice = 35.00;
     public $scheduleTotalSeats = 32;
+    public $scheduleRecurrence = 'Daily'; // 'Daily', 'Weekly', 'Monthly', 'Specific Date'
+    public $scheduleDate = '';
 
     // Reject Modal State
     public $rejectBookingId = null;
@@ -48,6 +50,7 @@ class AdminDashboard extends Component
         if (request()->has('tab')) {
             $this->activeTab = request()->query('tab');
         }
+        $this->scheduleDate = date('Y-m-d');
     }
 
     public function setTab($tab)
@@ -130,6 +133,8 @@ class AdminDashboard extends Component
                 $this->scheduleArrivalTime = $s->arrival_time;
                 $this->schedulePrice = $s->price;
                 $this->scheduleTotalSeats = $s->total_seats;
+                $this->scheduleRecurrence = $s->recurrence ?? 'Daily';
+                $this->scheduleDate = $s->schedule_date ? $s->schedule_date->format('Y-m-d') : date('Y-m-d');
             }
         } else {
             $vessel = Vessel::first();
@@ -140,6 +145,8 @@ class AdminDashboard extends Component
             $this->scheduleArrivalTime = '09:15 AM';
             $this->schedulePrice = 35.00;
             $this->scheduleTotalSeats = 32;
+            $this->scheduleRecurrence = 'Daily';
+            $this->scheduleDate = date('Y-m-d');
         }
         $this->showScheduleModal = true;
     }
@@ -161,6 +168,8 @@ class AdminDashboard extends Component
                 'arrival_time' => $this->scheduleArrivalTime,
                 'price' => $this->schedulePrice,
                 'total_seats' => $this->scheduleTotalSeats,
+                'recurrence' => $this->scheduleRecurrence,
+                'schedule_date' => $this->scheduleDate ?: null,
             ]);
             $this->flashMessage = "Schedule updated successfully.";
         } else {
@@ -176,6 +185,8 @@ class AdminDashboard extends Component
                 'available_seats' => $this->scheduleTotalSeats,
                 'total_seats' => $this->scheduleTotalSeats,
                 'price' => $this->schedulePrice,
+                'recurrence' => $this->scheduleRecurrence,
+                'schedule_date' => $this->scheduleDate ?: null,
             ]);
             $this->flashMessage = "New schedule created.";
         }

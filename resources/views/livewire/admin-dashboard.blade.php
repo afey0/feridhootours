@@ -6,7 +6,7 @@
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 <h1 class="text-3xl font-black text-slate-850 font-display">Operator Admin Console</h1>
             </div>
-            <p class="text-xs text-slate-500 font-medium mt-1">Fleet management, daily schedules, bank slip verification, audit logs & user directory</p>
+            <p class="text-xs text-slate-500 font-medium mt-1">Fleet management, daily/weekly/monthly schedules, bank slip verification, audit logs & user directory</p>
         </div>
 
         @if(session()->has('flashMessage') || $flashMessage)
@@ -18,25 +18,25 @@
 
     <!-- Admin Tabs Bar -->
     <div class="flex flex-wrap gap-2 border-b border-slate-200/80 pb-4">
-        <button type="button" wire:click="setTab('vessels')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'vessels' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}">
+        <button type="button" wire:click="setTab('vessels')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'vessels' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}" title="Manage Fleet Vessels & Seat Capacity">
             🚤 Fleet Vessels ({{ count($vessels) }})
         </button>
-        <button type="button" wire:click="setTab('schedules')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'schedules' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}">
-            📅 Daily Schedules ({{ count($schedules) }})
+        <button type="button" wire:click="setTab('schedules')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'schedules' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}" title="Manage Daily, Weekly & Monthly Routes">
+            📅 Routes & Schedules ({{ count($schedules) }})
         </button>
-        <button type="button" wire:click="setTab('bookings')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'bookings' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}">
+        <button type="button" wire:click="setTab('bookings')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'bookings' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}" title="Verify Payments & Audit Reserved Bookings">
             🎟️ Verification & Bookings ({{ count($bookings) }})
         </button>
-        <button type="button" wire:click="setTab('users')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'users' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}">
+        <button type="button" wire:click="setTab('users')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'users' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}" title="Registered User Accounts Directory">
             👥 User Directory ({{ count($users) }})
         </button>
-        <button type="button" wire:click="setTab('reports')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'reports' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}">
+        <button type="button" wire:click="setTab('reports')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'reports' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}" title="Platform Financial Reports & Revenue Analytics">
             📊 Financial Reports
         </button>
-        <button type="button" wire:click="setTab('emails')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'emails' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}">
+        <button type="button" wire:click="setTab('emails')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'emails' ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}" title="Automated Email Dispatcher & Weather Alerts">
             ✉️ Email Control
         </button>
-        <button type="button" wire:click="setTab('audit')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'audit' ? 'bg-amber-500 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}">
+        <button type="button" wire:click="setTab('audit')" class="px-4 py-2.5 rounded-2xl text-xs font-extrabold transition cursor-pointer {{ $activeTab === 'audit' ? 'bg-amber-500 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' }}" title="Super Admin Activity & System Audit Logs">
             🛡️ Audit Logs ({{ count($auditLogs) }})
         </button>
     </div>
@@ -45,8 +45,8 @@
     @if($activeTab === 'vessels')
         <div class="space-y-6">
             <div class="flex justify-between items-center">
-                <h3 class="text-lg font-extrabold text-slate-850 font-display">Registered Vessels</h3>
-                <button type="button" wire:click="openVesselModal" class="px-4 py-2.5 rounded-2xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-md shadow-sky-600/20">
+                <h3 class="text-lg font-extrabold text-slate-850 font-display">Registered Fleet Vessels</h3>
+                <button type="button" wire:click="openVesselModal" class="px-4 py-2.5 rounded-2xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-md shadow-sky-600/20 cursor-pointer" title="Register New Speedboat or Ferry Vessel">
                     + Register Vessel
                 </button>
             </div>
@@ -68,9 +68,13 @@
                                 <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-bold">Premium: {{ $v->premium_rows }}</span>
                             </div>
                         </div>
-                        <div class="flex gap-2">
-                            <button type="button" wire:click="openVesselModal('{{ $v->id }}')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold">Edit</button>
-                            <button type="button" wire:click="deleteVessel('{{ $v->id }}')" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-extrabold">Delete</button>
+                        <div class="flex gap-1.5">
+                            <button type="button" wire:click="openVesselModal('{{ $v->id }}')" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold transition cursor-pointer" title="Edit Vessel Specifications & Seat Layout">
+                                ✏️
+                            </button>
+                            <button type="button" wire:click="deleteVessel('{{ $v->id }}')" class="p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-extrabold transition cursor-pointer" title="Delete Vessel from Fleet Registry">
+                                🗑️
+                            </button>
                         </div>
                     </div>
                 @endforeach
@@ -78,12 +82,15 @@
         </div>
     @endif
 
-    <!-- TAB 2: DAILY SCHEDULES -->
+    <!-- TAB 2: ROUTES & DAILY/WEEKLY/MONTHLY SCHEDULES -->
     @if($activeTab === 'schedules')
         <div class="space-y-6">
             <div class="flex justify-between items-center">
-                <h3 class="text-lg font-extrabold text-slate-850 font-display">Active Schedules</h3>
-                <button type="button" wire:click="openScheduleModal" class="px-4 py-2.5 rounded-2xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-md shadow-sky-600/20">
+                <div>
+                    <h3 class="text-lg font-extrabold text-slate-850 font-display">Active Routes & Recurrence Schedules</h3>
+                    <p class="text-xs text-slate-500 font-medium">Configure daily, weekly, monthly or specific date transfer runs</p>
+                </div>
+                <button type="button" wire:click="openScheduleModal" class="px-4 py-2.5 rounded-2xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-md shadow-sky-600/20 cursor-pointer" title="Add New Route Schedule">
                     + Add Schedule
                 </button>
             </div>
@@ -91,25 +98,31 @@
             <div class="grid grid-cols-1 gap-4">
                 @foreach($schedules as $s)
                     <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div class="space-y-1">
+                        <div class="space-y-1.5">
                             <div class="flex items-center gap-3">
                                 <h4 class="text-base font-extrabold text-slate-850 font-display">{{ $s->vessel_name }}</h4>
                                 <span class="text-xs font-mono font-bold text-sky-600">{{ $s->route_from }} → {{ $s->route_to }}</span>
+                                <span class="px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 text-[10px] font-extrabold uppercase">
+                                    {{ $s->recurrence ?? 'Daily' }}
+                                </span>
                                 @if($s->disabled)
                                     <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-200 text-[10px] font-bold">Disabled</span>
                                 @endif
                             </div>
                             <div class="text-xs text-slate-500 font-medium">
                                 🕒 {{ $s->departure_time }} - {{ $s->arrival_time }} · 💺 Available: {{ $s->available_seats }}/{{ $s->total_seats }} · 💵 Price: ${{ number_format($s->price, 2) }}
+                                @if($s->schedule_date)
+                                    · 📅 Date: {{ $s->schedule_date->format('Y-m-d') }}
+                                @endif
                             </div>
                         </div>
 
                         <div class="flex gap-2">
-                            <button type="button" wire:click="toggleScheduleDisable('{{ $s->id }}')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold">
-                                {{ $s->disabled ? 'Enable' : 'Disable' }}
+                            <button type="button" wire:click="toggleScheduleDisable('{{ $s->id }}')" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold transition cursor-pointer" title="{{ $s->disabled ? 'Enable Daily Route Schedule' : 'Disable Daily Route Schedule' }}">
+                                {{ $s->disabled ? '🔓 Enable' : '🔒 Disable' }}
                             </button>
-                            <button type="button" wire:click="openScheduleModal('{{ $s->id }}')" class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-extrabold">
-                                Edit
+                            <button type="button" wire:click="openScheduleModal('{{ $s->id }}')" class="p-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold transition cursor-pointer" title="Edit Route Schedule, Times & Recurrence">
+                                ✏️ Edit
                             </button>
                         </div>
                     </div>
@@ -143,14 +156,18 @@
                                 <td class="p-4 text-slate-700">{{ $b->booked_by }}<br><span class="text-[10px] text-slate-400">{{ $b->passenger_email }}</span></td>
                                 <td class="p-4 uppercase text-slate-700">{{ $b->payment_method }} (${{ number_format($b->total_amount, 2) }})</td>
                                 <td class="p-4">
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider {{ $b->status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($b->status === 'pending_verification' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-rose-50 text-rose-700 border border-rose-200') }}">
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider {{ $b->status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($b->status === 'pending_verification' ? 'bg-amber-50 text-amber-700 border border-amber-200' : ($b->status === 'in_checkout' ? 'bg-sky-50 text-sky-700 border border-sky-200' : 'bg-rose-50 text-rose-700 border border-rose-200')) }}">
                                         {{ str_replace('_', ' ', $b->status) }}
                                     </span>
                                 </td>
                                 <td class="p-4 text-right space-x-1">
-                                    @if($b->status === 'pending_verification')
-                                        <button type="button" wire:click="approveBooking('{{ $b->id }}')" class="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[11px]">Approve</button>
-                                        <button type="button" wire:click="rejectBooking('{{ $b->id }}')" class="px-3 py-1 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-[11px]">Reject</button>
+                                    @if($b->status === 'pending_verification' || $b->status === 'in_checkout')
+                                        <button type="button" wire:click="approveBooking('{{ $b->id }}')" class="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs transition cursor-pointer" title="Approve Bank Slip Payment & Confirm Seat Reservation">
+                                            ✅ Approve
+                                        </button>
+                                        <button type="button" wire:click="rejectBooking('{{ $b->id }}')" class="p-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs transition cursor-pointer" title="Reject Payment & Cancel Reservation">
+                                            ❌ Reject
+                                        </button>
                                     @endif
                                 </td>
                             </tr>
@@ -305,7 +322,7 @@
     @if($showScheduleModal)
         <div class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" wire:click.self="$set('showScheduleModal', false)">
             <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 text-left">
-                <h3 class="text-xl font-black text-slate-850 font-display">{{ $editingScheduleId ? 'Edit Schedule' : 'Add Daily Schedule' }}</h3>
+                <h3 class="text-xl font-black text-slate-850 font-display">{{ $editingScheduleId ? 'Edit Schedule' : 'Add Route Schedule' }}</h3>
                 <div class="space-y-3">
                     <div>
                         <label class="text-xs font-bold text-slate-500 uppercase">Select Vessel</label>
@@ -325,8 +342,23 @@
                         <div>
                             <label class="text-xs font-bold text-slate-500 uppercase">To</label>
                             <select wire:model="scheduleRouteTo" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-slate-800 text-xs font-semibold">
-                                @foreach($jetties as $j)<option value="{{ $j->id }}">{{ $j->name }}</option>@endforeach
+                                @foreach($jetties as $j)<option value="{{ $j->id }}">{{ $j->name }}</option@endforeach
                             </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase">Recurrence</label>
+                            <select wire:model="scheduleRecurrence" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-slate-800 text-xs font-semibold">
+                                <option value="Daily">Daily Transfer</option>
+                                <option value="Weekly">Weekly Transfer</option>
+                                <option value="Monthly">Monthly Transfer</option>
+                                <option value="Specific Date">Specific Date Only</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase">Specific Date (Optional)</label>
+                            <input type="date" wire:model="scheduleDate" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-slate-800 text-xs font-semibold">
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">

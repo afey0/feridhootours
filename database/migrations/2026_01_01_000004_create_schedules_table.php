@@ -23,6 +23,8 @@ return new class extends Migration
             $table->decimal('price', 10, 2);
             $table->string('route_from', 32);
             $table->string('route_to', 32);
+            $table->string('recurrence', 32)->default('Daily'); // 'Daily', 'Weekly', 'Monthly', 'Specific Date'
+            $table->date('schedule_date')->nullable();
             $table->json('amenities')->nullable();
             $table->json('stops')->nullable();
             $table->boolean('disabled')->default(false);
