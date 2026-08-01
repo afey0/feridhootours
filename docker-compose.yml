@@ -1,6 +1,5 @@
-version: '3.8'
-
 services:
+
   # 1. Nginx Reverse Proxy
   nginx:
     image: nginx:1.25-alpine
