@@ -4,7 +4,7 @@ FROM node:22-alpine AS frontend
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --legacy-peer-deps || npm ci
+RUN npm ci
 
 COPY . .
 RUN npm run build || mkdir -p dist
@@ -47,9 +47,11 @@ RUN mkdir -p storage/framework/views \
     && chmod -R 775 storage bootstrap/cache
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
-ENV COMPOSER_NO_AUDIT=1
-RUN composer config policy.advisories.block false || true && \
-    composer update --no-dev --optimize-autoloader --no-interaction --no-scripts --no-audit 2>&1
+RUN composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction \
+    --no-scripts
 
 RUN chmod +x docker/entrypoint.sh entrypoint.sh || true
 
