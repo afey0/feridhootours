@@ -36,8 +36,10 @@ services:
       - storage_sessions:/var/www/html/storage/framework/sessions
     environment:
       APP_NAME: "FeridhooTours"
-      APP_ENV: "production"
+      APP_ENV: "local"
       APP_DEBUG: "true"
+      LOG_LEVEL: "debug"
+
       APP_KEY: "base64:O/gBy/p6QBDSt68/nNQycolDLEjjB02fzoRKQojc+PI="
 
       APP_URL: "http://localhost"
