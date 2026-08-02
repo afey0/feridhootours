@@ -4,7 +4,8 @@ import type { Seat, Schedule, Booking, Jetty, Vessel, Passenger } from '../data/
 
 import type { AuditLogEntry, AuditAction, AuditEntityType } from '../types/audit';
 import { createAuditEntry } from '../services/auditLogger';
-import { broadcastRealtimeEvent, subscribeRealtimeEvents } from '../services/dbClient';
+import { broadcastRealtimeEvent, subscribeRealtimeEvents, fetchInitialDatabaseState } from '../services/dbClient';
+
 import { calculateRefund } from '../utils/refundPolicy';
 
 // Storage utility helpers
@@ -256,7 +257,20 @@ export const usePlatformStore = () => {
     };
     listeners.add(update);
 
+    // Load initial database snapshot from 192.168.100.71 PostgreSQL server
+    fetchInitialDatabaseState().then(dbData => {
+      if (dbData) {
+        if (dbData.vessels && dbData.vessels.length > 0) globalVessels = dbData.vessels;
+        if (dbData.schedules && dbData.schedules.length > 0) globalSchedules = dbData.schedules;
+        if (dbData.bookings) globalBookings = dbData.bookings;
+        if (dbData.auditLogs) globalAuditLogs = dbData.auditLogs;
+        if (dbData.locations && dbData.locations.length > 0) globalLocations = dbData.locations;
+        update();
+      }
+    });
+
     // Subscribe to cross-session realtime events
+
     const unsubscribe = subscribeRealtimeEvents((type, _payload) => {
       if (type === 'STATE_SYNC' || type.startsWith('BOOKING_') || type.startsWith('SCHEDULE_') || type.startsWith('VESSEL_')) {
         update();

@@ -78,3 +78,20 @@ if (typeof window !== 'undefined' && 'EventSource' in window) {
     // Ignore SSE fallback
   }
 }
+
+// Fetch initial database snapshot from PostgreSQL backend
+export const fetchInitialDatabaseState = async () => {
+
+  try {
+    const res = await fetch('/api/v1/sync');
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (json && json.success && json.data) {
+      return json.data;
+    }
+  } catch (err) {
+    console.warn('[DB Fetch Error] Could not connect to PostgreSQL server:', err);
+  }
+  return null;
+};
+
