@@ -122,6 +122,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
   const [auditFilterEntity, setAuditFilterEntity] = useState<string>('ALL');
   const [auditFilterRole, setAuditFilterRole] = useState<string>('ALL');
   const [auditSearchQuery, setAuditSearchQuery] = useState<string>('');
+  const [auditPageSize, setAuditPageSize] = useState<number>(10);
+  const [auditCurrentPage, setAuditCurrentPage] = useState<number>(1);
+
 
   const [auditViewMode, setAuditViewMode] = useState<'table' | 'timeline'>('table');
   const [inspectingAuditLog, setInspectingAuditLog] = useState<AuditLogEntry | null>(null);
@@ -1998,278 +2001,337 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
             </div>
           </div>
 
-          {/* Filters & Search */}
-          <div className="glass-panel p-4 rounded-2xl border border-slate-200 bg-white shadow-sm flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Action:</label>
-                <select
-                  className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
-                  value={auditFilterAction}
-                  onChange={(e) => setAuditFilterAction(e.target.value)}
-                >
-                  <option value="ALL">All Actions</option>
-                  <option value="LOGIN_SUCCESS">🔑 LOGIN_SUCCESS</option>
-                  <option value="LOGIN_FAILED">🚨 LOGIN_FAILED</option>
-                  <option value="LOGOUT">🚪 LOGOUT</option>
-                  <option value="SEAT_LOCKED">🔒 SEAT_LOCKED</option>
-                  <option value="BOOKING_CREATED">🎟️ BOOKING_CREATED</option>
-                  <option value="SLIP_UPLOADED">📄 SLIP_UPLOADED</option>
-                  <option value="VERIFY_PAYMENT">✅ VERIFY_PAYMENT</option>
-                  <option value="REJECT_PAYMENT">❌ REJECT_PAYMENT</option>
-                  <option value="CREATE">CREATE</option>
-                  <option value="UPDATE">UPDATE</option>
-                  <option value="DELETE">DELETE</option>
-                  <option value="RECEIPT_DELETED">RECEIPT_DELETED</option>
-                  <option value="USER_CREATED">USER_CREATED</option>
-                  <option value="USER_DELETED">USER_DELETED</option>
-                </select>
-              </div>
+          {/* Compute Filtered & Paginated Audit Logs */}
+          {(() => {
+            const filteredAuditLogs = auditLogs
+              .filter(a => auditFilterAction === 'ALL' || a.action === auditFilterAction)
+              .filter(a => auditFilterEntity === 'ALL' || a.entityType === auditFilterEntity)
+              .filter(a => auditFilterRole === 'ALL' || (a.performedBy?.role || '').toLowerCase() === auditFilterRole.toLowerCase())
+              .filter(a => {
+                if (!auditSearchQuery.trim()) return true;
+                const q = auditSearchQuery.toLowerCase().trim();
+                const headline = getAuditHeadline(a).toLowerCase();
+                return (
+                  a.id.toLowerCase().includes(q) ||
+                  a.entityId.toLowerCase().includes(q) ||
+                  headline.includes(q) ||
+                  a.performedBy.name.toLowerCase().includes(q) ||
+                  (a.performedBy.email && a.performedBy.email.toLowerCase().includes(q))
+                );
+              });
 
-              <div className="flex items-center gap-2">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Entity:</label>
-                <select
-                  className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
-                  value={auditFilterEntity}
-                  onChange={(e) => setAuditFilterEntity(e.target.value)}
-                >
-                  <option value="ALL">All Entities</option>
-                  <option value="AUTH">AUTH / LOGIN</option>
-                  <option value="BOOKING">BOOKING</option>
-                  <option value="SCHEDULE">SCHEDULE</option>
-                  <option value="VESSEL">VESSEL</option>
-                  <option value="USER">USER</option>
-                  <option value="JETTY">JETTY</option>
-                  <option value="RECEIPT">RECEIPT</option>
-                </select>
-              </div>
+            const totalAuditItems = filteredAuditLogs.length;
+            const totalAuditPages = Math.max(1, Math.ceil(totalAuditItems / auditPageSize));
+            const validAuditPage = Math.min(auditCurrentPage, totalAuditPages);
+            const startAuditIdx = (validAuditPage - 1) * auditPageSize;
+            const paginatedAuditLogs = filteredAuditLogs.slice(startAuditIdx, startAuditIdx + auditPageSize);
 
-              <div className="flex items-center gap-2">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">User Role:</label>
-                <select
-                  className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
-                  value={auditFilterRole}
-                  onChange={(e) => setAuditFilterRole(e.target.value)}
-                >
-                  <option value="ALL">All Roles</option>
-                  <option value="passenger">Passenger</option>
-                  <option value="agency">Travel Agency</option>
-                  <option value="admin">Operator Admin</option>
-                  <option value="super_admin">Super Admin</option>
-                </select>
-              </div>
-            </div>
+            return (
+              <>
+                {/* Filters & Search & Per Page */}
+                <div className="glass-panel p-4 rounded-2xl border border-slate-200 bg-white shadow-sm flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Action:</label>
+                      <select
+                        className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                        value={auditFilterAction}
+                        onChange={(e) => {
+                          setAuditFilterAction(e.target.value);
+                          setAuditCurrentPage(1);
+                        }}
+                      >
+                        <option value="ALL">All Actions</option>
+                        <option value="LOGIN_SUCCESS">🔑 LOGIN_SUCCESS</option>
+                        <option value="LOGIN_FAILED">🚨 LOGIN_FAILED</option>
+                        <option value="LOGOUT">🚪 LOGOUT</option>
+                        <option value="SEAT_LOCKED">🔒 SEAT_LOCKED</option>
+                        <option value="BOOKING_CREATED">🎟️ BOOKING_CREATED</option>
+                        <option value="SLIP_UPLOADED">📄 SLIP_UPLOADED</option>
+                        <option value="VERIFY_PAYMENT">✅ VERIFY_PAYMENT</option>
+                        <option value="REJECT_PAYMENT">❌ REJECT_PAYMENT</option>
+                        <option value="CREATE">CREATE</option>
+                        <option value="UPDATE">UPDATE</option>
+                        <option value="DELETE">DELETE</option>
+                        <option value="RECEIPT_DELETED">RECEIPT_DELETED</option>
+                        <option value="USER_CREATED">USER_CREATED</option>
+                        <option value="USER_DELETED">USER_DELETED</option>
+                      </select>
+                    </div>
 
-            <div className="relative flex-1 max-w-sm">
-              <Search size={14} className="absolute left-3.5 top-3 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search audit logs by ID, summary, user, or email..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-sky-500"
-                value={auditSearchQuery}
-                onChange={(e) => setAuditSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Entity:</label>
+                      <select
+                        className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                        value={auditFilterEntity}
+                        onChange={(e) => {
+                          setAuditFilterEntity(e.target.value);
+                          setAuditCurrentPage(1);
+                        }}
+                      >
+                        <option value="ALL">All Entities</option>
+                        <option value="AUTH">AUTH / LOGIN</option>
+                        <option value="BOOKING">BOOKING</option>
+                        <option value="SCHEDULE">SCHEDULE</option>
+                        <option value="VESSEL">VESSEL</option>
+                        <option value="USER">USER</option>
+                        <option value="JETTY">JETTY</option>
+                        <option value="RECEIPT">RECEIPT</option>
+                      </select>
+                    </div>
 
-          {/* TABLE VIEW */}
-          {auditViewMode === 'table' && (
-            <div className="glass-panel rounded-2xl border border-slate-200 bg-white shadow-md overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 border-b border-slate-150 text-slate-500 font-extrabold uppercase tracking-wider text-[10px]">
-                    <tr>
-                      <th className="px-6 py-3.5">Timestamp</th>
-                      <th className="px-4 py-3.5">Action</th>
-                      <th className="px-6 py-3.5">Readable Event Description</th>
-                      <th className="px-6 py-3.5">Performed By</th>
-                      <th className="px-6 py-3.5 text-right">Details & History</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium">
-                    {auditLogs
-                      .filter(a => auditFilterAction === 'ALL' || a.action === auditFilterAction)
-                      .filter(a => auditFilterEntity === 'ALL' || a.entityType === auditFilterEntity)
-                      .filter(a => auditFilterRole === 'ALL' || (a.performedBy?.role || '').toLowerCase() === auditFilterRole.toLowerCase())
-                      .filter(a => {
-                        if (!auditSearchQuery.trim()) return true;
-                        const q = auditSearchQuery.toLowerCase().trim();
-                        const headline = getAuditHeadline(a).toLowerCase();
-                        return (
-                          a.id.toLowerCase().includes(q) ||
-                          a.entityId.toLowerCase().includes(q) ||
-                          headline.includes(q) ||
-                          a.performedBy.name.toLowerCase().includes(q) ||
-                          (a.performedBy.email && a.performedBy.email.toLowerCase().includes(q))
-                        );
-                      })
-                      .map(a => {
+                    <div className="flex items-center gap-2">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">User Role:</label>
+                      <select
+                        className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                        value={auditFilterRole}
+                        onChange={(e) => {
+                          setAuditFilterRole(e.target.value);
+                          setAuditCurrentPage(1);
+                        }}
+                      >
+                        <option value="ALL">All Roles</option>
+                        <option value="passenger">Passenger</option>
+                        <option value="agency">Travel Agency</option>
+                        <option value="admin">Operator Admin</option>
+                        <option value="super_admin">Super Admin</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Per Page:</label>
+                      <select
+                        className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                        value={auditPageSize}
+                        onChange={(e) => {
+                          setAuditPageSize(Number(e.target.value));
+                          setAuditCurrentPage(1);
+                        }}
+                      >
+                        <option value={10}>10 rows</option>
+                        <option value={50}>50 rows</option>
+                        <option value={100}>100 rows</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="relative flex-1 max-w-sm">
+                    <Search size={14} className="absolute left-3.5 top-3 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Search audit logs..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-sky-500"
+                      value={auditSearchQuery}
+                      onChange={(e) => {
+                        setAuditSearchQuery(e.target.value);
+                        setAuditCurrentPage(1);
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* TABLE VIEW */}
+                {auditViewMode === 'table' && (
+                  <div className="glass-panel rounded-2xl border border-slate-200 bg-white shadow-md overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50 border-b border-slate-150 text-slate-500 font-extrabold uppercase tracking-wider text-[10px]">
+                          <tr>
+                            <th className="px-6 py-3.5">Timestamp</th>
+                            <th className="px-4 py-3.5">Action</th>
+                            <th className="px-6 py-3.5">Readable Event Description</th>
+                            <th className="px-6 py-3.5">Performed By</th>
+                            <th className="px-6 py-3.5 text-right">Details & History</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 font-medium">
+                          {paginatedAuditLogs.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="py-12 text-center text-slate-400 font-medium text-xs">
+                                No audit log records match the selected filter.
+                              </td>
+                            </tr>
+                          ) : (
+                            paginatedAuditLogs.map(a => {
+                              const isDelete = a.action.includes('DELETE');
+                              const isVerify = a.action === 'VERIFY_PAYMENT';
+                              const isCreate = a.action === 'CREATE' || a.action === 'USER_CREATED';
+                              const isLogin = a.action === 'LOGIN_SUCCESS';
+                              const isLoginFailed = a.action === 'LOGIN_FAILED';
+                              const isLogout = a.action === 'LOGOUT';
+                              const isSeatLock = a.action === 'SEAT_LOCKED';
+                              const headline = getAuditHeadline(a);
+
+                              return (
+                                <tr key={a.id} className="hover:bg-slate-50/80 transition duration-150">
+                                  <td className="px-6 py-4 text-slate-500 text-[11px] font-mono whitespace-nowrap">
+                                    {new Date(a.createdAt).toLocaleString()}
+                                  </td>
+                                  <td className="px-4 py-4 whitespace-nowrap">
+                                    <span className={`px-2.5 py-1 rounded-md text-[10px] font-black tracking-wider uppercase border ${
+                                      isLogin ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                      isLoginFailed ? 'bg-rose-50 text-rose-700 border-rose-200 animate-pulse' :
+                                      isLogout ? 'bg-slate-100 text-slate-700 border-slate-200' :
+                                      isSeatLock ? 'bg-amber-50 text-amber-800 border-amber-200' :
+                                      isDelete ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                      isVerify ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                      isCreate ? 'bg-sky-50 text-sky-700 border-sky-200' :
+                                      'bg-amber-50 text-amber-800 border-amber-200'
+                                    }`}>
+                                      {a.action}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <div className="font-extrabold text-slate-900 text-xs leading-snug">{headline}</div>
+                                    <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                                      Target ID: <span className="font-bold text-slate-700">{a.entityId}</span> ({a.entityType})
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="font-extrabold text-slate-900 flex items-center gap-1.5">
+                                      <span>{a.performedBy.name}</span>
+                                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${
+                                        a.performedBy.role === 'super_admin' ? 'bg-amber-100 text-amber-900 border border-amber-300' :
+                                        a.performedBy.role === 'admin' ? 'bg-sky-100 text-sky-900 border border-sky-300' :
+                                        a.performedBy.role === 'agency' ? 'bg-indigo-100 text-indigo-900 border border-indigo-300' :
+                                        'bg-slate-100 text-slate-700 border border-slate-300'
+                                      }`}>
+                                        {a.performedBy.role}
+                                      </span>
+                                    </div>
+                                    <div className="text-[10px] text-slate-400 font-medium mt-0.5">
+                                      {a.performedBy.email || 'N/A'}
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 text-right whitespace-nowrap">
+                                    <button
+                                      onClick={() => {
+                                        setInspectorTab('readable');
+                                        setInspectingAuditLog(a);
+                                      }}
+                                      className="px-3.5 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl text-[11px] font-bold cursor-pointer transition inline-flex items-center gap-1.5 border border-sky-200 shadow-sm"
+                                    >
+                                      <Eye size={14} /> View History
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* TIMELINE VIEW */}
+                {auditViewMode === 'timeline' && (
+                  <div className="glass-panel rounded-2xl border border-slate-200 bg-white p-6 shadow-md relative">
+                    <div className="space-y-8 relative before:absolute before:inset-0 before:left-5 before:w-0.5 before:bg-slate-200">
+                      {paginatedAuditLogs.map(a => {
                         const isDelete = a.action.includes('DELETE');
                         const isVerify = a.action === 'VERIFY_PAYMENT';
                         const isCreate = a.action === 'CREATE' || a.action === 'USER_CREATED';
-                        const isLogin = a.action === 'LOGIN_SUCCESS';
-                        const isLoginFailed = a.action === 'LOGIN_FAILED';
-                        const isLogout = a.action === 'LOGOUT';
-                        const isSeatLock = a.action === 'SEAT_LOCKED';
                         const headline = getAuditHeadline(a);
+                        const diffs = getAuditReadableDiffs(a);
 
                         return (
-                          <tr key={a.id} className="hover:bg-slate-50/80 transition duration-150">
-                            <td className="px-6 py-4 text-slate-500 text-[11px] font-mono whitespace-nowrap">
-                              {new Date(a.createdAt).toLocaleString()}
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <span className={`px-2.5 py-1 rounded-md text-[10px] font-black tracking-wider uppercase border ${
-                                isLogin ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                isLoginFailed ? 'bg-rose-50 text-rose-700 border-rose-200 animate-pulse' :
-                                isLogout ? 'bg-slate-100 text-slate-700 border-slate-200' :
-                                isSeatLock ? 'bg-amber-50 text-amber-800 border-amber-200' :
-                                isDelete ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                                isVerify ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                isCreate ? 'bg-sky-50 text-sky-700 border-sky-200' :
-                                'bg-amber-50 text-amber-800 border-amber-200'
-                              }`}>
-                                {a.action}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="font-extrabold text-slate-900 text-xs leading-snug">{headline}</div>
-                              <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                                Target ID: <span className="font-bold text-slate-700">{a.entityId}</span> ({a.entityType})
+                          <div key={a.id} className="relative flex items-start gap-4 pl-10">
+                            <div className={`absolute left-0 top-0.5 w-10 h-10 rounded-full flex items-center justify-center border shadow-sm z-10 ${
+                              isDelete ? 'bg-rose-100 border-rose-300 text-rose-600' :
+                              isVerify ? 'bg-emerald-100 border-emerald-300 text-emerald-600' :
+                              isCreate ? 'bg-sky-100 border-sky-300 text-sky-600' :
+                              'bg-amber-100 border-amber-300 text-amber-700'
+                            }`}>
+                              {isDelete ? <Trash2 size={16} /> : isVerify ? <CheckCircle size={16} /> : isCreate ? <Plus size={16} /> : <AlertTriangle size={16} />}
+                            </div>
+
+                            <div className="flex-1 glass-panel p-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition shadow-sm space-y-2">
+                              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-200/60 pb-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-mono text-[10px] font-bold text-slate-400">{a.id}</span>
+                                  <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${
+                                    isDelete ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                    isVerify ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                    isCreate ? 'bg-sky-50 text-sky-700 border-sky-200' :
+                                    'bg-amber-50 text-amber-800 border-amber-200'
+                                  }`}>
+                                    {a.action}
+                                  </span>
+                                  <span className="text-xs font-bold text-slate-600">· {a.entityType} ({a.entityId})</span>
+                                </div>
+                                <div className="text-[11px] font-mono text-slate-500">
+                                  {new Date(a.createdAt).toLocaleString()}
+                                </div>
                               </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="font-extrabold text-slate-900 flex items-center gap-1.5">
-                                <span>{a.performedBy.name}</span>
-                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${
-                                  a.performedBy.role === 'super_admin' ? 'bg-amber-100 text-amber-900 border border-amber-300' :
-                                  a.performedBy.role === 'admin' ? 'bg-sky-100 text-sky-900 border border-sky-300' :
-                                  a.performedBy.role === 'agency' ? 'bg-indigo-100 text-indigo-900 border border-indigo-300' :
-                                  'bg-slate-100 text-slate-700 border border-slate-300'
-                                }`}>
-                                  {a.performedBy.role}
-                                </span>
+
+                              <div className="text-sm font-extrabold text-slate-900 leading-snug">
+                                {headline}
                               </div>
-                              <div className="text-[10px] text-slate-400 font-medium mt-0.5">
-                                {a.performedBy.email || 'N/A'}
+
+                              {diffs.length > 0 && (
+                                <div className="flex flex-wrap gap-2 pt-1">
+                                  {diffs.slice(0, 4).map((d, i) => (
+                                    <div key={i} className="text-[10px] bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 font-semibold shadow-2xs">
+                                      <span className="text-slate-400 font-bold">{d.label}:</span> <span className="text-rose-600 line-through">{d.before}</span> → <span className="text-emerald-700 font-extrabold">{d.after}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              <div className="flex justify-between items-center pt-2 text-[11px] text-slate-500 border-t border-slate-200/60">
+                                <div>
+                                  Performed by: <span className="font-bold text-slate-800">{a.performedBy.name}</span> ({a.performedBy.role})
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    setInspectorTab('readable');
+                                    setInspectingAuditLog(a);
+                                  }}
+                                  className="px-3 py-1 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-lg text-[10px] font-bold cursor-pointer transition border border-sky-200"
+                                >
+                                  View Details
+                                </button>
                               </div>
-                            </td>
-                            <td className="px-6 py-4 text-right whitespace-nowrap">
-                              <button
-                                onClick={() => {
-                                  setInspectorTab('readable');
-                                  setInspectingAuditLog(a);
-                                }}
-                                className="px-3.5 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl text-[11px] font-bold cursor-pointer transition inline-flex items-center gap-1.5 border border-sky-200 shadow-sm"
-                              >
-                                <Eye size={14} /> View History
-                              </button>
-                            </td>
-                          </tr>
+                            </div>
+                          </div>
                         );
                       })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+                    </div>
+                  </div>
+                )}
 
+                {/* PAGINATION FOOTER CONTROLS */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mt-4">
+                  <div className="text-xs font-semibold text-slate-500">
+                    Showing <span className="font-extrabold text-slate-800">{totalAuditItems === 0 ? 0 : startAuditIdx + 1}</span> to <span className="font-extrabold text-slate-800">{Math.min(startAuditIdx + auditPageSize, totalAuditItems)}</span> of <span className="font-extrabold text-slate-800">{totalAuditItems}</span> audit entries
+                  </div>
 
-          {/* TIMELINE AUDIT TRAIL VIEW */}
-          {auditViewMode === 'timeline' && (
-            <div className="glass-panel rounded-2xl border border-slate-200 bg-white p-6 shadow-md relative">
-              <div className="space-y-8 relative before:absolute before:inset-0 before:left-5 before:w-0.5 before:bg-slate-200">
-                {auditLogs
-                  .filter(a => auditFilterAction === 'ALL' || a.action === auditFilterAction)
-                  .filter(a => auditFilterEntity === 'ALL' || a.entityType === auditFilterEntity)
-                  .filter(a => auditFilterRole === 'ALL' || (a.performedBy?.role || '').toLowerCase() === auditFilterRole.toLowerCase())
-                  .filter(a => {
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setAuditCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={validAuditPage === 1}
+                      className="px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
+                    >
+                      Previous
+                    </button>
 
-                    if (!auditSearchQuery.trim()) return true;
-                    const q = auditSearchQuery.toLowerCase().trim();
-                    const headline = getAuditHeadline(a).toLowerCase();
-                    return (
-                      a.id.toLowerCase().includes(q) ||
-                      a.entityId.toLowerCase().includes(q) ||
-                      headline.includes(q) ||
-                      a.performedBy.name.toLowerCase().includes(q) ||
-                      (a.performedBy.email && a.performedBy.email.toLowerCase().includes(q))
-                    );
-                  })
-                  .map(a => {
-                    const isDelete = a.action.includes('DELETE');
-                    const isVerify = a.action === 'VERIFY_PAYMENT';
-                    const isCreate = a.action === 'CREATE' || a.action === 'USER_CREATED';
-                    const headline = getAuditHeadline(a);
-                    const diffs = getAuditReadableDiffs(a);
+                    <div className="text-xs font-bold text-slate-700 px-2">
+                      Page {validAuditPage} of {totalAuditPages}
+                    </div>
 
-                    return (
-                      <div key={a.id} className="relative flex items-start gap-4 pl-10">
-                        {/* Timeline Node Icon */}
-                        <div className={`absolute left-0 top-0.5 w-10 h-10 rounded-full flex items-center justify-center border shadow-sm z-10 ${
-                          isDelete ? 'bg-rose-100 border-rose-300 text-rose-600' :
-                          isVerify ? 'bg-emerald-100 border-emerald-300 text-emerald-600' :
-                          isCreate ? 'bg-sky-100 border-sky-300 text-sky-600' :
-                          'bg-amber-100 border-amber-300 text-amber-700'
-                        }`}>
-                          {isDelete ? <Trash2 size={16} /> : isVerify ? <CheckCircle size={16} /> : isCreate ? <Plus size={16} /> : <AlertTriangle size={16} />}
-                        </div>
-
-                        {/* Card */}
-                        <div className="flex-1 glass-panel p-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition shadow-sm space-y-2">
-                          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-200/60 pb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono text-[10px] font-bold text-slate-400">{a.id}</span>
-                              <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${
-                                isDelete ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                                isVerify ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                isCreate ? 'bg-sky-50 text-sky-700 border-sky-200' :
-                                'bg-amber-50 text-amber-800 border-amber-200'
-                              }`}>
-                                {a.action}
-                              </span>
-                              <span className="text-xs font-bold text-slate-600">· {a.entityType} ({a.entityId})</span>
-                            </div>
-                            <div className="text-[11px] font-mono text-slate-500">
-                              {new Date(a.createdAt).toLocaleString()}
-                            </div>
-                          </div>
-
-                          <div className="text-sm font-extrabold text-slate-900 leading-snug">
-                            {headline}
-                          </div>
-
-                          {diffs.length > 0 && (
-                            <div className="flex flex-wrap gap-2 pt-1">
-                              {diffs.slice(0, 4).map((d, i) => (
-                                <div key={i} className="text-[10px] bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 font-semibold shadow-2xs">
-                                  <span className="text-slate-400 font-bold">{d.label}:</span> <span className="text-rose-600 line-through">{d.before}</span> → <span className="text-emerald-700 font-extrabold">{d.after}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          <div className="flex justify-between items-center pt-2 text-[11px] text-slate-500 border-t border-slate-200/60">
-                            <div>
-                              Performed by: <span className="font-bold text-slate-800">{a.performedBy.name}</span> ({a.performedBy.role})
-                            </div>
-                            <button
-                              onClick={() => {
-                                setInspectorTab('readable');
-                                setInspectingAuditLog(a);
-                              }}
-                              className="text-sky-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
-                            >
-                              <Eye size={12} /> Inspect Audit Log
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
+                    <button
+                      onClick={() => setAuditCurrentPage(prev => Math.min(totalAuditPages, prev + 1))}
+                      disabled={validAuditPage >= totalAuditPages}
+                      className="px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
         </div>
       ))}
 
