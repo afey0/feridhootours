@@ -16,7 +16,30 @@ export const getAuditHeadline = (entry: AuditLogEntry): string => {
   const before = changes?.before || {};
   const after = changes?.after || {};
 
+  if (action === 'LOGIN_SUCCESS') {
+    return `🔑 User ${actor} (${performedBy?.role || 'user'}) logged in successfully`;
+  }
+  if (action === 'LOGIN_FAILED') {
+    const attemptedEmail = metadata?.email || entityId || actor;
+    return `🚨 Failed login attempt for ${attemptedEmail}`;
+  }
+  if (action === 'LOGOUT') {
+    return `🚪 User ${actor} (${performedBy?.role || 'user'}) logged out`;
+  }
+  if (action === 'SEAT_LOCKED') {
+    const seats = metadata?.seats ? metadata.seats.join(', ') : entityId;
+    return `🔒 ${actor} locked seat(s) ${seats} for checkout hold`;
+  }
+  if (action === 'BOOKING_CREATED') {
+    const amount = metadata?.totalAmount ? `$${Number(metadata.totalAmount).toFixed(2)}` : '';
+    return `🎟️ ${actor} submitted new booking ${entityId} ${amount}`;
+  }
+  if (action === 'SLIP_UPLOADED') {
+    return `📄 ${actor} uploaded bank transfer payment slip for ${entityId}`;
+  }
+
   if (entityType === 'BOOKING') {
+
     const booking = after.id ? after : before.id ? before : metadata?.deletedBookingSnapshot || {};
     const pnr = entityId || booking.id || 'N/A';
     const passengerName = booking.passengers?.[0]?.name || 'Passenger';

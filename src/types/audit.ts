@@ -9,7 +9,13 @@ export type AuditAction =
   | 'CANCEL'
   | 'USER_CREATED'
   | 'USER_UPDATED'
-  | 'USER_DELETED';
+  | 'USER_DELETED'
+  | 'LOGIN_SUCCESS'
+  | 'LOGIN_FAILED'
+  | 'LOGOUT'
+  | 'SEAT_LOCKED'
+  | 'BOOKING_CREATED'
+  | 'SLIP_UPLOADED';
 
 export type AuditEntityType = 
   | 'BOOKING'
@@ -18,7 +24,10 @@ export type AuditEntityType =
   | 'USER'
   | 'JETTY'
   | 'RECEIPT'
-  | 'SYSTEM';
+  | 'SYSTEM'
+  | 'AUTH'
+  | 'LOGIN';
+
 
 export interface AuditUser {
   id?: string;

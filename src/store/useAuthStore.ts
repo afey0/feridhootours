@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { triggerEmail } from './usePlatformStore';
+import { triggerEmail, recordAuditLog } from './usePlatformStore';
+
+
 
 export type Role = 'guest' | 'passenger' | 'agency' | 'admin' | 'super_admin';
 
@@ -141,9 +143,11 @@ export const useAuthStore = () => {
   const login = (email: string, password: string): { success: boolean; message: string } => {
     const found = globalUsers.find(u => u.email.toLowerCase() === email.toLowerCase().trim());
     if (!found) {
+      recordAuditLog('LOGIN_FAILED', 'AUTH', email.toLowerCase().trim(), { name: email, email, role: 'guest' }, undefined, { email, details: 'Failed login attempt: Account not found' });
       return { success: false, message: 'Account not found with this email.' };
     }
     if (found.password !== password) {
+      recordAuditLog('LOGIN_FAILED', 'AUTH', found.email, { id: found.id, name: found.name, email: found.email, role: found.role }, undefined, { email: found.email, details: 'Failed login attempt: Invalid password' });
       return { success: false, message: 'Invalid password. Please try again.' };
     }
     
@@ -154,10 +158,12 @@ export const useAuthStore = () => {
       email: found.email,
       savedPassengers: found.savedPassengers
     };
+    recordAuditLog('LOGIN_SUCCESS', 'AUTH', found.id, globalCurrentUser, undefined, { email: found.email, details: `${found.name} logged in successfully as ${found.role}` });
     notifyAuthListeners();
     setAuthModalOpen(false);
     return { success: true, message: 'Logged in successfully.' };
   };
+
 
   const signup = (name: string, email: string, password: string, role: 'passenger' | 'agency'): { success: boolean; message: string } => {
     const exists = globalUsers.some(u => u.email.toLowerCase() === email.toLowerCase().trim());
@@ -435,9 +441,13 @@ export const useAuthStore = () => {
   };
 
   const logout = () => {
+    if (globalCurrentUser) {
+      recordAuditLog('LOGOUT', 'AUTH', globalCurrentUser.id, globalCurrentUser, undefined, { email: globalCurrentUser.email, details: `${globalCurrentUser.name} (${globalCurrentUser.role}) logged out` });
+    }
     globalCurrentUser = null;
     notifyAuthListeners();
   };
+
 
   return {
     user,

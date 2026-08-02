@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Schedule, Seat, Passenger, Booking } from '../data/mockData';
-import { usePlatformStore, triggerEmail } from './usePlatformStore';
+import { usePlatformStore, triggerEmail, recordAuditLog } from './usePlatformStore';
 
 export type BookingStep = 'search' | 'select_seats' | 'passenger_details' | 'payment' | 'confirmation';
 
@@ -37,6 +37,11 @@ export const useBookingFlow = () => {
         showAlert(res.message || 'Seat conflict detected', 'Double Booking Conflict', 'error');
         return;
       }
+      recordAuditLog('SEAT_LOCKED', 'BOOKING', selectedSchedule.id, user, undefined, {
+        seats: selectedSeats.map(s => s.id.replace('S-', '')),
+        vesselName: selectedSchedule.vesselName,
+        route: `${selectedSchedule.routeFrom} → ${selectedSchedule.routeTo}`
+      });
     }
 
     // Set expiry 10 minutes from now
@@ -46,6 +51,7 @@ export const useBookingFlow = () => {
     
     setCurrentStep('passenger_details');
   };
+
 
 
   const goSearch = () => {
@@ -184,8 +190,17 @@ export const useBookingFlow = () => {
     }
 
     addBooking(booking);
+    recordAuditLog(
+      receiptImage ? 'SLIP_UPLOADED' : 'BOOKING_CREATED',
+      'BOOKING',
+      ref,
+      userContext,
+      { after: booking },
+      { totalAmount: subtotal - discount, seatCount: selectedSeats.length, paymentMethod }
+    );
 
     // Trigger Booking Confirmation Email
+
     const recipient = userContext?.email || (passengers[0] ? `${passengers[0].name.toLowerCase().replace(/\s+/g, '')}@example.com` : 'passenger@example.com');
     const paymentStatus = paymentMethod === 'card' ? 'Verified (Instant Card Payment)' : 'Pending Verification (Bank Slip Uploaded)';
     const seatNumbers = selectedSeats.map(s => s.id.replace('S-', '')).join(', ');

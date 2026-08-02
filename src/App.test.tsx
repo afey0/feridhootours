@@ -702,7 +702,8 @@ describe('FeridhooTours App E2E Flows', () => {
     expect(platform.current.locations.length).toBeGreaterThan(0);
     expect(platform.current.schedules.length).toBeGreaterThan(0);
     expect(platform.current.bookings.length).toBeGreaterThan(0);
-    expect(auth.current.users.some(u => u.role === 'super_admin')).toBe(true);
+    expect(auth.current.users.some((u: any) => u.role === 'super_admin')).toBe(true);
+
   });
 
   it('handles 10-minute hold expiration and admin rejection with comment', () => {

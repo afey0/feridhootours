@@ -180,7 +180,7 @@ export const PassengerDetails: React.FC<Props> = ({ selectedSeats, onSave, onBac
                       value=""
                       onChange={(e) => {
                         const val = e.target.value;
-                        const match = user.savedPassengers.find(p => p.idNumber === val);
+                        const match = user.savedPassengers.find((p: any) => p.idNumber === val);
                         if (match) {
                           handleChange(seat.id, 'name', match.name);
                           handleChange(seat.id, 'age', match.age);
@@ -191,7 +191,8 @@ export const PassengerDetails: React.FC<Props> = ({ selectedSeats, onSave, onBac
                       }}
                     >
                       <option value="">Quick Fill Saved Traveler</option>
-                      {user.savedPassengers.map(sp => (
+                      {user.savedPassengers.map((sp: any) => (
+
                         <option key={sp.idNumber} value={sp.idNumber}>
                           {sp.name} ({sp.idNumber})
                         </option>

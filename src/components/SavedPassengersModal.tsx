@@ -44,7 +44,8 @@ export const SavedPassengersModal: React.FC<Props> = ({ isOpen, onClose }) => {
     }
 
     // Check if duplicate
-    const exists = user.savedPassengers.some(p => p.idNumber.toUpperCase().trim() === idNumber.toUpperCase().trim());
+    const exists = user.savedPassengers.some((p: any) => p.idNumber.toUpperCase().trim() === idNumber.toUpperCase().trim());
+
     if (exists) {
       setError('A traveler with this Passport / ID already exists in your list.');
       return;
@@ -231,7 +232,8 @@ export const SavedPassengersModal: React.FC<Props> = ({ isOpen, onClose }) => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {user.savedPassengers.map((p) => (
+              {user.savedPassengers.map((p: any) => (
+
                 <div 
                   key={p.idNumber}
                   className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex justify-between items-start transition hover:border-slate-300"
