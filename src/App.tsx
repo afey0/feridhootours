@@ -14,6 +14,8 @@ import { TermsModal } from './components/TermsModal';
 import { LandingInfo } from './components/LandingInfo';
 import { ProfileModal } from './components/ProfileModal';
 import { PublicTicketModal } from './components/PublicTicketModal';
+import { MobileAppModal } from './components/MobileAppModal';
+
 import { useBookingFlow } from './store/useBookingFlow';
 import { useAuthStore } from './store/useAuthStore';
 import { usePlatformStore } from './store/usePlatformStore';
@@ -82,6 +84,8 @@ function App() {
   const [adminTab, setAdminTab] = useState<'dashboard' | 'vessels' | 'fleet' | 'verify' | 'bookings' | 'locations' | 'reports' | 'emails' | 'users' | 'audit'>('dashboard');
   const [searchFromPort, setSearchFromPort] = useState('MLE');
   const [searchToPort, setSearchToPort] = useState('MAF');
+  const [isMobileAppModalOpen, setMobileAppModalOpen] = useState(false);
+
 
   // Sync isAuthModalOpen with activePage
   useEffect(() => {
@@ -171,7 +175,9 @@ function App() {
         onSavedPassengers={() => setActivePage('saved_passengers')}
         onOpenProfile={() => setActivePage('profile')}
         onOpenMyBookings={() => setActivePage('my_bookings')}
+        onOpenMobileApp={() => setMobileAppModalOpen(true)}
         onSelectAdminTab={(tab) => {
+
           setAdminTab(tab);
           setShowAdminView(true);
           setActivePage('admin');
@@ -403,7 +409,10 @@ function App() {
             </div>
           </div>
         )}
+
+        <MobileAppModal isOpen={isMobileAppModalOpen} onClose={() => setMobileAppModalOpen(false)} />
       </main>
+
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Bell, LogOut, LayoutDashboard, Anchor, ShieldCheck, ChevronDown, UserCircle, Users, Ticket, Menu, X, AlertTriangle, BarChart3, Mail, ShieldAlert } from 'lucide-react';
+import { User, Bell, LogOut, LayoutDashboard, Anchor, ShieldCheck, ChevronDown, UserCircle, Users, Ticket, Menu, X, AlertTriangle, BarChart3, Mail, ShieldAlert, Smartphone } from 'lucide-react';
 import type { User as UserType } from '../store/useAuthStore';
 
 interface Props {
@@ -12,8 +12,10 @@ interface Props {
   onSavedPassengers: () => void;
   onOpenProfile: () => void;
   onOpenMyBookings: () => void;
+  onOpenMobileApp?: () => void;
   onSelectAdminTab?: (tab: 'dashboard' | 'vessels' | 'fleet' | 'verify' | 'bookings' | 'locations' | 'reports' | 'emails' | 'users' | 'audit') => void;
 }
+
 
 export const Navigation: React.FC<Props> = ({ 
   showAdminView, 
@@ -25,11 +27,13 @@ export const Navigation: React.FC<Props> = ({
   onSavedPassengers,
   onOpenProfile,
   onOpenMyBookings,
+  onOpenMobileApp,
   onSelectAdminTab
 }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
 
   // Click outside handler for desktop dropdown
   useEffect(() => {
@@ -101,6 +105,17 @@ export const Navigation: React.FC<Props> = ({
             <ShieldCheck size={16} className="text-sky-600" />
             <span>Manage Reservation</span>
           </button>
+
+          {onOpenMobileApp && (
+            <button 
+              onClick={onOpenMobileApp}
+              className="bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 px-3.5 py-2 rounded-2xl cursor-pointer flex items-center gap-1.5 transition duration-200 text-xs font-extrabold shadow-sm"
+            >
+              <Smartphone size={16} className="text-sky-600" />
+              <span>Mobile App</span>
+            </button>
+          )}
+
 
           <button type="button" className="bg-slate-100 hover:bg-slate-200/70 text-slate-600 cursor-pointer p-2 rounded-2xl transition">
             <Bell size={18} />

@@ -1,3 +1,11 @@
+export type FareCategory = 'Local' | 'Tourist' | 'Work Permit' | 'Resort';
+
+export interface FarePricing {
+  category: FareCategory;
+  priceUSD: number;
+  priceMVR: number;
+}
+
 export interface Jetty {
   id: string;
   name: string;
@@ -7,6 +15,7 @@ export interface Vessel {
   id: string;              // e.g. "VSL-001"
   name: string;
   type: 'Speedboat' | 'Ferry';
+  capacity?: number;
   amenities: string[];
   layoutRows: number;
   layoutCols: number;
@@ -24,11 +33,11 @@ export interface Schedule {
   arrivalTime: string;
   availableSeats: number;
   totalSeats: number;
-  price: number;
+  price: number;           // Default base price (Tourist Fare)
+  categoryPrices?: Record<FareCategory, number>; // Fare category pricing breakdown
   routeFrom: string;
   routeTo: string;
   recurrence?: 'Day' | '7 Days' | '30 Days' | 'Specific Date' | 'Daily' | 'Weekly' | 'Monthly';
-
   scheduleDate?: string;
   amenities: string[];
   stops?: string[];
@@ -50,6 +59,7 @@ export interface Passenger {
   age: number;
   gender: string;
   idNumber: string;
+  fareCategory?: FareCategory;
   specialRequest?: string;
   seatId: string;
 }
@@ -65,6 +75,7 @@ export interface Booking {
   routeTo: string;
   passengers: Passenger[];
   selectedSeatIds: string[];
+  fareCategory?: FareCategory;
   totalAmount: number;
   discountApplied: number;
   promoCodeUsed?: string;
@@ -96,6 +107,7 @@ export interface SavedPassenger {
   age: number;
   gender: string;
   idNumber: string;
+  fareCategory?: FareCategory;
 }
 
 export interface EmailConfig {
@@ -129,6 +141,7 @@ export interface SavedTraveler {
   age: number;
   gender: string;
   idNumber: string;
+  fareCategory?: FareCategory;
   passportExpiry?: string;
   nationality?: string;
   phone?: string;
@@ -150,37 +163,79 @@ export interface AuditLog {
   metadata?: Record<string, any>;
 }
 
+// 10 Initial Proposal Routes (Malé, Airport & Ari Atoll Network)
 export const INITIAL_JETTIES: Jetty[] = [
-  { id: 'MLE', name: 'Malé City Terminal (Hulhumalé Jetty)' },
-  { id: 'MAF', name: 'Maafushi Central Harbor' },
-  { id: 'FUL', name: 'Fulidhoo Island Jetty' },
-  { id: 'DHG', name: 'Dhigurah Main Pier' },
+  { id: 'APO', name: 'Airport (Velana International Airport Pier)' },
+  { id: 'MLE', name: 'Male\' (Malé Central Ferry Terminal)' },
   { id: 'FER', name: 'Feridhoo Harbor Terminal' },
+  { id: 'MAL', name: 'Maalhos Island Jetty' },
+  { id: 'HIM', name: 'Himandhoo Island Pier' },
+  { id: 'BTH', name: 'Bathala Resort Jetty' },
+  { id: 'HLV', name: 'Halaveli Resort Pier' },
+  { id: 'WMV', name: 'W Maldives Resort Pier' },
+  { id: 'ATH', name: 'Athuruga Resort Pier' },
+  { id: 'SAF', name: 'Safari Island Resort Pier' }
 ];
 
 export const ATolls: Jetty[] = INITIAL_JETTIES;
 
+// Proposal Fleet Vessels & Seating Layout Capacities
 export const INITIAL_VESSELS: Vessel[] = [
   {
-    id: 'VES-001',
-    name: 'Kaani Princess',
+    id: 'VES-38A',
+    name: 'Touring 38 (27 Pax)',
     type: 'Speedboat',
-    amenities: ['AC', 'Water', 'Life Jacket', 'USB Charger', 'WiFi'],
+    capacity: 27,
+    amenities: ['AC', 'Life Jacket', 'Water', 'WiFi', 'USB Charger'],
+    layoutRows: 7,
+    layoutCols: 4,
+    vipRows: '1',
+    premiumRows: '2-3',
+  },
+  {
+    id: 'VES-38B',
+    name: 'Touring 38 (30 Pax)',
+    type: 'Speedboat',
+    capacity: 30,
+    amenities: ['AC', 'Life Jacket', 'Water', 'USB Charger'],
     layoutRows: 8,
     layoutCols: 4,
     vipRows: '1-2',
     premiumRows: '3-4',
   },
   {
-    id: 'VES-002',
-    name: 'Speedboat Alpha',
+    id: 'VES-43A',
+    name: 'Touring 43 (50 Pax)',
     type: 'Speedboat',
-    amenities: ['AC', 'Water', 'Life Jacket'],
-    layoutRows: 6,
-    layoutCols: 4,
-    vipRows: '1',
-    premiumRows: '2-3',
+    capacity: 50,
+    amenities: ['AC', 'Life Jacket', 'Water', 'WiFi', 'Toilets', 'USB Charger'],
+    layoutRows: 10,
+    layoutCols: 5,
+    vipRows: '1-2',
+    premiumRows: '3-5',
   },
+  {
+    id: 'VES-001',
+    name: 'Senora Wave',
+    type: 'Speedboat',
+    capacity: 42,
+    amenities: ['AC', 'Life Jacket', 'Water', 'WiFi'],
+    layoutRows: 9,
+    layoutCols: 5,
+    vipRows: '1-2',
+    premiumRows: '3-4',
+  },
+  {
+    id: 'VES-002',
+    name: 'Kaani Princess',
+    type: 'Speedboat',
+    capacity: 32,
+    amenities: ['AC', 'Water', 'Life Jacket', 'USB Charger'],
+    layoutRows: 8,
+    layoutCols: 4,
+    vipRows: '1-2',
+    premiumRows: '3-4',
+  }
 ];
 
 export const MOCK_VESSELS: Vessel[] = INITIAL_VESSELS;
@@ -189,41 +244,78 @@ export const INITIAL_SCHEDULES: Schedule[] = [
   {
     id: 'SCH-001',
     vesselId: 'VES-001',
-    vesselName: 'Kaani Princess',
+    vesselName: 'Senora Wave',
     vesselType: 'Speedboat',
-    departureTime: '08:30 AM',
-    arrivalTime: '09:15 AM',
-    availableSeats: 31,
-    totalSeats: 32,
+    departureTime: '09:30 AM',
+    arrivalTime: '11:00 AM',
+    availableSeats: 18,
+    totalSeats: 42,
     price: 35.00,
-    routeFrom: 'MLE',
-    routeTo: 'MAF',
-    recurrence: 'Daily',
-    scheduleDate: '2026-08-01',
-    amenities: ['AC', 'Water', 'Life Jacket', 'USB Charger', 'WiFi'],
-    stops: ['Gulhi Island'],
+    categoryPrices: {
+      'Tourist': 35.00,
+      'Local': 15.00,
+      'Work Permit': 20.00,
+      'Resort': 50.00
+    },
+    routeFrom: 'APO',
+    routeTo: 'FER',
+    recurrence: 'Day',
+    scheduleDate: '2026-08-03',
+    amenities: ['AC', 'Water', 'Life Jacket', 'WiFi'],
+    stops: ['Male\'', 'Bathala'],
     disabled: false,
     maintenance: false,
   },
   {
     id: 'SCH-002',
-    vesselId: 'VES-002',
-    vesselName: 'Speedboat Alpha',
+    vesselId: 'VES-38A',
+    vesselName: 'Touring 38 (27 Pax)',
     vesselType: 'Speedboat',
-    departureTime: '10:30 AM',
-    arrivalTime: '12:00 PM',
-    availableSeats: 24,
-    totalSeats: 24,
-    price: 50.00,
-    routeFrom: 'MAF',
+    departureTime: '02:00 PM',
+    arrivalTime: '03:30 PM',
+    availableSeats: 27,
+    totalSeats: 27,
+    price: 35.00,
+    categoryPrices: {
+      'Tourist': 35.00,
+      'Local': 15.00,
+      'Work Permit': 20.00,
+      'Resort': 50.00
+    },
+    routeFrom: 'APO',
     routeTo: 'FER',
-    recurrence: 'Weekly',
-    scheduleDate: '2026-08-01',
-    amenities: ['AC', 'Water', 'Life Jacket'],
-    stops: ['Fulidhoo Island'],
+    recurrence: '7 Days',
+    scheduleDate: '2026-08-03',
+    amenities: ['AC', 'Water', 'Life Jacket', 'USB Charger'],
+    stops: ['Halaveli', 'W Maldives'],
     disabled: false,
     maintenance: false,
   },
+  {
+    id: 'SCH-003',
+    vesselId: 'VES-43A',
+    vesselName: 'Touring 43 (50 Pax)',
+    vesselType: 'Speedboat',
+    departureTime: '11:30 AM',
+    arrivalTime: '01:00 PM',
+    availableSeats: 45,
+    totalSeats: 50,
+    price: 35.00,
+    categoryPrices: {
+      'Tourist': 35.00,
+      'Local': 15.00,
+      'Work Permit': 20.00,
+      'Resort': 50.00
+    },
+    routeFrom: 'MLE',
+    routeTo: 'HIM',
+    recurrence: '30 Days',
+    scheduleDate: '2026-08-03',
+    amenities: ['AC', 'Water', 'Life Jacket', 'WiFi', 'Toilets'],
+    stops: ['Maalhos', 'Safari Island'],
+    disabled: false,
+    maintenance: false,
+  }
 ];
 
 export const MOCK_SCHEDULES: Schedule[] = INITIAL_SCHEDULES;
