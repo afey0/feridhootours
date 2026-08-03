@@ -3,6 +3,9 @@
   "name": "feridhoo-tours",
   "compatibility_date": "2026-08-01",
   "pages_build_output_dir": "dist",
+  "assets": {
+    "directory": "./dist"
+  },
   "d1_databases": [
     {
       "binding": "DB",

@@ -7,8 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "wrangler deploy --assets=./dist",
+    "deploy:pages": "wrangler pages deploy ./dist --project-name=feridhoo-tours"
   },
+
   "dependencies": {
     "@tailwindcss/vite": "^4.3.1",
     "@types/qrcode": "^1.5.6",
