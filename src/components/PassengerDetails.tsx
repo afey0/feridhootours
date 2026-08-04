@@ -5,38 +5,43 @@ import { useAuthStore } from '../store/useAuthStore';
 
 interface Props {
   selectedSeats: Seat[];
+  initialPassengers?: Passenger[];
   onSave: (passengers: Passenger[]) => void;
+  onSilentChange?: (passengers: Passenger[]) => void;
   onBack: () => void;
 }
 
-export const PassengerDetails: React.FC<Props> = ({ selectedSeats, onSave, onBack }) => {
+export const PassengerDetails: React.FC<Props> = ({ selectedSeats, initialPassengers, onSave, onSilentChange, onBack }) => {
   const { user, addSavedPassenger } = useAuthStore();
 
-  const [formData, setFormData] = useState<Record<string, Omit<Passenger, 'seatId'>>>(
-    selectedSeats.reduce((acc, seat) => {
+  const [formData, setFormData] = useState<Record<string, Omit<Passenger, 'seatId'>>>(() => {
+    return selectedSeats.reduce((acc, seat) => {
+      const existing = initialPassengers?.find(p => p.seatId === seat.id);
       acc[seat.id] = {
-        name: '',
-        age: 18,
-        gender: 'Male',
-        idNumber: '',
-        fareCategory: 'Tourist',
-        specialRequest: ''
+        name: existing?.name || '',
+        age: existing?.age ?? 18,
+        gender: existing?.gender || 'Male',
+        idNumber: existing?.idNumber || '',
+        fareCategory: existing?.fareCategory || 'Local',
+        specialRequest: existing?.specialRequest || ''
       };
       return acc;
-    }, {} as Record<string, Omit<Passenger, 'seatId'>>)
-  );
+    }, {} as Record<string, Omit<Passenger, 'seatId'>>);
+  });
 
   const [errors, setErrors] = useState<Record<string, Record<string, string>>>({});
   const [saveToAccount, setSaveToAccount] = useState<Record<string, boolean>>({});
 
   const handleChange = (seatId: string, field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
+    const updated = {
+      ...formData,
       [seatId]: {
-        ...prev[seatId],
+        ...formData[seatId],
         [field]: value
       }
-    }));
+    };
+    setFormData(updated);
+
     // Clear error
     if (errors[seatId]?.[field]) {
       setErrors(prev => ({
@@ -46,6 +51,34 @@ export const PassengerDetails: React.FC<Props> = ({ selectedSeats, onSave, onBac
           [field]: ''
         }
       }));
+    }
+
+    if (onSilentChange) {
+      const passengerList: Passenger[] = selectedSeats.map(seat => ({
+        ...(updated[seat.id] || { name: '', age: 18, gender: 'Male', idNumber: '', fareCategory: 'Local', specialRequest: '' }),
+        seatId: seat.id
+      }));
+      onSilentChange(passengerList);
+    }
+  };
+
+  const getIdLabel = (category: string) => {
+    switch (category) {
+      case 'Local': return 'National ID Card Number (NID)';
+      case 'Tourist': return 'Passport Number';
+      case 'Work Permit': return 'Work Permit Card Number';
+      case 'Resort': return 'Resort ID / Passport Number';
+      default: return 'Passport / National ID';
+    }
+  };
+
+  const getIdPlaceholder = (category: string) => {
+    switch (category) {
+      case 'Local': return 'Enter NID card number';
+      case 'Tourist': return 'Enter Passport number';
+      case 'Work Permit': return 'Enter Work Permit card number';
+      case 'Resort': return 'Enter Resort ID or Passport';
+      default: return 'Enter ID/Passport number';
     }
   };
 
@@ -63,7 +96,8 @@ export const PassengerDetails: React.FC<Props> = ({ selectedSeats, onSave, onBac
         hasError = true;
       }
       if (!data.idNumber.trim()) {
-        seatErrors.idNumber = 'Passport / ID number is required';
+        const cat = data.fareCategory || 'Local';
+        seatErrors.idNumber = `${getIdLabel(cat)} is required`;
         hasError = true;
       }
       if (data.age <= 0) {
@@ -221,16 +255,16 @@ export const PassengerDetails: React.FC<Props> = ({ selectedSeats, onSave, onBac
 
                 {/* ID/Passport */}
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-slate-505">Passport / National ID</label>
+                  <label className="text-xs font-semibold text-slate-505">{getIdLabel(data.fareCategory || 'Local')}</label>
                   <input 
                     type="text" 
                     className={`bg-white border ${seatErrors.idNumber ? 'border-rose-300 input-error ring-2 ring-rose-500/10' : 'border-slate-200'} rounded-xl px-4 py-3 text-slate-850 text-sm font-medium focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition duration-200`}
-                    placeholder="Enter ID/Passport number" 
+                    placeholder={getIdPlaceholder(data.fareCategory || 'Local')}
                     value={data.idNumber}
                     onChange={(e) => handleChange(seat.id, 'idNumber', e.target.value)}
                   />
                   {seatErrors.idNumber && (
-                    <span className="text-rose-600 text-xs mt-0.5 font-semibold">{seatErrors.idNumber}</span>
+                    <span className="text-rose-605 text-xs mt-0.5 font-semibold">{seatErrors.idNumber}</span>
                   )}
                 </div>
 
@@ -266,7 +300,7 @@ export const PassengerDetails: React.FC<Props> = ({ selectedSeats, onSave, onBac
                   <label className="text-xs font-semibold text-slate-505">Passenger Category</label>
                   <select 
                     className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-bold focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition duration-200 cursor-pointer"
-                    value={data.fareCategory || 'Tourist'}
+                    value={data.fareCategory || 'Local'}
                     onChange={(e) => handleChange(seat.id, 'fareCategory', e.target.value)}
                   >
                     <option value="Tourist">Tourist</option>

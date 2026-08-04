@@ -47,9 +47,11 @@ function App() {
 
   const {
     currentStep,
+    setCurrentStep,
     selectedSchedule,
     selectedSeats,
     passengers,
+    setPassengers,
     promoCode,
     discount,
     activePromo,
@@ -160,6 +162,54 @@ function App() {
 
   const currentIndex = getStepIndex(currentStep);
 
+  const isStepClickable = (stepKey: string, targetIndex: number) => {
+    if (targetIndex === currentIndex) return false;
+    if (stepKey === 'search') return currentIndex >= 1;
+    if (stepKey === 'select_seats') return selectedSchedule !== null && currentIndex >= 1;
+    if (stepKey === 'passenger_details') return selectedSchedule !== null && selectedSeats.length === passengerCount && currentIndex >= 2;
+    if (stepKey === 'payment') return selectedSchedule !== null && selectedSeats.length === passengerCount && passengers.length === passengerCount && currentIndex >= 3;
+    return false;
+  };
+
+  const handleStepClick = (stepKey: string, targetIndex: number) => {
+    if (targetIndex === currentIndex) return;
+
+    if (stepKey === 'search') {
+      goSearch();
+      setHasSearched(false);
+      return;
+    }
+
+    if (stepKey === 'select_seats') {
+      if (selectedSchedule) {
+        if (currentStep === 'passenger_details' || currentStep === 'payment') {
+          goBackToSeats();
+        } else {
+          setCurrentStep('select_seats');
+        }
+      }
+      return;
+    }
+
+    if (stepKey === 'passenger_details') {
+      if (selectedSchedule && selectedSeats.length === passengerCount) {
+        if (currentStep === 'payment') {
+          setCurrentStep('passenger_details');
+        } else if (currentStep === 'select_seats') {
+          reserveSeats(user);
+        }
+      }
+      return;
+    }
+
+    if (stepKey === 'payment') {
+      if (selectedSchedule && selectedSeats.length === passengerCount && passengers.length === passengerCount) {
+        setCurrentStep('payment');
+      }
+      return;
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-6 md:px-8 py-4 sm:py-6 min-h-screen flex flex-col text-slate-800">
       <Navigation 
@@ -218,9 +268,14 @@ function App() {
             <div className="glass-panel rounded-2xl sm:rounded-full px-4 py-3 border border-slate-200/80 shadow-sm flex items-center justify-center gap-2 sm:gap-4 flex-wrap max-w-2xl mx-auto">
               {steps.map((s, i) => (
                 <React.Fragment key={s.key}>
-                  <div className={`flex items-center gap-2 transition duration-300 ${
-                    i <= currentIndex ? 'text-sky-600 font-extrabold' : 'text-slate-400 font-semibold'
-                  }`}>
+                  <div 
+                    onClick={() => isStepClickable(s.key, i) && handleStepClick(s.key, i)}
+                    className={`flex items-center gap-2 transition duration-300 ${
+                      isStepClickable(s.key, i) ? 'cursor-pointer hover:opacity-80 active:scale-95' : ''
+                    } ${
+                      i <= currentIndex ? 'text-sky-600 font-extrabold' : 'text-slate-400 font-semibold'
+                    }`}
+                  >
                     <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-black transition duration-300 ${
                       i <= currentIndex 
                         ? 'bg-gradient-to-tr from-sky-600 to-indigo-600 text-white shadow-md shadow-sky-600/20' 
@@ -332,7 +387,9 @@ function App() {
             {currentStep === 'passenger_details' && (
               <PassengerDetails 
                 selectedSeats={selectedSeats}
+                initialPassengers={passengers}
                 onSave={savePassengerDetails}
+                onSilentChange={setPassengers}
                 onBack={goBackToSeats}
               />
             )}

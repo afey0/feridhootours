@@ -47,7 +47,7 @@ export const BookingModal: React.FC<Props> = ({
 }) => {
   const { locations, showAlert } = usePlatformStore();
   const [timeLeft, setTimeLeft] = useState<number>(600);
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'bank_transfer'>('card');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'bank_transfer'>('bank_transfer');
   const [promoInput, setPromoInput] = useState('');
   const [promoError, setPromoError] = useState<string | null>(null);
   const [promoSuccess, setPromoSuccess] = useState<string | null>(null);
@@ -184,7 +184,7 @@ export const BookingModal: React.FC<Props> = ({
                     </span>
                   </div>
                   <div className="text-slate-500 text-xs mt-1 font-medium">
-                    {selectedSchedule.routeFrom} → {selectedSchedule.routeTo} | {selectedSchedule.departureTime}
+                    {selectedSchedule.routeFrom} → {selectedSchedule.routeTo} | {selectedSchedule.departureTime} | Travel Date: {selectedSchedule.scheduleDate ? new Date(selectedSchedule.scheduleDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
                   </div>
                   {selectedSchedule.stops && selectedSchedule.stops.length > 0 && (
                     <div className="text-[10px] text-slate-400 font-semibold mt-1.5 flex items-center gap-1.5 flex-wrap font-sans">
@@ -220,14 +220,12 @@ export const BookingModal: React.FC<Props> = ({
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button 
-                  className={`flex items-center justify-center gap-2.5 p-4 rounded-xl font-semibold border transition duration-200 cursor-pointer ${
-                    paymentMethod === 'card' 
-                      ? 'bg-sky-50 border-sky-400 text-sky-700 shadow-md shadow-sky-500/5' 
-                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                  }`}
-                  onClick={() => setPaymentMethod('card')}
+                  disabled
+                  type="button"
+                  className="flex items-center justify-center gap-2.5 p-4 rounded-xl font-semibold border transition duration-200 cursor-not-allowed opacity-50 bg-slate-100 border-slate-200 text-slate-400"
+                  title="Credit Card payments are temporarily disabled. Please use Bank Transfer."
                 >
-                  <CreditCard size={18} className="text-sky-600" /> Credit Card
+                  <CreditCard size={18} className="text-slate-400" /> Credit Card (Disabled)
                 </button>
                 <button 
                   className={`flex items-center justify-center gap-2.5 p-4 rounded-xl font-semibold border transition duration-200 cursor-pointer ${
@@ -418,7 +416,7 @@ export const BookingModal: React.FC<Props> = ({
             <button 
               className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-sky-500/10 hover:shadow-sky-600/25 hover:-translate-y-0.5 active:translate-y-0 transition duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               onClick={handlePayClick}
-              disabled={isProcessing}
+              disabled={isProcessing || (paymentMethod === 'bank_transfer' && !receiptSimulated)}
             >
               {isProcessing 
                 ? 'Processing Order...' 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Calendar, Users, AlertTriangle, ArrowLeftRight, Tag } from 'lucide-react';
+import { Search, MapPin, Calendar, Users, AlertTriangle, ArrowLeftRight } from 'lucide-react';
 import { usePlatformStore } from '../store/usePlatformStore';
 import type { FareCategory } from '../data/mockData';
 
@@ -15,7 +15,7 @@ export const SearchHero: React.FC<Props> = ({ onSearch, initialFromPort, initial
 
   const [fromPort, setFromPort] = useState(initialFromPort || 'APO');
   const [toPort, setToPort] = useState(initialToPort || 'FER');
-  const [fareCategory, setFareCategory] = useState<FareCategory>('Tourist');
+  const [fareCategory] = useState<FareCategory>('Local');
 
   useEffect(() => {
     if (initialFromPort) setFromPort(initialFromPort);
@@ -62,28 +62,6 @@ export const SearchHero: React.FC<Props> = ({ onSearch, initialFromPort, initial
 
   return (
     <div className="glass-panel rounded-3xl overflow-hidden shadow-xl border border-slate-200/80 text-left">
-      {/* Proposal Category Quick Switch Bar */}
-      <div className="bg-slate-50/80 border-b border-slate-200/60 px-5 py-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
-          <Tag size={14} className="text-sky-600" /> Fare Category:
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {(['Tourist', 'Local', 'Work Permit', 'Resort'] as FareCategory[]).map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setFareCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 ${
-                fareCategory === cat
-                  ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              {cat === 'Tourist' ? '🌐' : cat === 'Local' ? '🇲🇻' : cat === 'Work Permit' ? '🪪' : '🏝️'} {cat} Fare
-            </button>
-          ))}
-        </div>
-      </div>
 
       <form onSubmit={handleSearch} className="p-5 md:p-8 space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
@@ -165,14 +143,7 @@ export const SearchHero: React.FC<Props> = ({ onSearch, initialFromPort, initial
           </div>
         )}
 
-        <div className="flex justify-between items-center pt-2 flex-wrap gap-4">
-          <div className="text-xs text-slate-500 font-semibold flex items-center gap-2">
-            <span>Selected Category:</span>
-            <span className="font-extrabold text-slate-900 bg-sky-50 text-sky-700 px-2.5 py-1 rounded-lg border border-sky-200">
-              {fareCategory} Fare
-            </span>
-          </div>
-
+        <div className="flex justify-end items-center pt-2 flex-wrap gap-4">
           <button 
             type="submit" 
             className="w-full sm:w-auto bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-black px-8 py-3.5 rounded-2xl shadow-lg shadow-sky-600/20 hover:shadow-sky-600/35 transition duration-200 flex items-center justify-center gap-2.5 cursor-pointer text-sm"

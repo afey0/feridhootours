@@ -227,9 +227,11 @@ export const useBookingFlow = () => {
 
   return {
     currentStep,
+    setCurrentStep,
     selectedSchedule,
     selectedSeats,
     passengers,
+    setPassengers,
     promoCode,
     discount,
     activePromo,
