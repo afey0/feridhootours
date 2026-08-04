@@ -97,3 +97,33 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   metadata TEXT DEFAULT '{}',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Seed Jetties / Locations
+INSERT OR IGNORE INTO jetties (id, name) VALUES ('APO', 'Airport (Velana International Airport Pier)');
+INSERT OR IGNORE INTO jetties (id, name) VALUES ('MLE', 'Male'' (Malé Central Ferry Terminal)');
+INSERT OR IGNORE INTO jetties (id, name) VALUES ('FER', 'Feridhoo Harbor Terminal');
+INSERT OR IGNORE INTO jetties (id, name) VALUES ('MAL', 'Maalhos Island Jetty');
+INSERT OR IGNORE INTO jetties (id, name) VALUES ('HIM', 'Himandhoo Island Pier');
+INSERT OR IGNORE INTO jetties (id, name) VALUES ('BTH', 'Bathala Resort Jetty');
+INSERT OR IGNORE INTO jetties (id, name) VALUES ('HLV', 'Halaveli Resort Pier');
+INSERT OR IGNORE INTO jetties (id, name) VALUES ('WMV', 'W Maldives Resort Pier');
+INSERT OR IGNORE INTO jetties (id, name) VALUES ('ATH', 'Athuruga Resort Pier');
+INSERT OR IGNORE INTO jetties (id, name) VALUES ('SAF', 'Safari Island Resort Pier');
+
+-- Seed Users
+INSERT OR IGNORE INTO users (id, name, email, password_hash, role) VALUES ('usr-123', 'Ahmed F.', 'ahmed@example.com', 'password123', 'passenger');
+INSERT OR IGNORE INTO users (id, name, email, password_hash, role, agency_name) VALUES ('age-777', 'Maldives Travel Agency', 'bookings@mvtravel.com', 'agency123', 'agency', 'Maldives Travel Agency');
+INSERT OR IGNORE INTO users (id, name, email, password_hash, role) VALUES ('adm-999', 'System Admin', 'admin@smartferry.mv', 'admin123', 'admin');
+INSERT OR IGNORE INTO users (id, name, email, password_hash, role) VALUES ('sadm-001', 'Super Admin', 'superadmin@smartferry.mv', 'superadmin123', 'super_admin');
+
+-- Seed Vessels
+INSERT OR IGNORE INTO vessels (id, name, type, capacity, amenities, layout_rows, layout_cols, vip_rows, premium_rows) VALUES ('VES-38A', 'Touring 38 (27 Pax)', 'Speedboat', 27, '["AC", "Life Jacket", "Water", "WiFi", "USB Charger"]', 7, 4, '1', '2-3');
+INSERT OR IGNORE INTO vessels (id, name, type, capacity, amenities, layout_rows, layout_cols, vip_rows, premium_rows) VALUES ('VES-38B', 'Touring 38 (30 Pax)', 'Speedboat', 30, '["AC", "Life Jacket", "Water", "USB Charger"]', 8, 4, '1-2', '3-4');
+INSERT OR IGNORE INTO vessels (id, name, type, capacity, amenities, layout_rows, layout_cols, vip_rows, premium_rows) VALUES ('VES-43A', 'Touring 43 (50 Pax)', 'Speedboat', 50, '["AC", "Life Jacket", "Water", "WiFi", "Toilets", "USB Charger"]', 10, 5, '1-2', '3-5');
+INSERT OR IGNORE INTO vessels (id, name, type, capacity, amenities, layout_rows, layout_cols, vip_rows, premium_rows) VALUES ('VES-001', 'Senora Wave', 'Speedboat', 42, '["AC", "Life Jacket", "Water", "WiFi"]', 9, 5, '1-2', '3-4');
+INSERT OR IGNORE INTO vessels (id, name, type, capacity, amenities, layout_rows, layout_cols, vip_rows, premium_rows) VALUES ('VES-002', 'Kaani Princess', 'Speedboat', 32, '["AC", "Water", "Life Jacket", "USB Charger"]', 8, 4, '1-2', '3-4');
+
+-- Seed Schedules
+INSERT OR IGNORE INTO schedules (id, vessel_id, vessel_name, vessel_type, departure_time, arrival_time, available_seats, total_seats, price, category_prices, route_from, route_to, recurrence, schedule_date, amenities, stops) VALUES ('SCH-001', 'VES-001', 'Senora Wave', 'Speedboat', '09:30 AM', '11:00 AM', 18, 42, 35.00, '{"Tourist": 35.00, "Local": 15.00, "Work Permit": 20.00, "Resort": 50.00}', 'APO', 'FER', 'Day', '2026-08-03', '["AC", "Water", "Life Jacket", "WiFi"]', '["Male''", "Bathala"]');
+INSERT OR IGNORE INTO schedules (id, vessel_id, vessel_name, vessel_type, departure_time, arrival_time, available_seats, total_seats, price, category_prices, route_from, route_to, recurrence, schedule_date, amenities, stops) VALUES ('SCH-002', 'VES-38A', 'Touring 38 (27 Pax)', 'Speedboat', '02:00 PM', '03:30 PM', 27, 27, 35.00, '{"Tourist": 35.00, "Local": 15.00, "Work Permit": 20.00, "Resort": 50.00}', 'APO', 'FER', '7 Days', '2026-08-03', '["AC", "Water", "Life Jacket", "USB Charger"]', '["Halaveli", "W Maldives"]');
+INSERT OR IGNORE INTO schedules (id, vessel_id, vessel_name, vessel_type, departure_time, arrival_time, available_seats, total_seats, price, category_prices, route_from, route_to, recurrence, schedule_date, amenities, stops) VALUES ('SCH-003', 'VES-43A', 'Touring 43 (50 Pax)', 'Speedboat', '11:30 AM', '01:00 PM', 45, 50, 35.00, '{"Tourist": 35.00, "Local": 15.00, "Work Permit": 20.00, "Resort": 50.00}', 'MLE', 'HIM', '30 Days', '2026-08-03', '["AC", "Water", "Life Jacket", "WiFi", "Toilets"]', '["Maalhos", "Safari Island"]');
