@@ -62,6 +62,21 @@ export const SeatMap: React.FC<Props> = ({
       
       {/* Vessel Deck Visualization */}
       <div className="flex-[1.2] min-w-[280px]">
+        {/* Voyage & Date Info Badge */}
+        {schedule && (
+          <div className="mb-4 bg-sky-50/80 border border-sky-200/80 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2 font-extrabold text-slate-800">
+              <span className="text-sky-600">📅</span>
+              <span>
+                {schedule.scheduleDate ? new Date(schedule.scheduleDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'Travel Date'}
+              </span>
+            </div>
+            <div className="text-slate-500 font-semibold text-[11px]">
+              {schedule.routeFrom} ➔ {schedule.routeTo} ({schedule.departureTime})
+            </div>
+          </div>
+        )}
+
         <div className="text-center mb-6">
           <div className="text-sm font-bold tracking-widest text-slate-500 uppercase">Front (Bow) / Cabin</div>
           <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[8px] border-b-sky-500 mx-auto mt-2" />

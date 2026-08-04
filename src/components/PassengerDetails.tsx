@@ -19,6 +19,7 @@ export const PassengerDetails: React.FC<Props> = ({ selectedSeats, onSave, onBac
         age: 18,
         gender: 'Male',
         idNumber: '',
+        fareCategory: 'Tourist',
         specialRequest: ''
       };
       return acc;
@@ -257,6 +258,21 @@ export const PassengerDetails: React.FC<Props> = ({ selectedSeats, onSave, onBac
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                     <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                {/* Passenger Fare Category */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-semibold text-slate-505">Passenger Category</label>
+                  <select 
+                    className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm font-bold focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition duration-200 cursor-pointer"
+                    value={data.fareCategory || 'Tourist'}
+                    onChange={(e) => handleChange(seat.id, 'fareCategory', e.target.value)}
+                  >
+                    <option value="Tourist">Tourist</option>
+                    <option value="Local">Local</option>
+                    <option value="Work Permit">Work Permit</option>
+                    <option value="Resort">Resort Staff</option>
                   </select>
                 </div>
               </div>

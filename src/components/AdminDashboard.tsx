@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Users, Ship, AlertTriangle, ArrowLeft, Plus, CheckCircle, XCircle, FileText, X, CreditCard, DollarSign, Layers, Mail, Key, Trash2, ClipboardList, AlertCircle, ShieldAlert, Search, Download, Eye, Clock, List, Code, Check, Lock, Pencil, Unlock, Wrench, Armchair } from 'lucide-react';
+import { BarChart3, Users, Ship, AlertTriangle, ArrowLeft, Plus, CheckCircle, XCircle, FileText, X, CreditCard, DollarSign, Layers, Mail, Key, Trash2, ClipboardList, AlertCircle, ShieldAlert, Search, Download, Eye, Clock, List, Code, Check, Lock, Pencil, Unlock, Wrench, Armchair, Upload } from 'lucide-react';
 
 import { usePlatformStore } from '../store/usePlatformStore';
 import { useAuthStore, getCurrentAuthUser } from '../store/useAuthStore';
 import { SeatMap } from './SeatMap';
-import type { Seat, Booking, Passenger } from '../data/mockData';
+import type { Seat, Booking, Passenger, FareCategory } from '../data/mockData';
 import type { AuditLogEntry } from '../types/audit';
 import { getAuditHeadline, getAuditReadableDiffs } from '../utils/auditFormatter';
 
@@ -183,6 +183,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
   const [vesselFormCols, setVesselFormCols] = useState(4);
   const [vesselFormVipRows, setVesselFormVipRows] = useState('');
   const [vesselFormPremiumRows, setVesselFormPremiumRows] = useState('');
+  const [vesselFormCategories, setVesselFormCategories] = useState<FareCategory[]>(['Tourist', 'Local', 'Work Permit', 'Resort']);
   const [vesselPreviewSeats, setVesselPreviewSeats] = useState<Seat[]>([]);
 
   // Rejection state
@@ -858,6 +859,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                 setVesselFormCols(4);
                 setVesselFormVipRows('1-2');
                 setVesselFormPremiumRows('3-4');
+                setVesselFormCategories(['Tourist', 'Local', 'Work Permit', 'Resort']);
                 setVesselPreviewSeats([]);
                 setShowVesselForm(true);
               }}
@@ -893,10 +895,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-2 justify-start lg:justify-end">
+                    <div className="flex items-center gap-1.5 justify-start lg:justify-end">
                       <button
-                        className="bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
-                        title="Edit Vessel Specifications & Seat Layout"
+                        className="bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center shadow-xs"
+                        title="Edit Vessel"
                         onClick={() => {
                           setEditingVesselId(v.id);
                           setVesselFormName(v.name);
@@ -906,6 +908,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                           setVesselFormCols(v.layoutCols);
                           setVesselFormVipRows(v.vipRows);
                           setVesselFormPremiumRows(v.premiumRows);
+                          setVesselFormCategories(v.allowedFareCategories || ['Tourist', 'Local', 'Work Permit', 'Resort']);
                           if (v.customSeats && v.customSeats.length > 0) {
                             setVesselPreviewSeats(JSON.parse(JSON.stringify(v.customSeats)));
                           } else {
@@ -914,11 +917,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                           setShowVesselForm(true);
                         }}
                       >
-                        <Pencil size={14} /> Edit
+                        <Pencil size={16} />
                       </button>
                       <button
-                        className="bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
-                        title="Delete Vessel from Fleet Registry"
+                        className="bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center shadow-xs"
+                        title="Delete Vessel"
                         onClick={() => {
                           const result = removeVessel(v.id);
                           if (!result.success) {
@@ -928,10 +931,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                           }
                         }}
                       >
-                        <Trash2 size={14} /> Delete
+                        <Trash2 size={16} />
                       </button>
-
-
                     </div>
                   </div>
                 );
@@ -1050,9 +1051,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                     <div className="text-slate-500">{32 - bookedCount} open seats remaining</div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 justify-start lg:justify-end">
+                  <div className="flex items-center gap-1.5 justify-start lg:justify-end">
                     <button 
-                      className={`font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm ${
+                      className={`p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center shadow-xs ${
                         s.disabled 
                           ? 'bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100' 
                           : 'bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200'
@@ -1060,10 +1061,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                       title={s.disabled ? "Enable Daily Route Schedule" : "Disable Daily Route Schedule"}
                       onClick={() => editSchedule(s.id, { disabled: !s.disabled })}
                     >
-                      {s.disabled ? <Unlock size={14} /> : <Lock size={14} />} {s.disabled ? 'Enable' : 'Disable'}
+                      {s.disabled ? <Unlock size={16} /> : <Lock size={16} />}
                     </button>
                     <button 
-                      className={`font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm ${
+                      className={`p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center shadow-xs ${
                         s.maintenance 
                           ? 'bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100' 
                           : 'bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100'
@@ -1071,25 +1072,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                       title={s.maintenance ? "Set Active Operational Mode" : "Set Maintenance Mode"}
                       onClick={() => editSchedule(s.id, { maintenance: !s.maintenance })}
                     >
-                      <Wrench size={14} /> {s.maintenance ? 'Active Mode' : 'Maintenance'}
+                      <Wrench size={16} />
                     </button>
                     <button 
-                      className="bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
-                      title="Manage Seating Map & Lock/Release Individual Seats"
+                      className="bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center shadow-xs"
+                      title="Manage Seats"
                       onClick={() => setManagingScheduleId(s.id)}
                     >
-                      <Armchair size={14} /> Manage Seats
+                      <Armchair size={16} />
                     </button>
                     <button 
-                      className="bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
-                      title="Edit Route Schedule Details & Pricing"
+                      className="bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center shadow-xs"
+                      title="Edit Schedule"
                       onClick={() => handleOpenEditForm(s.id)}
                     >
-                      <Pencil size={14} /> Edit
+                      <Pencil size={16} />
                     </button>
                     <button 
-                      className="bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
-                      title="Cancel This Route Schedule"
+                      className="bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center shadow-xs"
+                      title="Cancel Route"
                       onClick={() => {
                         const hasActiveBookings = bookings.some(b => b.scheduleId === s.id && (b.status === 'verified' || b.status === 'pending_verification'));
                         if (hasActiveBookings) {
@@ -1101,9 +1102,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                         }
                       }}
                     >
-                      <Trash2 size={14} /> Cancel Route
+                      <Trash2 size={16} />
                     </button>
-
                   </div>
                 </div>
               );
@@ -1260,20 +1260,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                         </div>
                       </div>
                     ) : (
-                      <>
+                      <div className="flex items-center justify-center gap-2">
                         <button 
-                          className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition duration-150 flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-emerald-500/5"
+                          className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold p-2.5 rounded-xl transition duration-150 flex items-center justify-center cursor-pointer shadow-md shadow-emerald-500/10"
+                          title="Verify & Approve Slip"
                           onClick={() => updateBookingStatus(b.id, 'verified')}
                         >
-                          <CheckCircle size={14} /> Verify & Approve
+                          <CheckCircle size={18} />
                         </button>
                         <button 
-                          className="bg-transparent border border-rose-200 text-rose-500 hover:bg-rose-50 font-bold py-2.5 px-4 rounded-xl text-xs transition duration-150 flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 font-bold p-2.5 rounded-xl transition duration-150 flex items-center justify-center cursor-pointer shadow-xs"
+                          title="Decline Slip"
                           onClick={() => setRejectingBookingId(b.id)}
                         >
-                          <XCircle size={14} /> Decline Slip
+                          <XCircle size={18} />
                         </button>
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1482,8 +1484,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                         <span className="text-xs font-semibold text-slate-500 block">Total Paid</span>
                         <span className="text-lg font-black text-slate-850">${b.totalAmount}</span>
                       </div>
-                      <div className="flex flex-wrap gap-2 justify-end">
+                      <div className="flex items-center gap-1.5 justify-end">
                         <button
+                          title="Edit Booking"
                           onClick={() => {
                             // Populate states for editing
                             setEditingBookingId(b.id);
@@ -1495,13 +1498,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                             setCrudBookingDiscount(b.discountApplied);
                             setShowBookingForm(true);
                           }}
-                          className="bg-transparent hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg text-xs transition cursor-pointer font-sans"
+                          className="bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-700 p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center shadow-xs"
                         >
-                          Edit
+                          <Pencil size={16} />
                         </button>
 
                         {b.status !== 'cancelled' ? (
                           <button
+                            title="Log Refund"
                             onClick={() => {
                               const res = processRefund(b.id, { bankName: 'Bank of Maldives (BML)', accountName: b.passengers[0]?.name || 'Passenger', accountNumber: '7730000123456' });
                               if (res.success) {
@@ -1510,43 +1514,46 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                                 showAlert(res.message, 'Refund Error', 'error');
                               }
                             }}
-                            className="bg-transparent hover:bg-amber-50 border border-amber-300 text-amber-700 font-bold px-3 py-1.5 rounded-lg text-xs transition cursor-pointer font-sans"
+                            className="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center shadow-xs"
                           >
-                            Log Refund
+                            <DollarSign size={16} />
                           </button>
                         ) : (
                           <button
+                            title={b.refundReceiptImage ? 'Update Payout Slip' : 'Upload Payout Slip'}
                             onClick={() => setUploadingRefundBookingId(b.id)}
-                            className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 font-bold px-3 py-1.5 rounded-lg text-xs transition cursor-pointer font-sans"
+                            className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center shadow-xs"
                           >
-                            {b.refundReceiptImage ? 'Update Payout Slip' : 'Upload Payout Slip'}
+                            <Upload size={16} />
                           </button>
                         )}
 
                         {b.refundReceiptImage && (
                           <button
+                            title="View Payout Slip"
                             onClick={() => setPreviewingSlipUrl(b.refundReceiptImage!)}
-                            className="bg-sky-50 hover:bg-sky-100 border border-sky-300 text-sky-700 font-bold px-3 py-1.5 rounded-lg text-xs transition cursor-pointer font-sans"
+                            className="bg-sky-50 hover:bg-sky-100 border border-sky-300 text-sky-700 p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center shadow-xs"
                           >
-                            View Slip
+                            <FileText size={16} />
                           </button>
                         )}
 
                         {currentAuthUser?.role === 'super_admin' ? (
                           <button
+                            title="Delete Booking"
                             onClick={() => {
                               if (confirm(`Are you sure you want to delete and void booking ${b.id}? This will immediately release all booked seats.`)) {
                                 const res = removeBooking(b.id, currentAuthUser);
                                 showAlert(res.message, res.success ? 'Booking Deleted' : 'Access Denied', res.success ? 'success' : 'error');
                               }
                             }}
-                            className="bg-transparent hover:bg-rose-50 border border-rose-250 text-rose-600 font-bold px-3 py-1.5 rounded-lg text-xs transition cursor-pointer font-sans"
+                            className="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center shadow-xs"
                           >
-                            Delete
+                            <Trash2 size={16} />
                           </button>
                         ) : (
-                          <span className="text-[10px] text-slate-400 font-bold bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1.5 flex items-center gap-1 cursor-not-allowed select-none" title="Only Super Admin can delete bookings or refund records">
-                            <Lock size={12} className="text-slate-400" /> Deletion Restricted
+                          <span className="p-2.5 text-slate-400 bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center cursor-not-allowed select-none" title="Only Super Admin can delete bookings or refund records">
+                            <Lock size={16} className="text-slate-400" />
                           </span>
                         )}
                       </div>
@@ -3638,6 +3645,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                   layoutCols: vesselFormCols,
                   vipRows: finalVipRows,
                   premiumRows: finalPremiumRows,
+                  allowedFareCategories: vesselFormCategories,
                   customSeats: vesselPreviewSeats
                 };
                 if (editingVesselId) {
@@ -3694,6 +3702,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                               }}
                             />
                             {item}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs font-bold text-slate-505 uppercase tracking-wider">Allowed Passenger Categories</label>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-1 bg-slate-50 border border-slate-100 rounded-xl p-3.5">
+                        {(['Tourist', 'Local', 'Work Permit', 'Resort'] as FareCategory[]).map(cat => (
+                          <label key={cat} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer select-none font-semibold hover:text-slate-900 transition">
+                            <input 
+                              type="checkbox" 
+                              className="rounded border-slate-350 text-sky-600 focus:ring-sky-500/20 bg-white"
+                              checked={vesselFormCategories.includes(cat)}
+                              onChange={() => {
+                                setVesselFormCategories(prev => 
+                                  prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+                                );
+                              }}
+                            />
+                            {cat}
                           </label>
                         ))}
                       </div>

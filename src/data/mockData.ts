@@ -22,6 +22,7 @@ export interface Vessel {
   vipRows: string;         // e.g. "1-2"
   premiumRows: string;     // e.g. "3-4"
   customSeats?: Seat[];
+  allowedFareCategories?: FareCategory[];
 }
 
 export interface Schedule {
@@ -191,6 +192,7 @@ export const INITIAL_VESSELS: Vessel[] = [
     layoutCols: 4,
     vipRows: '1',
     premiumRows: '2-3',
+    allowedFareCategories: ['Tourist', 'Local', 'Work Permit', 'Resort'],
   },
   {
     id: 'VES-38B',
@@ -202,6 +204,7 @@ export const INITIAL_VESSELS: Vessel[] = [
     layoutCols: 4,
     vipRows: '1-2',
     premiumRows: '3-4',
+    allowedFareCategories: ['Tourist', 'Local', 'Work Permit', 'Resort'],
   },
   {
     id: 'VES-43A',
@@ -213,6 +216,7 @@ export const INITIAL_VESSELS: Vessel[] = [
     layoutCols: 5,
     vipRows: '1-2',
     premiumRows: '3-5',
+    allowedFareCategories: ['Tourist', 'Local', 'Work Permit', 'Resort'],
   },
   {
     id: 'VES-001',
@@ -224,6 +228,7 @@ export const INITIAL_VESSELS: Vessel[] = [
     layoutCols: 5,
     vipRows: '1-2',
     premiumRows: '3-4',
+    allowedFareCategories: ['Tourist', 'Local', 'Work Permit', 'Resort'],
   },
   {
     id: 'VES-002',
@@ -235,6 +240,7 @@ export const INITIAL_VESSELS: Vessel[] = [
     layoutCols: 4,
     vipRows: '1-2',
     premiumRows: '3-4',
+    allowedFareCategories: ['Tourist', 'Local', 'Work Permit', 'Resort'],
   }
 ];
 

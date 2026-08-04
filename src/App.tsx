@@ -296,8 +296,11 @@ function App() {
                         {selectedSchedule.vesselType}
                       </span>
                     </h2>
-                    <div className="text-slate-500 text-xs mt-1.5 font-medium">
-                      {selectedSchedule.routeFrom} → {selectedSchedule.routeTo} | {selectedSchedule.departureTime} — {selectedSchedule.arrivalTime}
+                    <div className="text-slate-500 text-xs mt-1.5 font-medium flex flex-wrap items-center gap-2">
+                      <span>{selectedSchedule.routeFrom} → {selectedSchedule.routeTo} | {selectedSchedule.departureTime} — {selectedSchedule.arrivalTime}</span>
+                      <span className="text-[11px] font-extrabold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-lg border border-sky-200">
+                        📅 {departureDate ? new Date(departureDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : selectedSchedule.scheduleDate || 'Travel Date'}
+                      </span>
                     </div>
                     <div className="flex gap-1.5 mt-3 flex-wrap">
                       {selectedSchedule.amenities.map(a => (
