@@ -11,7 +11,7 @@ interface Props {
 }
 
 export const MyBookings: React.FC<Props> = ({ onBack, user }) => {
-  const { bookings, updateBookingStatus, processRefund, showAlert } = usePlatformStore();
+  const { bookings, schedules, updateBookingStatus, processRefund, showAlert } = usePlatformStore();
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState<string | null>(null);
   const [newReceiptUrl, setNewReceiptUrl] = useState<string>('');
@@ -124,6 +124,14 @@ export const MyBookings: React.FC<Props> = ({ onBack, user }) => {
     );
   };
 
+  const getTravelDate = (booking: Booking) => {
+    const sch = schedules.find(s => s.id === booking.scheduleId);
+    if (sch?.scheduleDate) {
+      return new Date(sch.scheduleDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    return new Date(booking.createdAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
   return (
     <div className="glass-panel rounded-2xl border border-slate-200 p-6 md:p-8 animate-fade-in text-slate-800">
       
@@ -212,6 +220,7 @@ export const MyBookings: React.FC<Props> = ({ onBack, user }) => {
                     <div>
                       <h4 className="font-bold text-slate-800 text-base">{b.vesselName}</h4>
                       <p className="text-xs text-slate-500 mt-0.5 font-medium">{b.routeFrom} → {b.routeTo} | {b.departureTime}</p>
+                      <p className="text-[10px] text-sky-600 font-bold mt-1">Travel Date: {getTravelDate(b)}</p>
                     </div>
                     <div className="text-right">
                       <div className="font-bold text-slate-800">${b.totalAmount.toFixed(2)}</div>
@@ -252,7 +261,7 @@ export const MyBookings: React.FC<Props> = ({ onBack, user }) => {
               <div className="flex justify-between items-start border-b border-slate-200 pb-4">
                 <div>
                   <h3 className="text-lg font-bold text-slate-850">Booking Details & Invoices</h3>
-                  <span className="text-xs text-slate-500 font-medium">Created: {new Date(selectedBooking.createdAt).toLocaleDateString()}</span>
+                  <span className="text-xs text-slate-500 font-medium">Travel Date: {getTravelDate(selectedBooking)}</span>
                 </div>
                 <div className="text-right flex flex-col items-end gap-1.5">
                   {getStatusBadge(selectedBooking.status)}

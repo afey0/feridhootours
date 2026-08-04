@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Users, ArrowRight, UserPlus, Info } from 'lucide-react';
-import type { Seat, Passenger } from '../data/mockData';
+import type { Seat, Passenger, FareCategory } from '../data/mockData';
 import { useAuthStore } from '../store/useAuthStore';
 
 interface Props {
@@ -217,17 +217,39 @@ export const PassengerDetails: React.FC<Props> = ({ selectedSeats, initialPassen
                         const val = e.target.value;
                         const match = user.savedPassengers.find((p: any) => p.idNumber === val);
                         if (match) {
-                          handleChange(seat.id, 'name', match.name);
-                          handleChange(seat.id, 'age', match.age);
-                          handleChange(seat.id, 'gender', match.gender);
-                          handleChange(seat.id, 'idNumber', match.idNumber);
-                          handleChange(seat.id, 'specialRequest', match.specialRequest || '');
+                          const updatedSeatData: Omit<Passenger, 'seatId'> = {
+                            ...formData[seat.id],
+                            name: match.name,
+                            age: match.age,
+                            gender: match.gender as any,
+                            idNumber: match.idNumber,
+                            fareCategory: 'Local' as FareCategory,
+                            specialRequest: match.specialRequest || ''
+                          };
+                          const updated: Record<string, Omit<Passenger, 'seatId'>> = {
+                            ...formData,
+                            [seat.id]: updatedSeatData
+                          };
+                          setFormData(updated);
+
+                          // Clear errors for this seat
+                          setErrors(prev => ({
+                            ...prev,
+                            [seat.id]: {}
+                          }));
+
+                          if (onSilentChange) {
+                            const passengerList: Passenger[] = selectedSeats.map(s => ({
+                              ...(s.id === seat.id ? updatedSeatData : (updated[s.id] || { name: '', age: 18, gender: 'Male', idNumber: '', fareCategory: 'Local' as FareCategory, specialRequest: '' })),
+                              seatId: s.id
+                            }));
+                            onSilentChange(passengerList);
+                          }
                         }
                       }}
                     >
                       <option value="">Quick Fill Saved Traveler</option>
                       {user.savedPassengers.map((sp: any) => (
-
                         <option key={sp.idNumber} value={sp.idNumber}>
                           {sp.name} ({sp.idNumber})
                         </option>

@@ -1206,7 +1206,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                         })()}
                       </div>
                       <p className="text-xs text-slate-500 font-medium">
-                        Route: {b.routeFrom} → {b.routeTo} | Departure: {b.departureTime}
+                        Route: {b.routeFrom} → {b.routeTo} | Departure: {b.departureTime} | Travel Date: <strong className="text-sky-600 font-bold">{
+                          (() => {
+                            const sch = schedules.find(s => s.id === b.scheduleId);
+                            return sch?.scheduleDate 
+                              ? new Date(sch.scheduleDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+                              : new Date(b.createdAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                          })()
+                        }</strong>
                       </p>
                     </div>
 
