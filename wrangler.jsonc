@@ -12,7 +12,8 @@
     {
       "binding": "DB",
       "database_name": "feridhoo-tours-d1",
-      "database_id": "8f3b2a19-4c2d-41e8-a379-992bf0c2e301"
+      //"database_id": "8f3b2a19-4c2d-41e8-a379-992bf0c2e301"
+      "database_id": "0d583991-d785-472b-b1cb-39564a6da179"
     }
   ],
   "observability": {
