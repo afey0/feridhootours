@@ -3,11 +3,6 @@
   "name": "feridhootours",
   "compatibility_date": "2026-08-01",
   "pages_build_output_dir": "dist",
-  "assets": {
-    "directory": "./dist",
-    "html_handling": "auto-trailing-slash",
-    "not_found_handling": "single-page-application"
-  },
   "d1_databases": [
     {
       "binding": "DB",
