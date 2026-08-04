@@ -171,7 +171,7 @@ app.post('/api/v1/broadcast', async (req, res) => {
   const { type, payload } = req.body;
 
   try {
-    if (type === 'ADD_VESSEL' || type === 'EDIT_VESSEL') {
+    if (type === 'ADD_VESSEL' || type === 'EDIT_VESSEL' || type === 'VESSEL_CREATED' || type === 'VESSEL_UPDATED') {
       await pool.query(
         `INSERT INTO vessels (id, name, type, amenities, layout_rows, layout_cols, vip_rows, premium_rows, custom_seats)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -192,9 +192,9 @@ app.post('/api/v1/broadcast', async (req, res) => {
           JSON.stringify(payload.customSeats || [])
         ]
       );
-    } else if (type === 'REMOVE_VESSEL') {
+    } else if (type === 'REMOVE_VESSEL' || type === 'VESSEL_DELETED') {
       await pool.query('DELETE FROM vessels WHERE id = $1', [payload.id]);
-    } else if (type === 'ADD_SCHEDULE' || type === 'EDIT_SCHEDULE') {
+    } else if (type === 'ADD_SCHEDULE' || type === 'EDIT_SCHEDULE' || type === 'SCHEDULE_CREATED' || type === 'SCHEDULE_UPDATED') {
       await pool.query(
         `INSERT INTO schedules (id, vessel_id, vessel_name, vessel_type, departure_time, arrival_time, available_seats, total_seats, price, route_from, route_to, recurrence, schedule_date, amenities, stops, disabled, maintenance)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
@@ -226,9 +226,9 @@ app.post('/api/v1/broadcast', async (req, res) => {
           payload.maintenance || false
         ]
       );
-    } else if (type === 'REMOVE_SCHEDULE') {
+    } else if (type === 'REMOVE_SCHEDULE' || type === 'SCHEDULE_DELETED') {
       await pool.query('DELETE FROM schedules WHERE id = $1', [payload.id]);
-    } else if (type === 'ADD_BOOKING' || type === 'UPDATE_BOOKING') {
+    } else if (type === 'ADD_BOOKING' || type === 'BOOKING_CREATED') {
       await pool.query(
         `INSERT INTO bookings (id, schedule_id, vessel_name, vessel_type, departure_time, arrival_time, route_from, route_to, passengers, selected_seat_ids, total_amount, discount_applied, promo_code_used, payment_method, receipt_image, status, rejection_reason, agency_id, booked_by, user_id, passenger_email)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
@@ -259,8 +259,44 @@ app.post('/api/v1/broadcast', async (req, res) => {
           payload.passengerEmail || null
         ]
       );
-    } else if (type === 'REMOVE_BOOKING') {
-      await pool.query('DELETE FROM bookings WHERE id = $1', [payload.id]);
+    } else if (type === 'UPDATE_BOOKING' || type === 'BOOKING_UPDATED') {
+      const bookingId = payload.bookingId || payload.id;
+      const status = payload.status || payload.updatedFields?.status;
+      const rejectionReason = payload.rejectionReason || payload.updatedFields?.rejectionReason;
+      const receiptImage = payload.receiptImage || payload.updatedFields?.receiptImage;
+
+      if (status !== undefined) {
+        await pool.query('UPDATE bookings SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [status, bookingId]);
+      }
+      if (rejectionReason !== undefined) {
+        await pool.query('UPDATE bookings SET rejection_reason = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [rejectionReason, bookingId]);
+      }
+      if (receiptImage !== undefined) {
+        await pool.query('UPDATE bookings SET receipt_image = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [receiptImage, bookingId]);
+      }
+    } else if (type === 'REMOVE_BOOKING' || type === 'BOOKING_DELETED') {
+      const bookingId = payload.bookingId || payload.id;
+      await pool.query('DELETE FROM bookings WHERE id = $1', [bookingId]);
+    } else if (type === 'BOOKING_REFUND_REQUESTED') {
+      const bookingId = payload.bookingId;
+      await pool.query("UPDATE bookings SET status = 'refund_requested', updated_at = CURRENT_TIMESTAMP WHERE id = $1", [bookingId]);
+    } else if (type === 'REFUND_PAYOUT_COMPLETED') {
+      const bookingId = payload.bookingId;
+      await pool.query("UPDATE bookings SET status = 'refunded', updated_at = CURRENT_TIMESTAMP WHERE id = $1", [bookingId]);
+    } else if (type === 'JETTY_CREATED' || type === 'ADD_JETTY') {
+      await pool.query(
+        `INSERT INTO jetties (id, name) VALUES ($1, $2)
+         ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name`,
+        [payload.id, payload.name]
+      );
+    } else if (type === 'JETTY_DELETED' || type === 'REMOVE_JETTY') {
+      await pool.query('DELETE FROM jetties WHERE id = $1', [payload.id]);
+    } else if (type === 'SEATS_BOOKED') {
+      const { scheduleId, seatIds } = payload;
+      await pool.query(
+        `UPDATE schedules SET available_seats = CASE WHEN available_seats - $1 < 0 THEN 0 ELSE available_seats - $1 END WHERE id = $2`,
+        [seatIds.length, scheduleId]
+      );
     }
   } catch (err) {
     console.error('[DB Broadcast Mutation Error]', err);

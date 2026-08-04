@@ -121,7 +121,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const body: any = await request.json();
       const { type, payload } = body;
 
-      if (type === 'ADD_VESSEL' || type === 'EDIT_VESSEL') {
+      if (type === 'ADD_VESSEL' || type === 'EDIT_VESSEL' || type === 'VESSEL_CREATED' || type === 'VESSEL_UPDATED') {
         await env.DB.prepare(
           `INSERT INTO vessels (id, name, type, capacity, amenities, layout_rows, layout_cols, vip_rows, premium_rows, custom_seats)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -141,9 +141,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
           payload.premiumRows || '',
           JSON.stringify(payload.customSeats || [])
         ).run();
-      } else if (type === 'REMOVE_VESSEL') {
+      } else if (type === 'REMOVE_VESSEL' || type === 'VESSEL_DELETED') {
         await env.DB.prepare('DELETE FROM vessels WHERE id = ?').bind(payload.id).run();
-      } else if (type === 'ADD_SCHEDULE' || type === 'EDIT_SCHEDULE') {
+      } else if (type === 'ADD_SCHEDULE' || type === 'EDIT_SCHEDULE' || type === 'SCHEDULE_CREATED' || type === 'SCHEDULE_UPDATED') {
         await env.DB.prepare(
           `INSERT INTO schedules (id, vessel_id, vessel_name, vessel_type, departure_time, arrival_time, available_seats, total_seats, price, category_prices, route_from, route_to, recurrence, schedule_date, amenities, stops, disabled, maintenance)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -175,9 +175,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
           payload.disabled ? 1 : 0,
           payload.maintenance ? 1 : 0
         ).run();
-      } else if (type === 'REMOVE_SCHEDULE') {
+      } else if (type === 'REMOVE_SCHEDULE' || type === 'SCHEDULE_DELETED') {
         await env.DB.prepare('DELETE FROM schedules WHERE id = ?').bind(payload.id).run();
-      } else if (type === 'ADD_BOOKING' || type === 'UPDATE_BOOKING') {
+      } else if (type === 'ADD_BOOKING' || type === 'BOOKING_CREATED') {
         await env.DB.prepare(
           `INSERT INTO bookings (id, schedule_id, vessel_name, vessel_type, departure_time, arrival_time, route_from, route_to, passengers, selected_seat_ids, fare_category, total_amount, discount_applied, promo_code_used, payment_method, receipt_image, status, rejection_reason, agency_id, booked_by, user_id, passenger_email)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -207,8 +207,44 @@ export const onRequest: PagesFunction<Env> = async (context) => {
           payload.userId || null,
           payload.passengerEmail || null
         ).run();
-      } else if (type === 'REMOVE_BOOKING') {
-        await env.DB.prepare('DELETE FROM bookings WHERE id = ?').bind(payload.id).run();
+      } else if (type === 'UPDATE_BOOKING' || type === 'BOOKING_UPDATED') {
+        const bookingId = payload.bookingId || payload.id;
+        const status = payload.status || payload.updatedFields?.status;
+        const rejectionReason = payload.rejectionReason || payload.updatedFields?.rejectionReason;
+        const receiptImage = payload.receiptImage || payload.updatedFields?.receiptImage;
+
+        if (status !== undefined) {
+          await env.DB.prepare('UPDATE bookings SET status = ? WHERE id = ?').bind(status, bookingId).run();
+        }
+        if (rejectionReason !== undefined) {
+          await env.DB.prepare('UPDATE bookings SET rejection_reason = ? WHERE id = ?').bind(rejectionReason, bookingId).run();
+        }
+        if (receiptImage !== undefined) {
+          await env.DB.prepare('UPDATE bookings SET receipt_image = ? WHERE id = ?').bind(receiptImage, bookingId).run();
+        }
+      } else if (type === 'REMOVE_BOOKING' || type === 'BOOKING_DELETED') {
+        const bookingId = payload.bookingId || payload.id;
+        await env.DB.prepare('DELETE FROM bookings WHERE id = ?').bind(bookingId).run();
+      } else if (type === 'BOOKING_REFUND_REQUESTED') {
+        const bookingId = payload.bookingId;
+        await env.DB.prepare("UPDATE bookings SET status = 'refund_requested' WHERE id = ?")
+          .bind(bookingId).run();
+      } else if (type === 'REFUND_PAYOUT_COMPLETED') {
+        const bookingId = payload.bookingId;
+        await env.DB.prepare("UPDATE bookings SET status = 'refunded' WHERE id = ?")
+          .bind(bookingId).run();
+      } else if (type === 'JETTY_CREATED' || type === 'ADD_JETTY') {
+        await env.DB.prepare(
+          `INSERT INTO jetties (id, name) VALUES (?, ?)
+           ON CONFLICT(id) DO UPDATE SET name=excluded.name`
+        ).bind(payload.id, payload.name).run();
+      } else if (type === 'JETTY_DELETED' || type === 'REMOVE_JETTY') {
+        await env.DB.prepare('DELETE FROM jetties WHERE id = ?').bind(payload.id).run();
+      } else if (type === 'SEATS_BOOKED') {
+        const { scheduleId, seatIds } = payload;
+        await env.DB.prepare(
+          `UPDATE schedules SET available_seats = CASE WHEN available_seats - ? < 0 THEN 0 ELSE available_seats - ? END WHERE id = ?`
+        ).bind(seatIds.length, seatIds.length, scheduleId).run();
       }
 
       return new Response(JSON.stringify({ success: true, message: 'Cloudflare D1 updated' }), { headers });
