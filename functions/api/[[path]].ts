@@ -24,6 +24,22 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   try {
     // 1. Initial State Sync from Cloudflare D1 Database
     if (path === '/api/v1/sync' && request.method === 'GET') {
+      // Auto-cleanup expired locks in the database (older than 10 minutes)
+      await env.DB.prepare(`
+        UPDATE bookings 
+        SET status = 'rejected', rejection_reason = 'Temporary 10-minute seat hold expired.' 
+        WHERE status = 'in_checkout' 
+          AND datetime(created_at) < datetime('now', '-10 minutes')
+      `).run();
+
+      await env.DB.prepare(`
+        UPDATE bookings 
+        SET status = 'rejected', rejection_reason = 'Temporary 10-minute seat hold expired without payment receipt upload.' 
+        WHERE status = 'pending_verification' 
+          AND receipt_image IS NULL 
+          AND datetime(created_at) < datetime('now', '-10 minutes')
+      `).run();
+
       const vessels = await env.DB.prepare('SELECT * FROM vessels ORDER BY created_at DESC').all();
       const schedules = await env.DB.prepare('SELECT * FROM schedules ORDER BY created_at DESC').all();
       const bookings = await env.DB.prepare('SELECT * FROM bookings ORDER BY created_at DESC').all();
@@ -116,6 +132,91 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       );
     }
 
+    // 1.5. Lock Seats Endpoint
+    if (path === '/api/v1/lock-seats' && request.method === 'POST') {
+      // 1. Run expired check/cleanup first
+      await env.DB.prepare(`
+        UPDATE bookings 
+        SET status = 'rejected', rejection_reason = 'Temporary 10-minute seat hold expired.' 
+        WHERE status = 'in_checkout' 
+          AND datetime(created_at) < datetime('now', '-10 minutes')
+      `).run();
+
+      await env.DB.prepare(`
+        UPDATE bookings 
+        SET status = 'rejected', rejection_reason = 'Temporary 10-minute seat hold expired without payment receipt upload.' 
+        WHERE status = 'pending_verification' 
+          AND receipt_image IS NULL 
+          AND datetime(created_at) < datetime('now', '-10 minutes')
+      `).run();
+
+      const body: any = await request.json();
+      const { id, scheduleId, selectedSeatIds, totalAmount, paymentMethod, status, userId, bookedBy, passengerEmail, passengers } = body;
+
+      // 2. Query active bookings on this schedule
+      const activeBookings = await env.DB.prepare(`
+        SELECT selected_seat_ids FROM bookings 
+        WHERE schedule_id = ? AND status NOT IN ('cancelled', 'rejected')
+      `).bind(scheduleId).all();
+
+      // Check for conflict
+      const occupiedSeatIds = new Set<string>();
+      if (activeBookings.results) {
+        for (const b of activeBookings.results as any[]) {
+          try {
+            const seats = JSON.parse(b.selected_seat_ids || '[]') as string[];
+            for (const s of seats) {
+              occupiedSeatIds.add(s);
+            }
+          } catch (e) {}
+        }
+      }
+
+      const conflicts = selectedSeatIds.filter((sId: string) => occupiedSeatIds.has(sId));
+      if (conflicts.length > 0) {
+        const seatNames = conflicts.map((sId: string) => sId.replace('S-', '')).join(', ');
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: `Someone already booked that seat when u were trying to book that seat (${seatNames}). Please select another freely available seat.`
+          }),
+          { headers, status: 409 }
+        );
+      }
+
+      // Fetch schedule detail to insert booking correctly
+      const schedule = await env.DB.prepare('SELECT * FROM schedules WHERE id = ?').bind(scheduleId).first<any>();
+
+      // Insert lock booking
+      await env.DB.prepare(`
+        INSERT INTO bookings (id, schedule_id, vessel_name, vessel_type, departure_time, arrival_time, route_from, route_to, passengers, selected_seat_ids, fare_category, total_amount, discount_applied, payment_method, status, created_at, updated_at, user_id, booked_by, passenger_email)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        id,
+        scheduleId,
+        schedule?.vessel_name || 'Speedboat',
+        schedule?.vessel_type || 'Speedboat',
+        schedule?.departure_time || '08:30 AM',
+        schedule?.arrival_time || '09:15 AM',
+        schedule?.route_from || 'MLE',
+        schedule?.route_to || 'FER',
+        JSON.stringify(passengers || []),
+        JSON.stringify(selectedSeatIds || []),
+        'Tourist',
+        totalAmount || 35.0,
+        0,
+        paymentMethod || 'card',
+        status || 'in_checkout',
+        new Date().toISOString(),
+        new Date().toISOString(),
+        userId || null,
+        bookedBy || null,
+        passengerEmail || null
+      ).run();
+
+      return new Response(JSON.stringify({ success: true }), { headers });
+    }
+
     // 2. Broadcast & Mutations to Cloudflare D1
     if (path === '/api/v1/broadcast' && request.method === 'POST') {
       const body: any = await request.json();
@@ -182,7 +283,21 @@ export const onRequest: PagesFunction<Env> = async (context) => {
           `INSERT INTO bookings (id, schedule_id, vessel_name, vessel_type, departure_time, arrival_time, route_from, route_to, passengers, selected_seat_ids, fare_category, total_amount, discount_applied, promo_code_used, payment_method, receipt_image, status, rejection_reason, agency_id, booked_by, user_id, passenger_email)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(id) DO UPDATE SET
-           status=excluded.status, rejection_reason=excluded.rejection_reason, receipt_image=excluded.receipt_image`
+           passengers=excluded.passengers,
+           selected_seat_ids=excluded.selected_seat_ids,
+           fare_category=excluded.fare_category,
+           total_amount=excluded.total_amount,
+           discount_applied=excluded.discount_applied,
+           promo_code_used=excluded.promo_code_used,
+           payment_method=excluded.payment_method,
+           receipt_image=excluded.receipt_image,
+           status=excluded.status,
+           rejection_reason=excluded.rejection_reason,
+           agency_id=excluded.agency_id,
+           booked_by=excluded.booked_by,
+           user_id=excluded.user_id,
+           passenger_email=excluded.passenger_email,
+           updated_at=CURRENT_TIMESTAMP`
         ).bind(
           payload.id,
           payload.scheduleId,

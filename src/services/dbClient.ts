@@ -95,3 +95,26 @@ export const fetchInitialDatabaseState = async () => {
   return null;
 };
 
+// Database level seat lock check & registration
+export const apiLockSeats = async (booking: any): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const res = await fetch('/api/v1/lock-seats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(booking)
+    });
+    if (!res.ok) {
+      try {
+        const err = await res.json();
+        return { success: false, message: err.message || 'Seat conflict detected' };
+      } catch (e) {
+        return { success: false, message: 'Someone already booked that seat when u were trying to book that seat and to select another freely available seat.' };
+      }
+    }
+    const data = await res.json();
+    return { success: true, ...data };
+  } catch (err) {
+    return { success: false, message: 'Could not connect to the booking server. Please check your internet connection.' };
+  }
+};
+

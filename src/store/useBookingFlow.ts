@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Schedule, Seat, Passenger, Booking } from '../data/mockData';
 import { usePlatformStore, triggerEmail, recordAuditLog } from './usePlatformStore';
+import { apiLockSeats } from '../services/dbClient';
 
 export type BookingStep = 'search' | 'select_seats' | 'passenger_details' | 'payment' | 'confirmation';
 
@@ -26,17 +27,63 @@ export const useBookingFlow = () => {
   const reserveSeats = async (user?: any) => {
     if (selectedSeats.length !== passengerCount) return; // Strict validation
     
-    setIsLocking(true);
-    // Simulate API call to acquire distributed lock
-    await new Promise(resolve => setTimeout(resolve, 600));
-    setIsLocking(false);
-
     if (selectedSchedule) {
-      const res = lockSeatsCheckout(selectedSchedule.id, selectedSeats.map(s => s.id), passengers, user);
-      if (res && !res.success) {
-        showAlert(res.message || 'Seat conflict detected', 'Double Booking Conflict', 'error');
+      setIsLocking(true);
+
+      // 1. Generate final PNR ID code
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = 'SF';
+      for (let i = 0; i < 4; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      const bookingId = code;
+
+      // 2. Build temporary lock booking object
+      const tempBooking: Booking = {
+        id: bookingId,
+        scheduleId: selectedSchedule.id,
+        vesselName: selectedSchedule.vesselName,
+        vesselType: selectedSchedule.vesselType,
+        departureTime: selectedSchedule.departureTime,
+        arrivalTime: selectedSchedule.arrivalTime,
+        routeFrom: selectedSchedule.routeFrom,
+        routeTo: selectedSchedule.routeTo,
+        passengers: selectedSeats.map(s => ({
+          name: user?.name || 'Guest Passenger',
+          age: 28,
+          gender: 'Male',
+          idNumber: '',
+          seatId: s.id,
+          fareCategory: 'Local'
+        })),
+        selectedSeatIds: selectedSeats.map(s => s.id),
+        totalAmount: selectedSchedule.price * selectedSeats.length,
+        discountApplied: 0,
+        paymentMethod: 'bank_transfer',
+        status: 'in_checkout',
+        createdAt: new Date().toISOString(),
+        userId: user?.id || undefined,
+        bookedBy: user?.name || 'Guest Passenger',
+        passengerEmail: user?.email || undefined
+      };
+
+      // 3. Database lock validation request
+      const serverRes = await apiLockSeats(tempBooking);
+      setIsLocking(false);
+
+      if (!serverRes.success) {
+        showAlert(
+          serverRes.message || 'Someone already booked that seat when u were trying to book that seat and to select another freely available seat.',
+          'Double Booking Conflict',
+          'error'
+        );
         return;
       }
+
+      // 4. Local hold store updates
+      setLatestBookingRef(bookingId);
+      lockSeatsCheckout(selectedSchedule.id, selectedSeats.map(s => s.id), passengers, user, bookingId);
+
       recordAuditLog('SEAT_LOCKED', 'BOOKING', selectedSchedule.id, user, undefined, {
         seats: selectedSeats.map(s => s.id.replace('S-', '')),
         vesselName: selectedSchedule.vesselName,
@@ -142,12 +189,14 @@ export const useBookingFlow = () => {
   ) => {
     if (!selectedSchedule) return;
     setIsLocking(true);
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = 'SF';
-    for (let i = 0; i < 4; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    const ref = code;
+    const ref = latestBookingRef || (() => {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = 'SF';
+      for (let i = 0; i < 4; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    })();
     setLatestBookingRef(ref);
 
     // Calculate dynamic pricing

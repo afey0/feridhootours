@@ -243,8 +243,41 @@ export const usePlatformStore = () => {
     notifyStoreListeners();
   };
 
+  const syncDecksWithBookings = () => {
+    globalSchedules.forEach(s => {
+      const deck = globalDecks[s.id];
+      if (deck) {
+        globalDecks[s.id] = deck.map(seat => ({ ...seat, status: 'available' as any }));
+      } else {
+        globalDecks[s.id] = generateMockDeck(false);
+      }
+    });
+
+    globalBookings.forEach(b => {
+      if (b.status === 'cancelled' || b.status === 'rejected') return;
+      const deck = globalDecks[b.scheduleId];
+      if (deck) {
+        globalDecks[b.scheduleId] = deck.map(seat => {
+          if (b.selectedSeatIds.includes(seat.id)) {
+            const newStatus = b.status === 'in_checkout' ? 'locked' : 'booked';
+            return { ...seat, status: newStatus as any };
+          }
+          return seat;
+        });
+      }
+    });
+
+    globalSchedules.forEach(s => {
+      const deck = globalDecks[s.id];
+      if (deck) {
+        s.availableSeats = deck.filter(seat => seat.status === 'available').length;
+      }
+    });
+  };
+
   useEffect(() => {
     const update = () => {
+      syncDecksWithBookings();
       setSchedules([...globalSchedules]);
       setDecks({ ...globalDecks });
       setBookings([...globalBookings]);
@@ -330,7 +363,7 @@ export const usePlatformStore = () => {
     broadcastRealtimeEvent('SEATS_LOCKED', { scheduleId, seatIds });
   };
 
-  const lockSeatsCheckout = (scheduleId: string, seatIds: string[], passengers: Passenger[] = [], user?: any): { success: boolean; message?: string; bookingId?: string } => {
+  const lockSeatsCheckout = (scheduleId: string, seatIds: string[], passengers: Passenger[] = [], user?: any, customBookingId?: string): { success: boolean; message?: string; bookingId?: string } => {
     const deck = globalDecks[scheduleId];
     if (deck) {
       const conflictSeats = deck.filter(seat => seatIds.includes(seat.id) && (seat.status === 'booked' || seat.status === 'locked'));
@@ -355,7 +388,7 @@ export const usePlatformStore = () => {
     }
 
     const schedule = globalSchedules.find(s => s.id === scheduleId);
-    const bookingId = `SFY-LOCK-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+    const bookingId = customBookingId || `SFY-LOCK-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
     const newBooking: Booking = {
       id: bookingId,
       scheduleId,
@@ -386,15 +419,27 @@ export const usePlatformStore = () => {
 
 
   const adminUnlockSeats = (scheduleId: string, seatIds: string[]) => {
-    const deck = globalDecks[scheduleId];
-    if (!deck) return;
+    const lockBookings = globalBookings.filter(b => 
+      b.scheduleId === scheduleId && 
+      (b.status === 'in_checkout' || b.status === 'pending_verification') &&
+      b.selectedSeatIds.some(sId => seatIds.includes(sId))
+    );
 
-    globalDecks[scheduleId] = deck.map(seat => {
-      if (seatIds.includes(seat.id)) {
-        return { ...seat, status: 'available' };
-      }
-      return seat;
+    lockBookings.forEach(lb => {
+      broadcastRealtimeEvent('BOOKING_DELETED', { id: lb.id, bookingId: lb.id });
     });
+
+    globalBookings = globalBookings.filter(b => !lockBookings.map(lb => lb.id).includes(b.id));
+
+    const deck = globalDecks[scheduleId];
+    if (deck) {
+      globalDecks[scheduleId] = deck.map(seat => {
+        if (seatIds.includes(seat.id)) {
+          return { ...seat, status: 'available' };
+        }
+        return seat;
+      });
+    }
 
     const schedule = globalSchedules.find(s => s.id === scheduleId);
     if (schedule) {
@@ -621,6 +666,7 @@ export const usePlatformStore = () => {
 
   // Bookings management
   const addBooking = (booking: Booking, performedBy?: any) => {
+    globalBookings = globalBookings.filter(b => b.id !== booking.id);
     globalBookings.unshift(booking); // Newest bookings first
     bookSeats(booking.scheduleId, booking.selectedSeatIds);
 
