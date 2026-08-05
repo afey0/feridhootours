@@ -1,0 +1,26 @@
+{
+	"appId": "com.feridhootours.app",
+	"appName": "Feridhoo Tours",
+	"webDir": "dist",
+	"bundledWebRuntime": false,
+	"server": {
+		"androidScheme": "https"
+	},
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 1500,
+			"backgroundColor": "#0284c7",
+			"showSpinner": true,
+			"androidSpinnerStyle": "large"
+		},
+		"Camera": {
+			"permissions": [
+				"camera",
+				"photos"
+			]
+		},
+		"BarcodeScanner": {
+			"cameraPermissionDescription": "Camera access is needed to scan E-Ticket QR codes on boarding."
+		}
+	}
+}

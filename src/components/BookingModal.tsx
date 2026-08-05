@@ -156,7 +156,7 @@ export const BookingModal: React.FC<Props> = ({
 
   return (
     <div className="overlay animate-fade-in" style={{ zIndex: 1100 }}>
-      <div className="glass-panel-strong rounded-2xl w-full max-w-2xl p-6 md:p-8 relative max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-350 text-slate-800">
+      <div className="glass-panel-strong rounded-t-3xl sm:rounded-2xl w-full max-w-2xl p-4 sm:p-6 md:p-8 relative max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-350 text-slate-800 my-auto">
         
         {step === 'payment' && (
           <div className="space-y-6">

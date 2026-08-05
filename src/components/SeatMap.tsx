@@ -77,12 +77,14 @@ export const SeatMap: React.FC<Props> = ({
           </div>
         )}
 
-        <div className="text-center mb-6">
-          <div className="text-sm font-bold tracking-widest text-slate-500 uppercase">Front (Bow) / Cabin</div>
-          <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[8px] border-b-sky-500 mx-auto mt-2" />
+        {/* Mobile Horizontal Scroll Hint */}
+        <div className="lg:hidden flex items-center justify-between text-[11px] font-bold text-slate-400 mb-2 px-1">
+          <span>← Swipe deck horizontally →</span>
+          <span>Bow / Front</span>
         </div>
-        
-        <div className="vessel-deck" style={{ maxWidth: `${maxCol * 58 + 50}px` }}>
+
+        <div className="overflow-x-auto pb-4 pt-1 px-2 -mx-2 flex justify-center">
+          <div className="vessel-deck min-w-max" style={{ maxWidth: `${maxCol * 58 + 50}px` }}>
           {rows.map(r => {
             const rowSeats = deck.filter(s => s.row === r).sort((a,b) => a.col - b.col);
             if(rowSeats.length === 0) return null;
@@ -133,6 +135,7 @@ export const SeatMap: React.FC<Props> = ({
               </div>
             );
           })}
+        </div>
         </div>
         
         {/* Class descriptions */}
@@ -295,6 +298,28 @@ export const SeatMap: React.FC<Props> = ({
         </div>
 
       </div>
+
+      {/* Floating Mobile Bottom Action Bar */}
+      {!adminMode && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 p-3 bg-white/95 backdrop-blur-xl border-t border-slate-200 shadow-2xl z-40 flex items-center justify-between gap-3">
+          <div className="text-left pl-2">
+            <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider block">Total Fare</span>
+            <span className="text-lg font-black text-slate-900 font-display">${totalCalculatedAmount.toFixed(2)}</span>
+            <span className="text-[10px] text-sky-700 font-bold block">{selectedSeats.length}/{passengerCount} Seats</span>
+          </div>
+          <button
+            className={`py-3 px-5 rounded-2xl font-black text-xs transition duration-200 shrink-0 ${
+              isSelectionExact
+                ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-lg shadow-sky-600/25 active:scale-95'
+                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+            }`}
+            disabled={!isSelectionExact}
+            onClick={() => onConfirm('checkout')}
+          >
+            Lock & Continue →
+          </button>
+        </div>
+      )}
     </div>
   );
 };
