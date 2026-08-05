@@ -103,8 +103,9 @@ export const useBookingFlow = () => {
 
 
   const goSearch = () => {
-
-    if (selectedSchedule && selectedSeats.length > 0) {
+    // Only unlock seats if the booking has NOT been finalized (confirmation step).
+    // Once the user has paid and reached confirmation, the booking must persist in D1.
+    if (currentStep !== 'confirmation' && selectedSchedule && selectedSeats.length > 0) {
       adminUnlockSeats(selectedSchedule.id, selectedSeats.map(s => s.id));
     }
     setSelectedSeats([]);
@@ -113,6 +114,8 @@ export const useBookingFlow = () => {
     setPromoCode('');
     setDiscount(0);
     setActivePromo(null);
+    setLatestBookingRef(null);
+    setLockExpiresAt(null);
     setCurrentStep('search');
   };
   

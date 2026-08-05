@@ -86,14 +86,15 @@ export const BookingModal: React.FC<Props> = ({
   };
 
   useEffect(() => {
-    if (!lockExpiresAt) return;
+    // Don't run the countdown timer on the confirmation page — booking is already finalized
+    if (!lockExpiresAt || step === 'confirmation') return;
     const interval = setInterval(() => {
       const diff = Math.floor((lockExpiresAt.getTime() - new Date().getTime()) / 1000);
       setTimeLeft(diff > 0 ? diff : 0);
-      if (diff <= 0) onCancel(); // Auto-cancel when lock expires
+      if (diff <= 0) onCancel(); // Auto-cancel when lock expires (only during payment step)
     }, 1000);
     return () => clearInterval(interval);
-  }, [lockExpiresAt, onCancel]);
+  }, [lockExpiresAt, onCancel, step]);
 
   const mins = Math.floor(timeLeft / 60);
   const secs = timeLeft % 60;

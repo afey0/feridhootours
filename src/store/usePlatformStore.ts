@@ -311,19 +311,18 @@ export const usePlatformStore = () => {
     // Initial database fetch
     refreshDatabaseState();
 
-    // Subscribe to cross-session realtime events
+    // Subscribe to cross-session realtime events — only sync from D1 when a mutation event arrives
     const unsubscribe = subscribeRealtimeEvents((type, _payload) => {
-      if (type === 'STATE_SYNC' || type.startsWith('BOOKING_') || type.startsWith('SCHEDULE_') || type.startsWith('VESSEL_') || type.startsWith('SEATS_')) {
+      if (type === 'STATE_SYNC' || type.startsWith('BOOKING_') || type.startsWith('SCHEDULE_') || type.startsWith('VESSEL_') || type.startsWith('SEATS_') || type.startsWith('JETTY_') || type.startsWith('USER_')) {
         refreshDatabaseState();
       }
     });
 
-    // Run hold check on mount and periodically poll the D1 database every 5 seconds for cross-session updates
+    // Check expired holds periodically (60s is enough since server also cleans up on sync)
     checkExpiredHolds();
     const intervalId = setInterval(() => {
       checkExpiredHolds();
-      refreshDatabaseState();
-    }, 5000);
+    }, 60000);
 
     return () => { 
       listeners.delete(update); 
@@ -428,9 +427,12 @@ export const usePlatformStore = () => {
 
 
   const adminUnlockSeats = (scheduleId: string, seatIds: string[]) => {
+    // Only unlock bookings that are temporary holds (in_checkout) or
+    // abandoned pending_verification without receipt upload.
+    // NEVER delete bookings that already have a receipt image or are verified/confirmed.
     const lockBookings = globalBookings.filter(b => 
       b.scheduleId === scheduleId && 
-      (b.status === 'in_checkout' || b.status === 'pending_verification') &&
+      b.status === 'in_checkout' &&
       b.selectedSeatIds.some(sId => seatIds.includes(sId))
     );
 
