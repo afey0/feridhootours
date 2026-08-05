@@ -7,6 +7,7 @@ import { SeatMap } from './SeatMap';
 import type { Seat, Booking, Passenger, FareCategory } from '../data/mockData';
 import type { AuditLogEntry } from '../types/audit';
 import { getAuditHeadline, getAuditReadableDiffs } from '../utils/auditFormatter';
+import { compressImage } from '../utils/imageCompressor';
 
 // Utility to parse custom row input string (e.g. "1-2, 5") into a set of row numbers
 const parseRowsString = (input: string, maxRow: number): Set<number> => {
@@ -1443,7 +1444,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab, onTa
                                   if (file) {
                                     setRefundProofFileName(file.name);
                                     const reader = new FileReader();
-                                    reader.onloadend = () => setRefundProofUrl(reader.result as string);
+                                    reader.onloadend = async () => {
+                                      const compressed = await compressImage(reader.result as string);
+                                      setRefundProofUrl(compressed);
+                                    };
                                     reader.readAsDataURL(file);
                                   }
                                 }}

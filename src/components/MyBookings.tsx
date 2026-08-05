@@ -4,6 +4,7 @@ import { usePlatformStore } from '../store/usePlatformStore';
 import type { Booking } from '../data/mockData';
 import { QRCodeImage } from './QRCodeImage';
 import { calculateRefund } from '../utils/refundPolicy';
+import { compressImage } from '../utils/imageCompressor';
 
 interface Props {
   onBack: () => void;
@@ -87,8 +88,9 @@ export const MyBookings: React.FC<Props> = ({ onBack, user }) => {
     if (file) {
       setReuploadFileName(file.name);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewReceiptUrl(reader.result as string);
+      reader.onloadend = async () => {
+        const compressed = await compressImage(reader.result as string);
+        setNewReceiptUrl(compressed);
       };
       reader.readAsDataURL(file);
     }
@@ -99,8 +101,9 @@ export const MyBookings: React.FC<Props> = ({ onBack, user }) => {
     if (file) {
       setReuploadFileName(file.name);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewReceiptUrl(reader.result as string);
+      reader.onloadend = async () => {
+        const compressed = await compressImage(reader.result as string);
+        setNewReceiptUrl(compressed);
       };
       reader.readAsDataURL(file);
     }

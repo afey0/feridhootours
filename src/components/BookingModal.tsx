@@ -3,6 +3,7 @@ import { CreditCard, CheckCircle, Clock, X, Lock, Upload, Image as ImageIcon, Ch
 import type { Schedule, Seat, Passenger } from '../data/mockData';
 import { usePlatformStore } from '../store/usePlatformStore';
 import { QRCodeImage } from './QRCodeImage';
+import { compressImage } from '../utils/imageCompressor';
 
 interface Props {
   totalAmount: number; // Final amount after discount
@@ -75,9 +76,10 @@ export const BookingModal: React.FC<Props> = ({
     if (file) {
       setReceiptFileName(file.name);
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
+        const compressed = await compressImage(reader.result as string);
         setReceiptSimulated(true);
-        setReceiptData(reader.result as string);
+        setReceiptData(compressed);
       };
       reader.readAsDataURL(file);
     }
@@ -113,9 +115,10 @@ export const BookingModal: React.FC<Props> = ({
     if (file) {
       setReceiptFileName(file.name);
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
+        const compressed = await compressImage(reader.result as string);
         setReceiptSimulated(true);
-        setReceiptData(reader.result as string);
+        setReceiptData(compressed);
       };
       reader.readAsDataURL(file);
     }
