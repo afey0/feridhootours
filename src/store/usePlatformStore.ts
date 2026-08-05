@@ -675,11 +675,17 @@ export const usePlatformStore = () => {
 
   // Bookings management
   const addBooking = (booking: Booking, performedBy?: any) => {
+    // Detect if this is an update to an existing booking (e.g. finalizing a lock booking with payment)
+    const isUpdate = globalBookings.some(b => b.id === booking.id);
     globalBookings = globalBookings.filter(b => b.id !== booking.id);
     globalBookings.unshift(booking); // Newest bookings first
-    bookSeats(booking.scheduleId, booking.selectedSeatIds);
 
-    recordAuditLog('CREATE', 'BOOKING', booking.id, performedBy || { name: booking.passengers[0]?.name || 'Passenger', role: 'passenger' }, { after: booking });
+    if (!isUpdate) {
+      // Only mark seats as booked and log CREATE for genuinely new bookings
+      bookSeats(booking.scheduleId, booking.selectedSeatIds);
+      recordAuditLog('CREATE', 'BOOKING', booking.id, performedBy || { name: booking.passengers[0]?.name || 'Passenger', role: 'passenger' }, { after: booking });
+    }
+
     notifyStoreListeners();
     broadcastRealtimeEvent('BOOKING_CREATED', booking);
   };
