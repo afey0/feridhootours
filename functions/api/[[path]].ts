@@ -107,7 +107,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
               bookedBy: b.booked_by,
               userId: b.user_id,
               passengerEmail: b.passenger_email,
-              createdAt: b.created_at
+              createdAt: b.created_at ? (b.created_at.includes('T') ? b.created_at : b.created_at.replace(' ', 'T') + 'Z') : new Date().toISOString()
             })),
             locations: jetties.results || [],
             users: (users.results || []).map((u: any) => ({
@@ -197,7 +197,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       // Insert lock booking
       await env.DB.prepare(`
         INSERT INTO bookings (id, schedule_id, vessel_name, vessel_type, departure_time, arrival_time, route_from, route_to, passengers, selected_seat_ids, fare_category, total_amount, discount_applied, payment_method, status, created_at, updated_at, user_id, booked_by, passenger_email)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?, ?)
       `).bind(
         id,
         scheduleId,
@@ -214,8 +214,6 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         0,
         paymentMethod || 'card',
         status || 'in_checkout',
-        new Date().toISOString(),
-        new Date().toISOString(),
         userId || null,
         bookedBy || null,
         passengerEmail || null

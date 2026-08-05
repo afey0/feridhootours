@@ -503,8 +503,6 @@ export const usePlatformStore = () => {
             `Dear Passenger,\n\nYour temporary 10-minute seat reservation for booking reference ${b.id} has expired because no payment transfer receipt was uploaded.\n\nThe reserved seats have been released for other travelers. If you still wish to travel, please make a new booking.\n\nBest regards,\nFeridhooTours Maldives Team`,
             'status'
           );
-
-          broadcastRealtimeEvent('BOOKING_UPDATED', { bookingId: b.id, status: 'rejected' });
         }
       }
     });
@@ -726,7 +724,7 @@ export const usePlatformStore = () => {
     });
 
     notifyStoreListeners();
-    broadcastRealtimeEvent('BOOKING_UPDATED', { bookingId, status });
+    broadcastRealtimeEvent('BOOKING_UPDATED', { bookingId, status, rejectionReason: reason, receiptImage });
   };
 
   const updateBooking = (bookingId: string, updatedFields: Partial<Booking>, performedBy?: any) => {
