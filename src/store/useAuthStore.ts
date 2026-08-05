@@ -27,21 +27,17 @@ export interface UserAccount extends User {
 }
 
 // Storage utility helpers
-const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
-  try {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : defaultValue;
-  } catch (e) {
-    return defaultValue;
-  }
-};
+// Storage helpers removed – auth state now managed via server API.
+// In‑memory token for authenticated requests.
+let accessToken: string | null = null;
 
-const saveToStorage = (key: string, data: any) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(data));
-  } catch (e) {
-    console.error("Failed to save to storage", e);
+// Simple fetch wrapper that injects the access token when present.
+const apiFetch = async (url: string, init: RequestInit = {}) => {
+  const headers = new Headers(init.headers || {});
+  if (accessToken) {
+    headers.set('Authorization', `Bearer ${accessToken}`);
   }
+  return fetch(url, { ...init, headers });
 };
 
 const INITIAL_USERS: UserAccount[] = [
@@ -87,35 +83,45 @@ const INITIAL_USERS: UserAccount[] = [
 ];
 
 // Ensure initial default system users always exist in loaded users with correct roles
-const loadUsers = (): UserAccount[] => {
-  const loaded = loadFromStorage<UserAccount[]>('sf_users', INITIAL_USERS);
-  let modified = false;
-  INITIAL_USERS.forEach(initUser => {
-    const idx = loaded.findIndex(u => u.email.toLowerCase() === initUser.email.toLowerCase());
-    if (idx === -1) {
-      loaded.push(initUser);
-      modified = true;
-    } else if (initUser.role === 'super_admin' && loaded[idx].role !== 'super_admin') {
-      loaded[idx].role = 'super_admin';
-      modified = true;
-    }
-  });
-  if (modified) {
-    saveToStorage('sf_users', loaded);
-  }
-  return loaded;
-};
-
-// Singleton state outside React component persisted in localStorage database
-let globalUsers: UserAccount[] = loadUsers();
-
-// Current logged in user persisted in localStorage database
-let globalCurrentUser: User | null = loadFromStorage('sf_current_user', null);
+// Users are loaded from the backend on demand.
+let globalUsers: UserAccount[] = [];
+let globalCurrentUser: User | null = null;
 const authListeners = new Set<() => void>();
 
+// Helper to sync users from the server.
+const syncUsersFromServer = async () => {
+  try {
+    const resp = await apiFetch('/api/v1/users');
+    if (resp.ok) {
+      const data = await resp.json();
+      globalUsers = data.users;
+      // Preserve current user if still valid.
+      if (globalCurrentUser) {
+        const updated = globalUsers.find(u => u.id === globalCurrentUser!.id);
+        if (updated) {
+          globalCurrentUser = {
+            id: updated.id,
+            name: updated.name,
+            role: updated.role,
+            email: updated.email,
+            savedPassengers: updated.savedPassengers
+          };
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Failed to sync users', e);
+  }
+};
+
+// Initial load.
+syncUsersFromServer();
+
 const notifyAuthListeners = () => {
-  saveToStorage('sf_users', globalUsers);
-  saveToStorage('sf_current_user', globalCurrentUser);
+  // Persist current user in session storage for UI state (not secure).
+  try {
+    sessionStorage.setItem('sf_current_user', JSON.stringify(globalCurrentUser));
+  } catch (e) {}
   authListeners.forEach(fn => fn());
 };
 
@@ -171,70 +177,56 @@ export const useAuthStore = () => {
     return () => { authListeners.delete(update); };
   }, []);
 
-  const login = (email: string, password: string): { success: boolean; message: string } => {
-    const found = globalUsers.find(u => u.email.toLowerCase() === email.toLowerCase().trim());
-    if (!found) {
-      recordAuditLog('LOGIN_FAILED', 'AUTH', email.toLowerCase().trim(), { name: email, email, role: 'guest' }, undefined, { email, details: 'Failed login attempt: Account not found' });
-      return { success: false, message: 'Account not found with this email.' };
+  const login = async (email: string, password: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const resp = await apiFetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        recordAuditLog('LOGIN_FAILED', 'AUTH', email.toLowerCase().trim(), { name: email, email, role: 'guest' }, undefined, { email, details: data.message || 'Login failed' });
+        return { success: false, message: data.message || 'Login failed' };
+      }
+      // Store token in memory and current user.
+      accessToken = data.accessToken;
+      globalCurrentUser = data.user;
+      // Sync latest users list.
+      await syncUsersFromServer();
+      recordAuditLog('LOGIN_SUCCESS', 'AUTH', data.user.id, globalCurrentUser, undefined, { email: data.user.email, details: `${data.user.name} logged in successfully as ${data.user.role}` });
+      notifyAuthListeners();
+      setAuthModalOpen(false);
+      return { success: true, message: 'Logged in successfully.' };
+    } catch (e) {
+      console.error('Login error', e);
+      return { success: false, message: 'Login error' };
     }
-    if (found.password !== password) {
-      recordAuditLog('LOGIN_FAILED', 'AUTH', found.email, { id: found.id, name: found.name, email: found.email, role: found.role }, undefined, { email: found.email, details: 'Failed login attempt: Invalid password' });
-      return { success: false, message: 'Invalid password. Please try again.' };
-    }
-    
-    globalCurrentUser = {
-      id: found.id,
-      name: found.name,
-      role: found.role,
-      email: found.email,
-      savedPassengers: found.savedPassengers
-    };
-    recordAuditLog('LOGIN_SUCCESS', 'AUTH', found.id, globalCurrentUser, undefined, { email: found.email, details: `${found.name} logged in successfully as ${found.role}` });
-    notifyAuthListeners();
-    setAuthModalOpen(false);
-    return { success: true, message: 'Logged in successfully.' };
   };
 
-
-  const signup = (name: string, email: string, password: string, role: 'passenger' | 'agency'): { success: boolean; message: string } => {
-    const exists = globalUsers.some(u => u.email.toLowerCase() === email.toLowerCase().trim());
-    if (exists) {
-      return { success: false, message: 'An account with this email already exists.' };
+  const signup = async (name: string, email: string, password: string, role: 'passenger' | 'agency'): Promise<{ success: boolean; message: string }> => {
+    try {
+      const resp = await apiFetch('/api/v1/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, role })
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        return { success: false, message: data.message || 'Signup failed' };
+      }
+      // Store token and user.
+      accessToken = data.accessToken;
+      globalCurrentUser = data.user;
+      // Refresh users list.
+      await syncUsersFromServer();
+      notifyAuthListeners();
+      setAuthModalOpen(false);
+      return { success: true, message: 'Account registered successfully.' };
+    } catch (e) {
+      console.error('Signup error', e);
+      return { success: false, message: 'Signup error' };
     }
-
-    const id = `${role === 'agency' ? 'age' : 'usr'}-${String(globalUsers.length + 1).padStart(3, '0')}`;
-    const newUser: UserAccount = {
-      id,
-      name: name.trim(),
-      email: email.toLowerCase().trim(),
-      password,
-      role,
-      savedPassengers: []
-    };
-
-    globalUsers.push(newUser);
-    
-    // Auto login
-    globalCurrentUser = {
-      id,
-      name: newUser.name,
-      role: newUser.role,
-      email: newUser.email,
-      savedPassengers: []
-    };
-
-    // Trigger Welcome Email
-    triggerEmail(
-      newUser.email,
-      `Welcome to FeridhooTours, ${newUser.name}!`,
-      `Dear ${newUser.name},\n\nThank you for signing up as a ${newUser.role === 'agency' ? 'Travel Agent' : 'Passenger'} on FeridhooTours.\n\nYou can now quickly manage your passenger manifests, book speedboats, and track transfer slips in real-time.\n\nBest regards,\nFeridhooTours Maldives Operations Team`,
-      'welcome'
-    );
-
-    notifyAuthListeners();
-    broadcastRealtimeEvent('USER_CREATED', newUser);
-    setAuthModalOpen(false);
-    return { success: true, message: 'Account registered successfully.' };
   };
 
   const resetPasswordRequest = (email: string): { success: boolean; message: string } => {
@@ -493,16 +485,20 @@ export const useAuthStore = () => {
       globalUsers.push(superUser);
     }
     superUser.role = 'super_admin';
-    saveToStorage('sf_users', globalUsers);
     return login(superUser.email, superUser.password || 'superadmin123');
   };
 
-  const logout = () => {
-    if (globalCurrentUser) {
-      recordAuditLog('LOGOUT', 'AUTH', globalCurrentUser.id, globalCurrentUser, undefined, { email: globalCurrentUser.email, details: `${globalCurrentUser.name} (${globalCurrentUser.role}) logged out` });
+  const logout = async () => {
+    try {
+      await apiFetch('/api/v1/auth/logout', { method: 'POST' });
+      // Regardless of response, clear client state.
+      accessToken = null;
+      globalCurrentUser = null;
+      notifyAuthListeners();
+      recordAuditLog('LOGOUT', 'AUTH', 'unknown', { id: 'unknown', name: 'unknown', email: 'unknown', role: 'guest' }, undefined, { details: 'User logged out' });
+    } catch (e) {
+      console.error('Logout error', e);
     }
-    globalCurrentUser = null;
-    notifyAuthListeners();
   };
 
 

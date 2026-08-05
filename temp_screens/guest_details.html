@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Guest Details | Feridhoo Tours</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-tint": "#006e2f",
+                    "primary-fixed": "#66ff8e",
+                    "on-tertiary-container": "#474747",
+                    "on-secondary-fixed-variant": "#134e57",
+                    "surface-container-low": "#f4f3f3",
+                    "outline-variant": "#bbcbb9",
+                    "primary-fixed-dim": "#2fe36f",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "secondary-container": "#b3e9f3",
+                    "secondary": "#31666f",
+                    "on-primary-fixed-variant": "#005322",
+                    "surface-variant": "#e3e2e2",
+                    "on-primary-fixed": "#002109",
+                    "on-surface-variant": "#3c4a3c",
+                    "error-container": "#ffdad6",
+                    "on-background": "#1a1c1c",
+                    "on-tertiary-fixed": "#1b1c1c",
+                    "on-primary": "#ffffff",
+                    "primary-container": "#00d261",
+                    "primary": "#006e2f",
+                    "error": "#ba1a1a",
+                    "tertiary-container": "#b7b6b6",
+                    "background": "#faf9f9",
+                    "surface-container-highest": "#e3e2e2",
+                    "tertiary-fixed-dim": "#c7c6c6",
+                    "on-secondary-container": "#356a73",
+                    "secondary-fixed": "#b6ebf6",
+                    "on-surface": "#1a1c1c",
+                    "inverse-on-surface": "#f1f0f0",
+                    "on-tertiary-fixed-variant": "#464747",
+                    "tertiary-fixed": "#e4e2e2",
+                    "on-error-container": "#93000a",
+                    "on-secondary-fixed": "#001f24",
+                    "surface-bright": "#faf9f9",
+                    "inverse-primary": "#2fe36f",
+                    "surface": "#faf9f9",
+                    "tertiary": "#5e5e5e",
+                    "surface-container-high": "#e9e8e8",
+                    "surface-container": "#efeeee",
+                    "on-primary-container": "#005322",
+                    "secondary-fixed-dim": "#9acfda",
+                    "on-tertiary": "#ffffff",
+                    "outline": "#6c7b6b",
+                    "surface-dim": "#dadada",
+                    "inverse-surface": "#2f3131"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #FAF9F9;
+      }
+      .glass-nav {
+        background: rgba(250, 249, 249, 0.8);
+        backdrop-filter: blur(12px);
+      }
+      .editorial-input {
+        border: none;
+        border-bottom: 1px solid rgba(108, 123, 107, 0.2);
+        background: transparent;
+        border-radius: 0;
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .editorial-input:focus {
+        ring: none;
+        box-shadow: none;
+        border-bottom-color: #006E2F;
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface">
+<!-- Top Navigation Anchor (As per JSON) -->
+<header class="w-full top-0 sticky z-50 bg-[#FAF9F9] dark:bg-gray-900 flex items-center justify-between px-6 py-4 bg-gradient-to-b from-[#FAF9F9] to-transparent">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#006E2F] dark:text-[#00D261] hover:opacity-80 transition-opacity cursor-pointer">arrow_back</span>
+<h1 class="font-['Plus_Jakarta_SANS'] text-2xl font-bold tracking-tight text-[#006E2F] dark:text-[#00D261]">Feridhoo Tours</h1>
+</div>
+<span class="material-symbols-outlined text-[#006E2F] dark:text-[#00D261]">sailing</span>
+</header>
+<main class="max-w-4xl mx-auto px-6 pb-32">
+<!-- Booking Progress / Trip Summary -->
+<section class="mt-8 mb-12">
+<div class="flex flex-col md:flex-row gap-6 items-start">
+<div class="flex-1 w-full">
+<span class="text-secondary font-semibold text-xs tracking-widest uppercase mb-2 block">Current Selection</span>
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.04)] border-none">
+<div class="flex justify-between items-center mb-4">
+<h2 class="font-headline text-xl font-bold text-on-surface">Male' to Feridhoo</h2>
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold tracking-tight">EXPRESS BOAT</span>
+</div>
+<div class="flex items-center gap-4 mb-6">
+<div class="w-16 h-16 rounded-lg overflow-hidden bg-surface-variant flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="luxury white speedboat cutting through crystal clear turquoise ocean water with white wake" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtxIsPrRYpAWRw9uUq6D6OqOZ35UH0pVwoFcGOcTD9D-6PHz9Oa0fycDWd3-2c2rSl9K3_Ipj97S8Eq-IDTCX5Y2yUZ8EcRgIOQE-g_gii8vR2anDhzB5Mr5igHw0wRIbpW55n3i9nSqHKls4PZa4jem80Lob8upYqNpqJOZ5hojbNi65pDbWKbuYyMGwlPS7GoVEhvEK-F5gSxHxYaXKxpk_PA8MuyuneJOrt7GDIeoYIcbHocICNPJuakk5WsCXYkvU7Hhy4IA"/>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Ocean Voyager IV</p>
+<p class="text-xs text-on-surface-variant">Departure: 14 Oct 2023 • 09:30 AM</p>
+<p class="text-xs text-on-surface-variant">Duration: 1h 45m</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Guest Details Form -->
+<section class="space-y-12">
+<div class="relative">
+<div class="flex items-center gap-3 mb-6">
+<span class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-sm">1</span>
+<h3 class="font-headline text-2xl font-extrabold tracking-tight">Guest Information</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 bg-surface-container-low rounded-3xl p-8 md:p-12">
+<!-- Name Fields -->
+<div class="flex flex-col space-y-1">
+<label class="text-[10px] font-bold text-secondary uppercase tracking-widest">Given name (As per Passport)</label>
+<input class="editorial-input text-lg font-medium text-on-surface focus:outline-none" placeholder="e.g. John" type="text"/>
+</div>
+<div class="flex flex-col space-y-1">
+<label class="text-[10px] font-bold text-secondary uppercase tracking-widest">Surname</label>
+<input class="editorial-input text-lg font-medium text-on-surface focus:outline-none" placeholder="e.g. Doe" type="text"/>
+</div>
+<!-- Nationality & Gender -->
+<div class="flex flex-col space-y-1">
+<label class="text-[10px] font-bold text-secondary uppercase tracking-widest">Nationality</label>
+<select class="editorial-input text-lg font-medium text-on-surface focus:outline-none appearance-none">
+<option>Maldives</option>
+<option>United Kingdom</option>
+<option>United States</option>
+<option>Germany</option>
+</select>
+</div>
+<div class="flex flex-col space-y-1">
+<label class="text-[10px] font-bold text-secondary uppercase tracking-widest">Gender</label>
+<div class="flex gap-4 pt-2">
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="text-primary focus:ring-primary h-4 w-4 border-outline-variant" name="gender" type="radio"/>
+<span class="text-sm font-medium">Male</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="text-primary focus:ring-primary h-4 w-4 border-outline-variant" name="gender" type="radio"/>
+<span class="text-sm font-medium">Female</span>
+</label>
+</div>
+</div>
+<!-- DOB -->
+<div class="flex flex-col space-y-1 md:col-span-2">
+<label class="text-[10px] font-bold text-secondary uppercase tracking-widest">Date of Birth</label>
+<div class="grid grid-cols-3 gap-4">
+<input class="editorial-input text-lg font-medium text-on-surface" placeholder="Day" type="text"/>
+<select class="editorial-input text-lg font-medium text-on-surface">
+<option>Month</option>
+<option>January</option>
+<option>February</option>
+</select>
+<input class="editorial-input text-lg font-medium text-on-surface" placeholder="Year" type="text"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Contact Details -->
+<div class="relative">
+<div class="flex items-center gap-3 mb-6">
+<span class="w-8 h-8 rounded-full bg-secondary text-white flex items-center justify-center font-bold text-sm">2</span>
+<h3 class="font-headline text-2xl font-extrabold tracking-tight">Contact Details</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 bg-white/50 rounded-3xl p-8 md:p-12 border-none">
+<div class="flex flex-col space-y-1">
+<label class="text-[10px] font-bold text-secondary uppercase tracking-widest">Email Address</label>
+<input class="editorial-input text-lg font-medium text-on-surface" placeholder="john.doe@example.com" type="email"/>
+</div>
+<div class="flex flex-col space-y-1">
+<label class="text-[10px] font-bold text-secondary uppercase tracking-widest">Mobile Number</label>
+<div class="flex gap-2">
+<span class="editorial-input text-lg font-medium text-on-surface-variant pt-2">+960</span>
+<input class="editorial-input flex-1 text-lg font-medium text-on-surface" placeholder="777 0000" type="tel"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Add-ons Selection (Bento Style) -->
+<div class="relative">
+<div class="flex items-center gap-3 mb-6">
+<span class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface flex items-center justify-center font-bold text-sm">3</span>
+<h3 class="font-headline text-2xl font-extrabold tracking-tight">Enhance Your Voyage</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Baggage Card -->
+<div class="col-span-1 md:col-span-2 group bg-surface-container-low rounded-3xl p-6 relative overflow-hidden transition-all hover:shadow-xl hover:shadow-primary/5">
+<div class="relative z-10">
+<span class="material-symbols-outlined text-primary text-4xl mb-4" data-weight="fill">luggage</span>
+<h4 class="font-headline text-xl font-bold mb-1">Additional Baggage</h4>
+<p class="text-sm text-on-surface-variant mb-6 max-w-[200px]">Going for a longer stay? Add up to 40kg of extra luggage.</p>
+<button class="bg-primary text-white text-xs font-bold py-3 px-6 rounded-full hover:opacity-90 transition-opacity">Add from $15.00</button>
+</div>
+<img class="absolute right-0 bottom-0 w-1/2 h-full object-cover opacity-20 group-hover:opacity-40 transition-opacity pointer-events-none" data-alt="neatly packed travel luggage and essentials on a clean neutral background with soft shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3GDwF5IJi0p4BwNJ7Oh8UX14iafHx3H0dMsRauPnlUHxaeEdGTOuagBxac-AIGRhe2QYQGpVbFonrO9RgTyHwpfBHbQ3P4FBXmGalZMXg7d5pxDJEIzRrsy8ALCJb_BQGXXBBoA0360wx102WsDve_BYc2rjl0ynVtbsFFZ7iphd4flC7_83tjoipxceBPefQzgFvQ-3JvJ44PQPMKNhaVdbDw2UeBFG54wuansALlSwAIbtBCEjw5shCJ-rQpBN6kqJYG9gNbA"/>
+</div>
+<!-- Meal Card -->
+<div class="col-span-1 bg-surface-container-highest rounded-3xl p-6 flex flex-col justify-between">
+<div>
+<span class="material-symbols-outlined text-secondary text-3xl mb-4">restaurant</span>
+<h4 class="font-headline text-xl font-bold mb-1">Island Bites</h4>
+<p class="text-xs text-on-surface-variant">Pre-book your tropical meal &amp; refreshments.</p>
+</div>
+<div class="mt-8 flex justify-between items-center">
+<span class="text-xs font-bold uppercase tracking-widest text-secondary">Pre-order</span>
+<span class="material-symbols-outlined text-primary">add_circle</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Action Footer (Glassmorphism) -->
+<div class="fixed bottom-0 left-0 w-full glass-nav px-6 py-6 border-none flex flex-col md:flex-row items-center justify-between gap-4 z-50">
+<div class="hidden md:flex flex-col">
+<span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Total Price</span>
+<div class="flex items-baseline gap-1">
+<span class="text-2xl font-headline font-extrabold text-on-surface">$85.00</span>
+<span class="text-xs text-on-surface-variant font-medium">/ person</span>
+</div>
+</div>
+<button class="w-full md:w-auto bg-gradient-to-r from-primary to-primary-container text-white px-12 py-5 rounded-full font-headline font-bold text-lg shadow-lg shadow-primary/20 active:scale-95 duration-150 transition-all flex items-center justify-center gap-3">
+            Continue to Add-Ons
+            <span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+<!-- Bottom Nav for Mobile (As per JSON Filter) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-end px-6 pb-6 pt-2 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl z-[60] rounded-t-[32px] shadow-[0_-4px_24px_rgba(0,0,0,0.04)] hidden">
+<!-- Suppressed as per Task-Focused screen rule -->
+</nav>
+</body></html>

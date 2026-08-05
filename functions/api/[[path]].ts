@@ -139,6 +139,23 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       );
     }
 
+    // Auth Login Endpoint
+    if (path === '/api/v1/auth/login' && request.method === 'POST') {
+      const { email, password } = await request.json();
+      const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?')
+        .bind(email.toLowerCase().trim())
+        .first();
+      if (!user || user.password_hash !== password) {
+        return new Response(JSON.stringify({ success: false, message: 'Invalid credentials' }), { headers, status: 401 });
+      }
+      const accessToken = crypto.randomUUID();
+      const refreshToken = crypto.randomUUID();
+      const cookie = `refreshToken=${refreshToken}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=2592000`;
+      return new Response(JSON.stringify({ success: true, accessToken, user: { id: user.id, name: user.name, email: user.email, role: user.role, savedPassengers: JSON.parse(user.saved_passengers || '[]') } }), {
+        headers: Object.assign(headers, { 'Set-Cookie': cookie })
+      });
+    }
+
     // 1.5. Lock Seats Endpoint
     if (path === '/api/v1/lock-seats' && request.method === 'POST') {
       // 1. Run expired check/cleanup first

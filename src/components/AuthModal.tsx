@@ -25,7 +25,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleSignIn = (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
@@ -35,7 +35,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose }) => {
       return;
     }
 
-    const res = login(email, password);
+    const res = await login(email, password);
     if (!res.success) {
       setError(res.message);
     } else {
@@ -43,7 +43,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
@@ -58,7 +58,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose }) => {
       return;
     }
 
-    const res = signup(name, email, password, role);
+    const res = await signup(name, email, password, role);
     if (!res.success) {
       setError(res.message);
     } else {

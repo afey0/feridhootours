@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error-container": "#ffdad6",
+                    "tertiary": "#5e5e5e",
+                    "on-secondary-fixed-variant": "#134e57",
+                    "inverse-surface": "#2f3131",
+                    "secondary-fixed-dim": "#9acfda",
+                    "tertiary-fixed-dim": "#c7c6c6",
+                    "surface-tint": "#006e2f",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-container": "#00d261",
+                    "primary": "#006e2f",
+                    "on-surface": "#1a1c1c",
+                    "error": "#ba1a1a",
+                    "on-error": "#ffffff",
+                    "surface-dim": "#dadada",
+                    "on-primary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "inverse-primary": "#2fe36f",
+                    "tertiary-fixed": "#e4e2e2",
+                    "on-background": "#1a1c1c",
+                    "on-tertiary": "#ffffff",
+                    "outline-variant": "#bbcbb9",
+                    "surface-container": "#efeeee",
+                    "on-tertiary-container": "#474747",
+                    "on-secondary-fixed": "#001f24",
+                    "on-primary-container": "#005322",
+                    "tertiary-container": "#b7b6b6",
+                    "inverse-on-surface": "#f1f0f0",
+                    "secondary-container": "#b3e9f3",
+                    "surface-container-highest": "#e3e2e2",
+                    "surface-bright": "#faf9f9",
+                    "surface": "#faf9f9",
+                    "primary-fixed-dim": "#2fe36f",
+                    "on-tertiary-fixed": "#1b1c1c",
+                    "outline": "#6c7b6b",
+                    "on-tertiary-fixed-variant": "#464747",
+                    "surface-container-low": "#f4f3f3",
+                    "on-secondary-container": "#356a73",
+                    "surface-container-high": "#e9e8e8",
+                    "on-primary-fixed-variant": "#005322",
+                    "background": "#faf9f9",
+                    "on-surface-variant": "#3c4a3c",
+                    "surface-variant": "#e3e2e2",
+                    "secondary": "#31666f",
+                    "on-primary-fixed": "#002109",
+                    "secondary-fixed": "#b6ebf6",
+                    "primary-fixed": "#66ff8e",
+                    "on-error-container": "#93000a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-effect {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.04)] h-16 flex justify-between items-center px-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-green-700 dark:text-green-400" data-icon="directions_boat">directions_boat</span>
+<span class="text-xl font-extrabold text-green-700 dark:text-green-400 tracking-tighter font-headline">Feridhoo Tours</span>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-stone-500 dark:text-stone-400 hover:opacity-80 transition-opacity font-headline font-bold text-sm" href="#">Search</a>
+<a class="text-green-700 dark:text-green-400 hover:opacity-80 transition-opacity font-headline font-bold text-sm" href="#">Trips</a>
+<a class="text-stone-500 dark:text-stone-400 hover:opacity-80 transition-opacity font-headline font-bold text-sm" href="#">Inbox</a>
+<a class="text-stone-500 dark:text-stone-400 hover:opacity-80 transition-opacity font-headline font-bold text-sm" href="#">Account</a>
+</div>
+<button class="material-symbols-outlined text-stone-500 md:hidden" data-icon="notifications">notifications</button>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-5xl mx-auto">
+<!-- Page Title & Toggle -->
+<div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h1 class="text-4xl font-headline font-extrabold tracking-tight text-on-surface">My Trips</h1>
+<p class="text-on-surface-variant mt-2 max-w-md">Manage your ocean crossings and view digital boarding passes.</p>
+</div>
+<div class="inline-flex p-1 bg-surface-container-low rounded-full">
+<button class="px-6 py-2 rounded-full bg-white shadow-sm text-sm font-semibold text-primary transition-all">Upcoming</button>
+<button class="px-6 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-all">Past</button>
+</div>
+</div>
+<!-- Upcoming Trips Section -->
+<div class="space-y-8">
+<!-- Active Ticket Card (Bento Style) -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Main Ticket -->
+<div class="lg:col-span-8 bg-white rounded-[32px] overflow-hidden shadow-[0_8px_32px_rgba(0,110,47,0.06)] flex flex-col">
+<div class="relative h-48">
+<img alt="Luxury boat on Maldivian waters" class="w-full h-full object-cover" data-alt="luxury speedboat cruising over turquoise Maldivian lagoon waters with white wake and tropical islands in the distant background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAV0JD-6rqP0HpQlQzCbZuc5oUwSsiGbbft8wjwnebvq_5EH0lZ6Xw2iNDXWHe3NVDAJmdJcqVcHoQh-qCpILvkIWRrQpMdxOknuWbaO3VDb5iS_cqDNHq7cO2kSN0NUrBJCsURnFoVIQ2BJ1dO3su9CSlBRvN20xO21BoQb4swzm9pqegcbDhKkmukqQz82y1gQLM53uZXqZuZbPsYmi9KWenAXOqIrfaxcdTUgZQ_L9yIry8scyDIYAyyBTEBioomMkCCVncUIA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-6 left-8 flex items-center gap-3">
+<div class="bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase">Confirmed</div>
+<h3 class="text-white font-headline font-bold text-xl">Ocean Pearl Express</h3>
+</div>
+</div>
+<div class="p-8 flex flex-col md:flex-row gap-8 justify-between items-center">
+<div class="flex-1 flex items-center justify-between w-full md:w-auto">
+<div class="text-center md:text-left">
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Departure</span>
+<div class="text-2xl font-headline font-extrabold mt-1">MLE</div>
+<div class="text-sm text-on-surface-variant">Male' City</div>
+</div>
+<div class="flex flex-col items-center px-4">
+<span class="material-symbols-outlined text-primary/40 text-3xl" data-icon="sailing">sailing</span>
+<div class="h-[2px] w-24 bg-surface-container-highest relative mt-2">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary"></div>
+</div>
+<span class="text-[10px] font-bold mt-2 text-primary">90 MINS</span>
+</div>
+<div class="text-center md:text-right">
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Arrival</span>
+<div class="text-2xl font-headline font-extrabold mt-1">FRD</div>
+<div class="text-sm text-on-surface-variant">Feridhoo</div>
+</div>
+</div>
+<div class="h-12 w-px bg-surface-container-highest hidden md:block"></div>
+<div class="flex flex-col items-center md:items-end">
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Boarding Time</span>
+<div class="text-2xl font-headline font-extrabold mt-1">10:30 AM</div>
+<div class="text-sm text-primary font-semibold">Dec 24, 2023</div>
+</div>
+</div>
+</div>
+<!-- Action / QR Card -->
+<div class="lg:col-span-4 bg-white rounded-[32px] shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex flex-col overflow-hidden border border-surface-container-highest">
+<div class="p-6 flex-1">
+<div class="flex justify-between items-start mb-6">
+<div>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Passenger</p>
+<h4 class="font-headline font-bold text-lg text-on-surface leading-tight">Ahmed Zaki</h4>
+</div>
+<div class="text-right">
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Status</p>
+<span class="text-xs font-bold text-primary">BOARDING</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Seat</p>
+<p class="font-headline font-bold text-on-surface">12A</p>
+</div>
+<div>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Jetty</p>
+<p class="font-headline font-bold text-on-surface">Gate 4</p>
+</div>
+</div>
+<div class="relative h-px w-full border-t border-dashed border-outline-variant/50 my-4">
+<div class="absolute -left-8 -top-2 w-4 h-4 rounded-full bg-surface"></div>
+<div class="absolute -right-8 -top-2 w-4 h-4 rounded-full bg-surface"></div>
+</div>
+<div class="flex flex-col items-center pt-2">
+<div class="bg-white p-2 border border-surface-container-highest rounded-xl mb-4">
+<div class="w-32 h-32 bg-stone-100 flex items-center justify-center relative overflow-hidden rounded-lg">
+<div class="grid grid-cols-4 grid-rows-4 gap-1">
+<div class="w-6 h-6 bg-stone-800"></div><div class="w-6 h-6 bg-stone-200"></div><div class="w-6 h-6 bg-stone-800"></div><div class="w-6 h-6 bg-stone-800"></div>
+<div class="w-6 h-6 bg-stone-200"></div><div class="w-6 h-6 bg-stone-800"></div><div class="w-6 h-6 bg-stone-200"></div><div class="w-6 h-6 bg-stone-200"></div>
+<div class="w-6 h-6 bg-stone-800"></div><div class="w-6 h-6 bg-stone-200"></div><div class="w-6 h-6 bg-stone-800"></div><div class="w-6 h-6 bg-stone-200"></div>
+<div class="w-6 h-6 bg-stone-800"></div><div class="w-6 h-6 bg-stone-800"></div><div class="w-6 h-6 bg-stone-200"></div><div class="w-6 h-6 bg-stone-800"></div>
+</div>
+</div>
+</div>
+<p class="text-[10px] text-on-surface-variant font-medium">Scan at boarding gate</p>
+</div>
+</div>
+<button class="w-full bg-surface-container-highest text-on-surface font-headline font-bold py-4 flex items-center justify-center gap-2 hover:bg-surface-container-high transition-colors">
+<span>View Full Ticket</span>
+<span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</section>
+<!-- Secondary Trip Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Return Trip Card -->
+<div class="bg-surface-container-low rounded-[28px] p-6 flex flex-col justify-between gap-6 hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="directions_boat">directions_boat</span>
+</div>
+<div>
+<h5 class="font-headline font-bold">Island Nomad</h5>
+<p class="text-xs text-on-surface-variant">Feridhoo → Male'</p>
+</div>
+</div>
+<div class="bg-white/50 px-3 py-1 rounded-full text-[10px] font-bold text-on-surface-variant">RESERVED</div>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<div class="text-lg font-headline font-extrabold">03:30 PM</div>
+<div class="text-xs text-on-surface-variant">Dec 28, 2023</div>
+</div>
+<button class="bg-white text-on-surface text-sm font-bold px-5 py-2.5 rounded-full active:scale-95 transition-transform">Details</button>
+</div>
+</div>
+<!-- Future Trip Placeholder -->
+<div class="bg-surface-container-low border-2 border-dashed border-outline-variant/30 rounded-[28px] p-6 flex flex-col items-center justify-center text-center gap-4">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</div>
+<div>
+<h5 class="font-headline font-bold text-on-surface-variant">Plan another escape</h5>
+<p class="text-xs text-on-surface-variant mt-1">Book boat transfers to other atolls.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: Past Trips (Subtle List) -->
+<div class="mt-16">
+<h2 class="text-xl font-headline font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="history">history</span>
+                Travel History
+            </h2>
+<div class="space-y-3">
+<!-- Past Trip Item -->
+<div class="bg-white p-5 rounded-2xl flex items-center justify-between group hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+</div>
+<div>
+<div class="font-bold text-sm">Feridhoo to Male'</div>
+<div class="text-xs text-on-surface-variant">Nov 12, 2023 • Blue Wave Ferry</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-sm font-medium text-on-surface-variant">$45.00</span>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:translate-x-1 transition-transform" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+<!-- Past Trip Item -->
+<div class="bg-white p-5 rounded-2xl flex items-center justify-between group hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+</div>
+<div>
+<div class="font-bold text-sm">Male' to Feridhoo</div>
+<div class="text-xs text-on-surface-variant">Nov 08, 2023 • Sea Breeze</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-sm font-medium text-on-surface-variant">$45.00</span>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:translate-x-1 transition-transform" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full rounded-t-[32px] z-50 pb-safe bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl shadow-[0_-4px_24px_rgba(0,0,0,0.06)] md:hidden">
+<div class="flex justify-around items-center h-20 w-full px-4">
+<div class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-5 py-1.5 hover:text-green-600 dark:hover:text-green-400 active:scale-90 transition-all duration-200 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[11px] mt-1">Search</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-green-100/50 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full px-5 py-1.5 transition-all active:scale-90 duration-200 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="sailing" style="font-variation-settings: 'FILL' 1;">sailing</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[11px] mt-1">Trips</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-5 py-1.5 hover:text-green-600 dark:hover:text-green-400 active:scale-90 transition-all duration-200 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[11px] mt-1">Inbox</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-5 py-1.5 hover:text-green-600 dark:hover:text-green-400 active:scale-90 transition-all duration-200 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold text-[11px] mt-1">Account</span>
+</div>
+</div>
+</nav>
+</body></html>

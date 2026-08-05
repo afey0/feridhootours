@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Feridhoo Tours - Select Your Seat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-tint": "#006e2f",
+                    "primary-fixed": "#66ff8e",
+                    "on-tertiary-container": "#474747",
+                    "on-secondary-fixed-variant": "#134e57",
+                    "surface-container-low": "#f4f3f3",
+                    "outline-variant": "#bbcbb9",
+                    "primary-fixed-dim": "#2fe36f",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "secondary-container": "#b3e9f3",
+                    "secondary": "#31666f",
+                    "on-primary-fixed-variant": "#005322",
+                    "surface-variant": "#e3e2e2",
+                    "on-primary-fixed": "#002109",
+                    "on-surface-variant": "#3c4a3c",
+                    "error-container": "#ffdad6",
+                    "on-background": "#1a1c1c",
+                    "on-tertiary-fixed": "#1b1c1c",
+                    "on-primary": "#ffffff",
+                    "primary-container": "#00d261",
+                    "primary": "#006e2f",
+                    "error": "#ba1a1a",
+                    "tertiary-container": "#b7b6b6",
+                    "background": "#faf9f9",
+                    "surface-container-highest": "#e3e2e2",
+                    "tertiary-fixed-dim": "#c7c6c6",
+                    "on-secondary-container": "#356a73",
+                    "secondary-fixed": "#b6ebf6",
+                    "on-surface": "#1a1c1c",
+                    "inverse-on-surface": "#f1f0f0",
+                    "on-tertiary-fixed-variant": "#464747",
+                    "tertiary-fixed": "#e4e2e2",
+                    "on-error-container": "#93000a",
+                    "on-secondary-fixed": "#001f24",
+                    "surface-bright": "#faf9f9",
+                    "inverse-primary": "#2fe36f",
+                    "surface": "#faf9f9",
+                    "tertiary": "#5e5e5e",
+                    "surface-container-high": "#e9e8e8",
+                    "surface-container": "#efeeee",
+                    "on-primary-container": "#005322",
+                    "secondary-fixed-dim": "#9acfda",
+                    "on-tertiary": "#ffffff",
+                    "outline": "#6c7b6b",
+                    "surface-dim": "#dadada",
+                    "inverse-surface": "#2f3131"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .seat-occupied { font-variation-settings: 'FILL' 1; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-surface selection:bg-primary-container/30">
+<!-- Top Navigation Anchor -->
+<header class="w-full top-0 sticky z-50 bg-[#FAF9F9] dark:bg-gray-900 flex items-center justify-between px-6 py-4">
+<div class="flex items-center gap-4">
+<button class="hover:opacity-80 transition-opacity scale-95 duration-150 text-[#006E2F] dark:text-[#00D261]">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-['Plus_Jakarta_SANS'] text-2xl font-bold tracking-tight text-[#006E2F] dark:text-[#00D261]">Feridhoo Tours</h1>
+</div>
+<button class="hover:opacity-80 transition-opacity scale-95 duration-150 text-[#006E2F] dark:text-[#00D261]">
+<span class="material-symbols-outlined" data-icon="sailing">sailing</span>
+</button>
+</header>
+<main class="max-w-2xl mx-auto px-6 pt-4 pb-40">
+<!-- Flight Info / Trip Context Section -->
+<section class="mb-10">
+<div class="flex items-end justify-between mb-2">
+<h2 class="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Select Seat</h2>
+<span class="font-label text-xs font-bold uppercase tracking-widest text-secondary">Trip #MT204</span>
+</div>
+<p class="text-on-surface-variant body-md max-w-xs">Male' City to Feridhoo Island. Choose your preferred deck position.</p>
+</section>
+<!-- Legend Bento Grid -->
+<section class="grid grid-cols-2 gap-4 mb-12">
+<div class="bg-surface-container-low rounded-xl p-4 flex items-center gap-3">
+<div class="w-8 h-8 rounded-md bg-primary-container flex items-center justify-center shadow-lg shadow-primary-container/20">
+<span class="material-symbols-outlined text-white text-sm" style="font-variation-settings: 'FILL' 1;">event_seat</span>
+</div>
+<div>
+<p class="font-label text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Selected</p>
+<p class="font-headline text-sm font-bold text-primary">Your Choice</p>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-xl p-4 flex items-center gap-3">
+<div class="w-8 h-8 rounded-md bg-white border border-outline-variant/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">event_seat</span>
+</div>
+<div>
+<p class="font-label text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Available</p>
+<p class="font-headline text-sm font-bold text-on-surface">MVR 150.00</p>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-xl p-4 flex items-center gap-3">
+<div class="w-8 h-8 rounded-md bg-surface-variant flex items-center justify-center opacity-50">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" style="font-variation-settings: 'FILL' 1;">event_seat</span>
+</div>
+<div>
+<p class="font-label text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Occupied</p>
+<p class="font-headline text-sm font-bold text-on-surface">Reserved</p>
+</div>
+</div>
+<div class="bg-secondary-container rounded-xl p-4 flex items-center gap-3">
+<div class="w-8 h-8 rounded-md bg-secondary flex items-center justify-center shadow-lg shadow-secondary/20">
+<span class="material-symbols-outlined text-white text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div>
+<p class="font-label text-[10px] font-bold uppercase tracking-wider text-on-secondary-container">Premium</p>
+<p class="font-headline text-sm font-bold text-on-secondary-container">MVR 350.00</p>
+</div>
+</div>
+</section>
+<!-- Boat Seating Map Shell -->
+<section class="relative bg-surface-container-lowest rounded-[48px] p-8 md:p-12 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.04)] overflow-hidden">
+<!-- Boat Hull Visualization Decorative Elements -->
+<div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-secondary/5 to-transparent rounded-t-[100px]"></div>
+<div class="flex flex-col items-center">
+<div class="mb-12 text-center relative z-10">
+<span class="material-symbols-outlined text-secondary/30 text-5xl mb-2" data-icon="sailing">sailing</span>
+<p class="font-label text-[10px] font-bold uppercase tracking-[0.2em] text-secondary">Forward Bow</p>
+</div>
+<!-- Seat Grid -->
+<div class="grid grid-cols-4 gap-x-6 gap-y-8 w-full max-w-xs relative z-10">
+<!-- Row 1 -->
+<button class="w-full aspect-square rounded-lg bg-surface-variant flex items-center justify-center opacity-40 cursor-not-allowed">
+<span class="material-symbols-outlined seat-occupied">event_seat</span>
+</button>
+<button class="w-full aspect-square rounded-lg bg-white border border-outline-variant/20 flex items-center justify-center hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary">event_seat</span>
+</button>
+<div class="w-full"></div> <!-- Aisle -->
+<button class="w-full aspect-square rounded-lg bg-white border border-outline-variant/20 flex items-center justify-center hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary">event_seat</span>
+</button>
+<!-- Row 2 -->
+<button class="w-full aspect-square rounded-lg bg-white border border-outline-variant/20 flex items-center justify-center hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary">event_seat</span>
+</button>
+<button class="w-full aspect-square rounded-lg bg-primary-container shadow-xl shadow-primary-container/40 flex items-center justify-center scale-110">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">event_seat</span>
+</button>
+<div class="w-full"></div> <!-- Aisle -->
+<button class="w-full aspect-square rounded-lg bg-surface-variant flex items-center justify-center opacity-40 cursor-not-allowed">
+<span class="material-symbols-outlined seat-occupied">event_seat</span>
+</button>
+<!-- Row 3: Premium Row -->
+<button class="w-full aspect-square rounded-lg bg-secondary flex items-center justify-center shadow-md shadow-secondary/20 hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-white">event_seat</span>
+</button>
+<button class="w-full aspect-square rounded-lg bg-secondary flex items-center justify-center shadow-md shadow-secondary/20 hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-white">event_seat</span>
+</button>
+<div class="w-full"></div> <!-- Aisle -->
+<button class="w-full aspect-square rounded-lg bg-secondary flex items-center justify-center shadow-md shadow-secondary/20 hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-white">event_seat</span>
+</button>
+<!-- Row 4 -->
+<button class="w-full aspect-square rounded-lg bg-white border border-outline-variant/20 flex items-center justify-center hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary">event_seat</span>
+</button>
+<button class="w-full aspect-square rounded-lg bg-white border border-outline-variant/20 flex items-center justify-center hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary">event_seat</span>
+</button>
+<div class="w-full"></div> <!-- Aisle -->
+<button class="w-full aspect-square rounded-lg bg-white border border-outline-variant/20 flex items-center justify-center hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary">event_seat</span>
+</button>
+<!-- Row 5 -->
+<button class="w-full aspect-square rounded-lg bg-white border border-outline-variant/20 flex items-center justify-center hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary">event_seat</span>
+</button>
+<button class="w-full aspect-square rounded-lg bg-white border border-outline-variant/20 flex items-center justify-center hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-primary">event_seat</span>
+</button>
+<div class="w-full"></div> <!-- Aisle -->
+<button class="w-full aspect-square rounded-lg bg-surface-variant flex items-center justify-center opacity-40 cursor-not-allowed">
+<span class="material-symbols-outlined seat-occupied">event_seat</span>
+</button>
+</div>
+<div class="mt-12 text-center opacity-20">
+<p class="font-label text-[10px] font-bold uppercase tracking-[0.2em] text-secondary">Aft Stern / Engine</p>
+</div>
+</div>
+</section>
+<!-- Extra Info Tip -->
+<div class="mt-8 p-6 bg-secondary-container/30 rounded-2xl flex gap-4 items-start border-l-4 border-secondary">
+<span class="material-symbols-outlined text-secondary" data-icon="lightbulb">lightbulb</span>
+<div>
+<p class="font-headline text-sm font-bold text-on-secondary-container">Local Tip</p>
+<p class="text-sm text-on-secondary-container/80 leading-relaxed">The bow (front) seats provide the best breeze, but can be slightly more bumpy in high tide.</p>
+</div>
+</div>
+</main>
+<!-- Sticky Footer CTA -->
+<footer class="fixed bottom-0 left-0 w-full z-[60] bg-white/80 backdrop-blur-2xl px-6 pb-10 pt-6 rounded-t-[32px] shadow-[0_-8px_32px_rgba(0,0,0,0.06)] border-t border-white/40">
+<div class="max-w-2xl mx-auto flex items-center justify-between">
+<div>
+<p class="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Seat 2B Selected</p>
+<div class="flex items-baseline gap-1">
+<span class="font-headline text-2xl font-black text-on-surface">MVR 150.00</span>
+<span class="text-[10px] text-on-surface-variant font-medium">/ person</span>
+</div>
+</div>
+<button class="bg-gradient-to-r from-primary to-primary-container text-white font-headline font-bold px-10 py-4 rounded-full shadow-xl shadow-primary-container/30 active:scale-95 transition-all duration-200">
+                Next
+            </button>
+</div>
+</footer>
+<!-- Bottom Navigation Component (Only shown on top-level, hidden for focused task) -->
+<!-- Suppression: This is a focused Task-Flow page (Seat Selection), suppressing Global BottomNavBar to prioritize focus. -->
+</body></html>
