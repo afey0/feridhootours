@@ -7,6 +7,7 @@ import { createAuditEntry } from '../services/auditLogger';
 import { broadcastRealtimeEvent, subscribeRealtimeEvents, fetchInitialDatabaseState } from '../services/dbClient';
 
 import { calculateRefund } from '../utils/refundPolicy';
+import { syncUsersFromDatabase } from './useAuthStore';
 
 // Storage utility helpers
 const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
@@ -283,6 +284,7 @@ export const usePlatformStore = () => {
         if (dbData.bookings) globalBookings = dbData.bookings;
         if (dbData.auditLogs) globalAuditLogs = dbData.auditLogs;
         if (dbData.locations && dbData.locations.length > 0) globalLocations = dbData.locations;
+        if (dbData.users) syncUsersFromDatabase(dbData.users);
         
         // Propagate state changes to listeners
         const update = Array.from(listeners)[0];

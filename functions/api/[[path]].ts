@@ -110,7 +110,14 @@ export const onRequest: PagesFunction<Env> = async (context) => {
               createdAt: b.created_at
             })),
             locations: jetties.results || [],
-            users: users.results || [],
+            users: (users.results || []).map((u: any) => ({
+              id: u.id,
+              name: u.name,
+              email: u.email,
+              role: u.role,
+              password: u.password_hash,
+              savedPassengers: JSON.parse(u.saved_passengers || '[]')
+            })),
             auditLogs: (auditLogs.results || []).map((a: any) => ({
               id: a.id,
               action: a.action,
@@ -360,6 +367,28 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         await env.DB.prepare(
           `UPDATE schedules SET available_seats = CASE WHEN available_seats - ? < 0 THEN 0 ELSE available_seats - ? END WHERE id = ?`
         ).bind(seatIds.length, seatIds.length, scheduleId).run();
+      } else if (type === 'USER_CREATED' || type === 'USER_UPDATED') {
+        const u = payload;
+        await env.DB.prepare(
+          `INSERT INTO users (id, name, email, password_hash, role, saved_passengers)
+           VALUES (?, ?, ?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET
+           name = excluded.name,
+           email = excluded.email,
+           password_hash = excluded.password_hash,
+           role = excluded.role,
+           saved_passengers = excluded.saved_passengers,
+           updated_at = CURRENT_TIMESTAMP`
+        ).bind(
+          u.id,
+          u.name,
+          u.email,
+          u.password || 'password123',
+          u.role,
+          JSON.stringify(u.savedPassengers || [])
+        ).run();
+      } else if (type === 'USER_DELETED') {
+        await env.DB.prepare('DELETE FROM users WHERE id = ?').bind(payload.userId || payload.id).run();
       }
 
       return new Response(JSON.stringify({ success: true, message: 'Cloudflare D1 updated' }), { headers });

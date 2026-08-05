@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { triggerEmail, recordAuditLog } from './usePlatformStore';
+import { broadcastRealtimeEvent } from '../services/dbClient';
 
 
 
@@ -118,6 +119,36 @@ const notifyAuthListeners = () => {
   authListeners.forEach(fn => fn());
 };
 
+export const syncUsersFromDatabase = (dbUsers: any[]) => {
+  globalUsers = dbUsers.map(dbUser => {
+    const local = globalUsers.find(u => u.id === dbUser.id);
+    return {
+      id: dbUser.id,
+      name: dbUser.name,
+      email: dbUser.email,
+      role: dbUser.role,
+      password: dbUser.password || local?.password || 'password123',
+      savedPassengers: Array.isArray(dbUser.savedPassengers) 
+        ? dbUser.savedPassengers 
+        : JSON.parse(dbUser.savedPassengers || '[]')
+    };
+  });
+  
+  if (globalCurrentUser) {
+    const updated = globalUsers.find(u => u.id === globalCurrentUser!.id);
+    if (updated) {
+      globalCurrentUser = {
+        id: updated.id,
+        name: updated.name,
+        role: updated.role,
+        email: updated.email,
+        savedPassengers: updated.savedPassengers
+      };
+    }
+  }
+  notifyAuthListeners();
+};
+
 export const resetAuthStore = () => {
   globalUsers = JSON.parse(JSON.stringify(INITIAL_USERS));
   globalCurrentUser = null;
@@ -201,6 +232,7 @@ export const useAuthStore = () => {
     );
 
     notifyAuthListeners();
+    broadcastRealtimeEvent('USER_CREATED', newUser);
     setAuthModalOpen(false);
     return { success: true, message: 'Account registered successfully.' };
   };
@@ -246,6 +278,10 @@ export const useAuthStore = () => {
       }
     }
     notifyAuthListeners();
+    const updatedUser = globalUsers.find(u => u.id === userId);
+    if (updatedUser) {
+      broadcastRealtimeEvent('USER_UPDATED', updatedUser);
+    }
   };
 
   const removeSavedPassenger = (userId: string, idNumber: string) => {
@@ -266,6 +302,10 @@ export const useAuthStore = () => {
       };
     }
     notifyAuthListeners();
+    const updatedUser = globalUsers.find(u => u.id === userId);
+    if (updatedUser) {
+      broadcastRealtimeEvent('USER_UPDATED', updatedUser);
+    }
   };
 
   const updateSavedPassengers = (userId: string, passengerList: SavedPassenger[]) => {
@@ -286,6 +326,10 @@ export const useAuthStore = () => {
       };
     }
     notifyAuthListeners();
+    const updatedUser = globalUsers.find(u => u.id === userId);
+    if (updatedUser) {
+      broadcastRealtimeEvent('USER_UPDATED', updatedUser);
+    }
   };
 
   const updateProfile = (userId: string, name: string, email: string): { success: boolean; message: string } => {
@@ -309,6 +353,10 @@ export const useAuthStore = () => {
       };
     }
     notifyAuthListeners();
+    const updatedUser = globalUsers.find(u => u.id === userId);
+    if (updatedUser) {
+      broadcastRealtimeEvent('USER_UPDATED', updatedUser);
+    }
     return { success: true, message: 'Profile updated successfully.' };
   };
 
@@ -323,6 +371,10 @@ export const useAuthStore = () => {
       return u;
     });
     notifyAuthListeners();
+    const updatedUser = globalUsers.find(u => u.id === userId);
+    if (updatedUser) {
+      broadcastRealtimeEvent('USER_UPDATED', updatedUser);
+    }
     return { success: true, message: 'Password changed successfully.' };
   };
 
@@ -353,6 +405,7 @@ export const useAuthStore = () => {
     } catch (e) {}
 
     notifyAuthListeners();
+    broadcastRealtimeEvent('USER_CREATED', newUser);
     return { success: true, message: 'User added successfully.' };
   };
 
@@ -373,6 +426,7 @@ export const useAuthStore = () => {
     } catch (e) {}
 
     notifyAuthListeners();
+    broadcastRealtimeEvent('USER_DELETED', { userId });
     return { success: true, message: 'User deleted successfully.' };
   };
 
@@ -416,6 +470,9 @@ export const useAuthStore = () => {
     } catch (e) {}
 
     notifyAuthListeners();
+    if (updatedUser) {
+      broadcastRealtimeEvent('USER_UPDATED', updatedUser);
+    }
     return { success: true, message: 'User updated successfully.' };
   };
 

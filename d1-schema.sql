@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   role TEXT NOT NULL DEFAULT 'passenger',
   phone TEXT,
   agency_name TEXT,
+  saved_passengers TEXT DEFAULT '[]',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
