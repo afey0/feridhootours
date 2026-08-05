@@ -22,7 +22,7 @@ export const useBookingFlow = () => {
   const [departureDate, setDepartureDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
 
-  const { addBooking, lockSeatsCheckout, adminUnlockSeats, showAlert } = usePlatformStore();
+  const { addBooking, lockSeatsCheckout, adminUnlockSeats, showAlert, refreshDatabaseState } = usePlatformStore();
 
   const reserveSeats = async (user?: any) => {
     if (selectedSeats.length !== passengerCount) return; // Strict validation
@@ -77,6 +77,7 @@ export const useBookingFlow = () => {
           'Double Booking Conflict',
           'error'
         );
+        refreshDatabaseState(); // Force-reload the store database state
         return;
       }
 

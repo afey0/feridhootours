@@ -275,6 +275,22 @@ export const usePlatformStore = () => {
     });
   };
 
+  const refreshDatabaseState = () => {
+    fetchInitialDatabaseState().then(dbData => {
+      if (dbData) {
+        if (dbData.vessels && dbData.vessels.length > 0) globalVessels = dbData.vessels;
+        if (dbData.schedules && dbData.schedules.length > 0) globalSchedules = dbData.schedules;
+        if (dbData.bookings) globalBookings = dbData.bookings;
+        if (dbData.auditLogs) globalAuditLogs = dbData.auditLogs;
+        if (dbData.locations && dbData.locations.length > 0) globalLocations = dbData.locations;
+        
+        // Propagate state changes to listeners
+        const update = Array.from(listeners)[0];
+        if (update) update();
+      }
+    });
+  };
+
   useEffect(() => {
     const update = () => {
       syncDecksWithBookings();
@@ -290,30 +306,21 @@ export const usePlatformStore = () => {
     };
     listeners.add(update);
 
-    // Load initial database snapshot from 192.168.100.71 PostgreSQL server
-    fetchInitialDatabaseState().then(dbData => {
-      if (dbData) {
-        if (dbData.vessels && dbData.vessels.length > 0) globalVessels = dbData.vessels;
-        if (dbData.schedules && dbData.schedules.length > 0) globalSchedules = dbData.schedules;
-        if (dbData.bookings) globalBookings = dbData.bookings;
-        if (dbData.auditLogs) globalAuditLogs = dbData.auditLogs;
-        if (dbData.locations && dbData.locations.length > 0) globalLocations = dbData.locations;
-        update();
-      }
-    });
+    // Initial database fetch
+    refreshDatabaseState();
 
     // Subscribe to cross-session realtime events
-
     const unsubscribe = subscribeRealtimeEvents((type, _payload) => {
-      if (type === 'STATE_SYNC' || type.startsWith('BOOKING_') || type.startsWith('SCHEDULE_') || type.startsWith('VESSEL_')) {
-        update();
+      if (type === 'STATE_SYNC' || type.startsWith('BOOKING_') || type.startsWith('SCHEDULE_') || type.startsWith('VESSEL_') || type.startsWith('SEATS_')) {
+        refreshDatabaseState();
       }
     });
 
-    // Run hold check on mount and periodically every 5 seconds
+    // Run hold check on mount and periodically poll the D1 database every 5 seconds for cross-session updates
     checkExpiredHolds();
     const intervalId = setInterval(() => {
       checkExpiredHolds();
+      refreshDatabaseState();
     }, 5000);
 
     return () => { 
@@ -942,6 +949,7 @@ const getCurrentAuthUser = (): any => {
     clearEmailLogs,
     updateSeatClass,
     checkExpiredHolds,
+    refreshDatabaseState,
     resetPlatformStore
   };
 };
